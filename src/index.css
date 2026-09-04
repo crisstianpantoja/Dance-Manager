@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand: #9542df;
+  --color-brand-light: #ba84ea;
+  --color-brand-dark: #682e9c;
+
+  --color-background: #0a0a0a;
+  --color-surface: #17151c;
+  --color-surface-hover: #211e2c;
+
+  --color-text: #faf9fc;
+  --color-text-muted: #a39eba;
+
+  --color-success: #37d9a6;
+  --color-warning: #f5b841;
+  --color-error: #f05576;
+
+  --radius-control: 0.75rem;
+}
+
+@layer base {
+  * {
+    @apply border-white/10;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-text font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
+  }
+}
