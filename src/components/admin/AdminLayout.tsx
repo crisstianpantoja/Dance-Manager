@@ -7,6 +7,8 @@ import { useAuth } from "@/context/AuthContext"
 const TABS = [
   { to: "/admin/alumnos", label: "Alumnos" },
   { to: "/admin/academias", label: "Academias" },
+  { to: "/admin/planes", label: "Planes" },
+  { to: "/admin/pagos", label: "Pagos" },
 ]
 
 export function AdminLayout() {

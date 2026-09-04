@@ -5,6 +5,8 @@ import { AdminLayout } from "@/components/admin/AdminLayout"
 import { AuthProvider } from "@/context/AuthContext"
 import { useAuth } from "@/context/AuthContext"
 import { AcademiesPage } from "@/pages/admin/AcademiesPage"
+import { PaymentsPage } from "@/pages/admin/PaymentsPage"
+import { PlansPage } from "@/pages/admin/PlansPage"
 import { StudentsPage } from "@/pages/admin/StudentsPage"
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage"
 import { LoginPage } from "@/pages/LoginPage"
@@ -49,6 +51,8 @@ function App() {
           <Route index element={<Navigate to="alumnos" replace />} />
           <Route path="alumnos" element={<StudentsPage />} />
           <Route path="academias" element={<AcademiesPage />} />
+          <Route path="planes" element={<PlansPage />} />
+          <Route path="pagos" element={<PaymentsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
