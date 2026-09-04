@@ -1,0 +1,124 @@
+// Edge Function: crea o elimina el usuario de Auth (+ perfil) de un alumno.
+// Necesita la service role key, por eso no puede hacerse desde el cliente.
+// Deploy: supabase functions deploy admin-students
+
+import { createClient } from "jsr:@supabase/supabase-js@2"
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!
+const AUTH_EMAIL_DOMAIN = "dance.local"
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+}
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  })
+}
+
+interface CreatePayload {
+  action: "create"
+  documento: string
+  nombre: string
+  contacto?: string
+  foto?: string
+  tipo: "academia" | "privada" | "ambas"
+  nivel: "Básica" | "Intermedia" | "Avanzada"
+  academia_id?: string | null
+  password?: string
+}
+
+interface DeletePayload {
+  action: "delete"
+  id: string
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
+
+  const authHeader = req.headers.get("Authorization")
+  if (!authHeader) return json({ error: "No autorizado." }, 401)
+
+  const callerClient = createClient(SUPABASE_URL, ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  })
+
+  const {
+    data: { user: caller },
+  } = await callerClient.auth.getUser()
+
+  if (!caller) return json({ error: "No autorizado." }, 401)
+
+  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+
+  const { data: callerProfile } = await admin
+    .from("profiles")
+    .select("rol")
+    .eq("id", caller.id)
+    .single()
+
+  if (callerProfile?.rol !== "admin") {
+    return json({ error: "Solo un administrador puede realizar esta acción." }, 403)
+  }
+
+  const payload: CreatePayload | DeletePayload = await req.json()
+
+  if (payload.action === "create") {
+    const email = `${payload.documento.trim()}@${AUTH_EMAIL_DOMAIN}`
+
+    const { data: nuevoUsuario, error: errorAuth } = await admin.auth.admin.createUser({
+      email,
+      password: payload.password || payload.documento.trim(),
+      email_confirm: true,
+    })
+
+    if (errorAuth || !nuevoUsuario.user) {
+      return json({ error: errorAuth?.message ?? "No se pudo crear el usuario." }, 400)
+    }
+
+    const userId = nuevoUsuario.user.id
+
+    const { error: errorPerfil } = await admin.from("profiles").insert({
+      id: userId,
+      documento: payload.documento.trim(),
+      nombre: payload.nombre,
+      rol: "alumno",
+    })
+
+    if (errorPerfil) {
+      await admin.auth.admin.deleteUser(userId)
+      return json({ error: errorPerfil.message }, 400)
+    }
+
+    const { error: errorAlumno } = await admin.from("students").insert({
+      id: userId,
+      nombre: payload.nombre,
+      documento: payload.documento.trim(),
+      contacto: payload.contacto ?? null,
+      foto: payload.foto ?? null,
+      tipo: payload.tipo,
+      nivel: payload.nivel,
+      academia_id: payload.academia_id ?? null,
+    })
+
+    if (errorAlumno) {
+      await admin.auth.admin.deleteUser(userId)
+      return json({ error: errorAlumno.message }, 400)
+    }
+
+    return json({ id: userId })
+  }
+
+  if (payload.action === "delete") {
+    const { error } = await admin.auth.admin.deleteUser(payload.id)
+    if (error) return json({ error: error.message }, 400)
+    return json({ ok: true })
+  }
+
+  return json({ error: "Acción inválida." }, 400)
+})
