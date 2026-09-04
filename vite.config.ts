@@ -11,4 +11,18 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (/react-router|\/react\/|\/react-dom\//.test(id)) return 'vendor-react'
+          if (id.includes('@supabase')) return 'vendor-supabase'
+          if (id.includes('qr-scanner') || id.includes('barcode-detector') || id.includes('qrcode.react'))
+            return 'vendor-qr'
+          return 'vendor'
+        },
+      },
+    },
+  },
 })

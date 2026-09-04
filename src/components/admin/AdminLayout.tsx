@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/context/AuthContext"
 
 const TABS = [
+  { to: "/admin/asistencia", label: "Asistencia" },
   { to: "/admin/alumnos", label: "Alumnos" },
   { to: "/admin/academias", label: "Academias" },
   { to: "/admin/planes", label: "Planes" },

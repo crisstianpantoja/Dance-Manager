@@ -5,6 +5,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout"
 import { AuthProvider } from "@/context/AuthContext"
 import { useAuth } from "@/context/AuthContext"
 import { AcademiesPage } from "@/pages/admin/AcademiesPage"
+import { AttendancePage } from "@/pages/admin/AttendancePage"
 import { PaymentsPage } from "@/pages/admin/PaymentsPage"
 import { PlansPage } from "@/pages/admin/PlansPage"
 import { StudentsPage } from "@/pages/admin/StudentsPage"
@@ -17,7 +18,7 @@ function InicioSegunRol() {
   const { profile } = useAuth()
 
   if (profile?.rol === "admin") {
-    return <Navigate to="/admin/alumnos" replace />
+    return <Navigate to="/admin/asistencia" replace />
   }
 
   return <PortalPlaceholder />
@@ -48,7 +49,8 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="alumnos" replace />} />
+          <Route index element={<Navigate to="asistencia" replace />} />
+          <Route path="asistencia" element={<AttendancePage />} />
           <Route path="alumnos" element={<StudentsPage />} />
           <Route path="academias" element={<AcademiesPage />} />
           <Route path="planes" element={<PlansPage />} />
