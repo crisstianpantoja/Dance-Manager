@@ -15,17 +15,17 @@ export interface CarnetTheme {
 }
 
 export const THEMES = {
+  purple: {
+    bg: "linear-gradient(160deg, #1A0B2E 0%, #4B1D52 50%, #11071F 100%)",
+    rgb: "149,66,223",
+    hex: "#9542DF",
+    name: "Morado",
+  },
   magenta: {
     bg: "linear-gradient(160deg, #0f0c29 0%, #302b63 50%, #24243e 100%)",
     rgb: "247,37,133",
     hex: "#F72585",
     name: "Magenta",
-  },
-  purple: {
-    bg: "linear-gradient(160deg, #1A0B2E 0%, #4B1D52 50%, #11071F 100%)",
-    rgb: "176,132,245",
-    hex: "#B084F5",
-    name: "Morado",
   },
   cyan: {
     bg: "linear-gradient(160deg, #021B1A 0%, #064E4D 50%, #010F0E 100%)",
@@ -44,7 +44,7 @@ export const THEMES = {
 export type ThemeId = keyof typeof THEMES
 
 export function temaDeCarnet(id?: string | null): CarnetTheme {
-  return THEMES[(id || "") as ThemeId] || THEMES.magenta
+  return THEMES[(id || "") as ThemeId] || THEMES.purple
 }
 
 export interface CarnetDatos {

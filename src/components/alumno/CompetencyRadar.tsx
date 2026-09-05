@@ -30,8 +30,8 @@ export function CompetencyRadar({ evaluacion }: CompetencyRadarProps) {
           <PolarRadiusAxis domain={[0, 10]} tick={false} axisLine={false} />
           <Radar
             dataKey="valor"
-            stroke="#f72585"
-            fill="#f72585"
+            stroke="#9542df"
+            fill="#9542df"
             fillOpacity={0.35}
             strokeWidth={2}
           />
