@@ -21,6 +21,7 @@ import { generarOcurrencias } from "@/lib/occurrences"
 import { supabase } from "@/lib/supabase"
 import type { Academy } from "@/types/academy"
 import { DIAS_SEMANA, type ClassSeries } from "@/types/classSeries"
+import type { Teacher } from "@/types/teacher"
 
 const SIN_ACADEMIA = "sin-academia"
 
@@ -29,6 +30,7 @@ interface ClassSeriesFormDialogProps {
   onOpenChange: (open: boolean) => void
   serie: ClassSeries | null
   academias: Academy[]
+  profesores: Teacher[]
   onSaved: () => void
 }
 
@@ -41,6 +43,7 @@ export function ClassSeriesFormDialog({
   onOpenChange,
   serie,
   academias,
+  profesores,
   onSaved,
 }: ClassSeriesFormDialogProps) {
   const [titulo, setTitulo] = useState("")
@@ -53,6 +56,7 @@ export function ClassSeriesFormDialog({
   const [lugar, setLugar] = useState("")
   const [vigenteDesde, setVigenteDesde] = useState(hoyISO())
   const [vigenteHasta, setVigenteHasta] = useState("")
+  const [profesorIds, setProfesorIds] = useState<string[]>([])
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -69,8 +73,15 @@ export function ClassSeriesFormDialog({
     setLugar(serie?.lugar ?? "")
     setVigenteDesde(serie?.vigente_desde ?? hoyISO())
     setVigenteHasta(serie?.vigente_hasta ?? "")
+    setProfesorIds(serie?.profesor_ids ?? [])
     setError(null)
   }, [open, serie])
+
+  function toggleProfesor(id: string) {
+    setProfesorIds((actual) =>
+      actual.includes(id) ? actual.filter((p) => p !== id) : [...actual, id],
+    )
+  }
 
   async function handleSubmit(evento: FormEvent) {
     evento.preventDefault()
@@ -88,6 +99,7 @@ export function ClassSeriesFormDialog({
       lugar: lugar || null,
       vigente_desde: vigenteDesde,
       vigente_hasta: vigenteHasta || null,
+      profesor_ids: profesorIds,
     }
 
     try {
@@ -105,7 +117,7 @@ export function ClassSeriesFormDialog({
       } else {
         const { data, error } = await supabase
           .from("class_series")
-          .insert({ ...datos, profesor_ids: [] })
+          .insert(datos)
           .select()
           .single()
         if (error) throw error
@@ -252,6 +264,32 @@ export function ClassSeriesFormDialog({
                 onChange={(e) => setVigenteHasta(e.target.value)}
               />
             </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Profesores</Label>
+            {profesores.length === 0 ? (
+              <p className="text-sm text-text-muted">
+                Aún no hay profesores registrados.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-1 rounded-control border border-white/10 p-2">
+                {profesores.map((profesor) => (
+                  <label
+                    key={profesor.id}
+                    className="flex items-center gap-2 rounded-control px-2 py-1.5 text-sm text-text hover:bg-surface-hover"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={profesorIds.includes(profesor.id)}
+                      onChange={() => toggleProfesor(profesor.id)}
+                      className="size-4 accent-brand"
+                    />
+                    {profesor.nombre}
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           {error && (

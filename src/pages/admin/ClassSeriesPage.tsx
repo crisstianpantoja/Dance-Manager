@@ -15,10 +15,12 @@ import { generarOcurrencias } from "@/lib/occurrences"
 import { supabase } from "@/lib/supabase"
 import type { Academy } from "@/types/academy"
 import { DIAS_SEMANA, type ClassSeries } from "@/types/classSeries"
+import type { Teacher } from "@/types/teacher"
 
 export function ClassSeriesPage() {
   const [series, setSeries] = useState<ClassSeries[]>([])
   const [academias, setAcademias] = useState<Academy[]>([])
+  const [profesores, setProfesores] = useState<Teacher[]>([])
   const [cargando, setCargando] = useState(true)
   const [dialogoAbierto, setDialogoAbierto] = useState(false)
   const [serieEditando, setSerieEditando] = useState<ClassSeries | null>(null)
@@ -26,12 +28,15 @@ export function ClassSeriesPage() {
 
   async function cargarDatos() {
     setCargando(true)
-    const [{ data: seriesData }, { data: academiasData }] = await Promise.all([
-      supabase.from("class_series").select("*").order("dia_semana").order("hora"),
-      supabase.from("academies").select("*").order("nombre"),
-    ])
+    const [{ data: seriesData }, { data: academiasData }, { data: profesoresData }] =
+      await Promise.all([
+        supabase.from("class_series").select("*").order("dia_semana").order("hora"),
+        supabase.from("academies").select("*").order("nombre"),
+        supabase.from("teachers").select("*").order("nombre"),
+      ])
     setSeries((seriesData as ClassSeries[]) ?? [])
     setAcademias((academiasData as Academy[]) ?? [])
+    setProfesores((profesoresData as Teacher[]) ?? [])
     setCargando(false)
   }
 
@@ -108,6 +113,12 @@ export function ClassSeriesPage() {
                   <p className="text-xs text-text-muted">
                     {serie.categoria ?? "Sin categoría"}
                     {serie.lugar ? ` · ${serie.lugar}` : ""}
+                    {serie.profesor_ids.length > 0
+                      ? ` · ${serie.profesor_ids
+                          .map((id) => profesores.find((p) => p.id === id)?.nombre)
+                          .filter(Boolean)
+                          .join(", ")}`
+                      : ""}
                   </p>
                 </TableCell>
                 <TableCell className="text-text-muted">
@@ -143,6 +154,7 @@ export function ClassSeriesPage() {
         onOpenChange={setDialogoAbierto}
         serie={serieEditando}
         academias={academias}
+        profesores={profesores}
         onSaved={cargarDatos}
       />
     </div>

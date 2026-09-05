@@ -1,22 +1,16 @@
 import { LogOut } from "lucide-react"
 import { NavLink, Outlet } from "react-router-dom"
 
-import { cn } from "@/lib/utils"
 import { useAuth } from "@/context/AuthContext"
+import { cn } from "@/lib/utils"
 
 const TABS = [
-  { to: "/admin/asistencia", label: "Asistencia" },
-  { to: "/admin/calendario", label: "Calendario" },
-  { to: "/admin/clases", label: "Clases" },
-  { to: "/admin/eventos", label: "Eventos" },
-  { to: "/admin/alumnos", label: "Alumnos" },
-  { to: "/admin/profesores", label: "Profesores" },
-  { to: "/admin/academias", label: "Academias" },
-  { to: "/admin/planes", label: "Planes" },
-  { to: "/admin/pagos", label: "Pagos" },
+  { to: "/profesor/asistencia", label: "Asistencia" },
+  { to: "/profesor/clases", label: "Mis clases" },
+  { to: "/profesor/carnet", label: "Carnet" },
 ]
 
-export function AdminLayout() {
+export function ProfesorLayout() {
   const { profile, signOut } = useAuth()
 
   return (

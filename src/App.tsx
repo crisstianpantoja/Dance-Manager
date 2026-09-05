@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { AdminLayout } from "@/components/admin/AdminLayout"
 import { AlumnoLayout } from "@/components/alumno/AlumnoLayout"
+import { ProfesorLayout } from "@/components/profesor/ProfesorLayout"
 import { AuthProvider } from "@/context/AuthContext"
 import { useAuth } from "@/context/AuthContext"
 import { AcademiesPage } from "@/pages/admin/AcademiesPage"
@@ -13,13 +14,15 @@ import { EventsPage } from "@/pages/admin/EventsPage"
 import { PaymentsPage } from "@/pages/admin/PaymentsPage"
 import { PlansPage } from "@/pages/admin/PlansPage"
 import { StudentsPage } from "@/pages/admin/StudentsPage"
+import { TeachersPage } from "@/pages/admin/TeachersPage"
 import { CalendarioPage } from "@/pages/alumno/CalendarioPage"
 import { HistoricoPage } from "@/pages/alumno/HistoricoPage"
 import { PerfilPage } from "@/pages/alumno/PerfilPage"
 import { ReservasPage } from "@/pages/alumno/ReservasPage"
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage"
 import { LoginPage } from "@/pages/LoginPage"
-import { PortalPlaceholder } from "@/pages/PortalPlaceholder"
+import { CarnetLookupPage } from "@/pages/profesor/CarnetLookupPage"
+import { MisClasesPage } from "@/pages/profesor/MisClasesPage"
 import { UpdatePasswordPage } from "@/pages/UpdatePasswordPage"
 
 function InicioSegunRol() {
@@ -33,7 +36,7 @@ function InicioSegunRol() {
     return <Navigate to="/alumno/perfil" replace />
   }
 
-  return <PortalPlaceholder />
+  return <Navigate to="/profesor/asistencia" replace />
 }
 
 function App() {
@@ -67,6 +70,7 @@ function App() {
           <Route path="clases" element={<ClassSeriesPage />} />
           <Route path="eventos" element={<EventsPage />} />
           <Route path="alumnos" element={<StudentsPage />} />
+          <Route path="profesores" element={<TeachersPage />} />
           <Route path="academias" element={<AcademiesPage />} />
           <Route path="planes" element={<PlansPage />} />
           <Route path="pagos" element={<PaymentsPage />} />
@@ -85,6 +89,20 @@ function App() {
           <Route path="calendario" element={<CalendarioPage />} />
           <Route path="reservas" element={<ReservasPage />} />
           <Route path="historico" element={<HistoricoPage />} />
+        </Route>
+
+        <Route
+          path="/profesor"
+          element={
+            <ProtectedRoute rolesPermitidos={["profesor"]}>
+              <ProfesorLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="asistencia" replace />} />
+          <Route path="asistencia" element={<AttendancePage />} />
+          <Route path="clases" element={<MisClasesPage />} />
+          <Route path="carnet" element={<CarnetLookupPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
