@@ -1,5 +1,5 @@
 import { Scanner, type IDetectedBarcode } from "@yudiel/react-qr-scanner"
-import { Camera, CameraOff, Search } from "lucide-react"
+import { Camera, CameraOff, ClipboardList, Search } from "lucide-react"
 import { useRef, useState } from "react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { EvaluarDialog } from "@/pages/profesor/EvaluarDialog"
 import { fechaHoy } from "@/lib/attendance"
 import { formatearFecha } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
@@ -20,6 +21,7 @@ export function CarnetLookupPage() {
   const [error, setError] = useState<string | null>(null)
   const [alumno, setAlumno] = useState<Student | null>(null)
   const [pagos, setPagos] = useState<Payment[]>([])
+  const [evaluarAbierto, setEvaluarAbierto] = useState(false)
   const ultimoEscaneo = useRef<{ valor: string; ts: number } | null>(null)
 
   async function buscar(valor: string) {
@@ -143,6 +145,10 @@ export function CarnetLookupPage() {
                     : "Academia"}
               </Badge>
             </div>
+            <Button variant="outline" size="sm" onClick={() => setEvaluarAbierto(true)}>
+              <ClipboardList className="size-4" />
+              Evaluar
+            </Button>
           </CardContent>
         </Card>
       )}
@@ -200,6 +206,15 @@ export function CarnetLookupPage() {
             })
           )}
         </div>
+      )}
+
+      {alumno && (
+        <EvaluarDialog
+          open={evaluarAbierto}
+          onOpenChange={setEvaluarAbierto}
+          alumno={alumno}
+          onRegistrada={() => {}}
+        />
       )}
     </div>
   )
