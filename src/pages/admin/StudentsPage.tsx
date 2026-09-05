@@ -1,7 +1,8 @@
-import { Pencil, Plus, Trash2 } from "lucide-react"
+import { ClipboardList, Pencil, Plus, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 
 import { StudentFormDialog } from "@/pages/admin/StudentFormDialog"
+import { EvaluarDialog } from "@/pages/profesor/EvaluarDialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -25,6 +26,7 @@ export function StudentsPage() {
   const [dialogoAbierto, setDialogoAbierto] = useState(false)
   const [alumnoEditando, setAlumnoEditando] = useState<Student | null>(null)
   const [eliminando, setEliminando] = useState<string | null>(null)
+  const [alumnoEvaluando, setAlumnoEvaluando] = useState<Student | null>(null)
 
   const academiasPorId = useMemo(
     () => new Map(academias.map((academia) => [academia.id, academia.nombre])),
@@ -96,7 +98,7 @@ export function StudentsPage() {
               <TableHead>Alumno</TableHead>
               <TableHead>Academia</TableHead>
               <TableHead>Nivel</TableHead>
-              <TableHead className="w-24 text-right">Acciones</TableHead>
+              <TableHead className="w-32 text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -124,6 +126,14 @@ export function StudentsPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Evaluar"
+                      onClick={() => setAlumnoEvaluando(alumno)}
+                    >
+                      <ClipboardList className="size-4" />
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => abrirEditar(alumno)}>
                       <Pencil className="size-4" />
                     </Button>
@@ -150,6 +160,15 @@ export function StudentsPage() {
         academias={academias}
         onSaved={cargarDatos}
       />
+
+      {alumnoEvaluando && (
+        <EvaluarDialog
+          open={!!alumnoEvaluando}
+          onOpenChange={(open) => !open && setAlumnoEvaluando(null)}
+          alumno={alumnoEvaluando}
+          onRegistrada={() => {}}
+        />
+      )}
     </div>
   )
 }
