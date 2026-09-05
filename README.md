@@ -35,3 +35,17 @@ El login se hace con **documento + contraseña**. Internamente se mapea el
 documento a un correo sintético (`documento@dance.local`) sobre Supabase
 Auth. El portal no se pinta hasta que la sesión y el perfil del usuario
 terminan de cargar, para evitar pantallas vacías por condición de carrera.
+
+## Edge Functions
+
+Algunas acciones (crear alumnos/profesores, registrar asistencia, reportar
+pagos, reservar clases/eventos) no se pueden hacer desde el cliente porque
+el RLS se lo prohíbe a todos los roles salvo el admin. Esas acciones viven
+en `supabase/functions/` y corren con la *service role key*, validando
+siempre quién las llama antes de escribir nada.
+
+## Despliegue
+
+Ver [`DEPLOY.md`](./DEPLOY.md) para la guía paso a paso: crear el proyecto
+de Supabase, aplicar las migraciones, desplegar las Edge Functions, crear
+el primer usuario admin y publicar en Vercel.
