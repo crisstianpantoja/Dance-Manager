@@ -12,6 +12,8 @@ import { CalendarPage } from "@/pages/admin/CalendarPage"
 import { ClassSeriesPage } from "@/pages/admin/ClassSeriesPage"
 import { DashboardPage } from "@/pages/admin/DashboardPage"
 import { EventsPage } from "@/pages/admin/EventsPage"
+import { GastosPage } from "@/pages/admin/GastosPage"
+import { GigsPage } from "@/pages/admin/GigsPage"
 import { PaymentsPage } from "@/pages/admin/PaymentsPage"
 import { PlansPage } from "@/pages/admin/PlansPage"
 import { RetentionPage } from "@/pages/admin/RetentionPage"
@@ -77,6 +79,8 @@ function App() {
           <Route path="academias" element={<AcademiesPage />} />
           <Route path="planes" element={<PlansPage />} />
           <Route path="pagos" element={<PaymentsPage />} />
+          <Route path="gastos" element={<GastosPage />} />
+          <Route path="contratos" element={<GigsPage />} />
           <Route path="retencion" element={<RetentionPage />} />
         </Route>
 

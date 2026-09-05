@@ -6,12 +6,14 @@ import {
   Home,
   LogOut,
   Menu,
+  Music,
   PartyPopper,
   QrCode,
   Tag,
   Ticket,
   UserCircle,
   Users,
+  Wallet,
   X,
 } from "lucide-react"
 import { useState } from "react"
@@ -31,6 +33,8 @@ const NAV_ITEMS = [
   { to: "/admin/eventos", label: "Eventos", icon: PartyPopper },
   { to: "/admin/planes", label: "Planes", icon: Tag },
   { to: "/admin/pagos", label: "Pagos", icon: CreditCard },
+  { to: "/admin/gastos", label: "Gastos", icon: Wallet },
+  { to: "/admin/contratos", label: "Contratos", icon: Music },
   { to: "/admin/retencion", label: "Retención", icon: AlertTriangle },
 ]
 

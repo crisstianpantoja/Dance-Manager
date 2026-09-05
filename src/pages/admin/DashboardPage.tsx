@@ -1,13 +1,15 @@
-import { AlertTriangle, Clock, PartyPopper, Users } from "lucide-react"
+import { AlertTriangle, Clock, Music, PartyPopper, Users } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { fechaHoy } from "@/lib/attendance"
 import { formatearFecha, formatearMoneda } from "@/lib/format"
 import { calcularAlumnosSinRenovar } from "@/lib/retention"
 import { supabase } from "@/lib/supabase"
 import type { EventoDM } from "@/types/event"
+import type { Gig } from "@/types/gig"
 
 interface ClaseHoy {
   id: string
@@ -19,11 +21,13 @@ interface ClaseHoy {
 export function DashboardPage() {
   const [cargando, setCargando] = useState(true)
   const [ingresosMes, setIngresosMes] = useState(0)
+  const [gastosMes, setGastosMes] = useState(0)
   const [alumnosActivos, setAlumnosActivos] = useState(0)
   const [pagosPorVerificar, setPagosPorVerificar] = useState(0)
   const [sinRenovar, setSinRenovar] = useState(0)
   const [clasesHoy, setClasesHoy] = useState<ClaseHoy[]>([])
   const [proximosEventos, setProximosEventos] = useState<EventoDM[]>([])
+  const [proximosContratos, setProximosContratos] = useState<Gig[]>([])
 
   useEffect(() => {
     async function cargar() {
@@ -34,10 +38,13 @@ export function DashboardPage() {
       const [
         { count: totalAlumnos },
         { data: pagosMes },
+        { data: gigsMes },
+        { data: gastos },
         { count: pendientes },
         { data: pagosParaRetencion },
         { data: ocurrenciasHoy },
         { data: eventos },
+        { data: contratos },
       ] = await Promise.all([
         supabase.from("students").select("id", { count: "exact", head: true }),
         supabase
@@ -46,6 +53,13 @@ export function DashboardPage() {
           .eq("estado", "pagado")
           .gte("fecha", inicioMes)
           .lte("fecha", hoy),
+        supabase
+          .from("gigs")
+          .select("pago")
+          .eq("estado", "pagado")
+          .gte("fecha", inicioMes)
+          .lte("fecha", hoy),
+        supabase.from("expenses").select("monto").gte("fecha", inicioMes).lte("fecha", hoy),
         supabase
           .from("payments")
           .select("id", { count: "exact", head: true })
@@ -67,10 +81,20 @@ export function DashboardPage() {
           .order("fecha")
           .order("hora")
           .limit(4),
+        supabase
+          .from("gigs")
+          .select("*")
+          .in("estado", ["cotizado", "confirmado"])
+          .gte("fecha", hoy)
+          .order("fecha")
+          .limit(4),
       ])
 
       setAlumnosActivos(totalAlumnos ?? 0)
-      setIngresosMes((pagosMes ?? []).reduce((acc, p) => acc + Number(p.monto), 0))
+      const ingresosPagos = (pagosMes ?? []).reduce((acc, p) => acc + Number(p.monto), 0)
+      const ingresosGigs = (gigsMes ?? []).reduce((acc, g) => acc + Number(g.pago), 0)
+      setIngresosMes(ingresosPagos + ingresosGigs)
+      setGastosMes((gastos ?? []).reduce((acc, g) => acc + Number(g.monto), 0))
       setPagosPorVerificar(pendientes ?? 0)
 
       const pagosNormalizados = (pagosParaRetencion ?? []).map((p) => ({
@@ -92,6 +116,7 @@ export function DashboardPage() {
         })),
       )
       setProximosEventos((eventos as EventoDM[]) ?? [])
+      setProximosContratos((contratos as Gig[]) ?? [])
 
       setCargando(false)
     }
@@ -100,6 +125,8 @@ export function DashboardPage() {
   }, [])
 
   if (cargando) return <p className="text-sm text-text-muted">Cargando...</p>
+
+  const gananciaNeta = ingresosMes - gastosMes
 
   return (
     <div className="flex flex-col gap-6">
@@ -115,6 +142,24 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
+        <Card className="border-l-4 border-l-error">
+          <CardContent className="py-4">
+            <p className="mb-1 text-xs uppercase tracking-wider text-text-muted">Gastos (mes)</p>
+            <p className="text-2xl font-bold text-error">{formatearMoneda(gastosMes)}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="py-4">
+            <p className="mb-1 text-xs uppercase tracking-wider text-text-muted">
+              Ganancia neta (mes)
+            </p>
+            <p className={`text-2xl font-bold ${gananciaNeta >= 0 ? "text-success" : "text-error"}`}>
+              {formatearMoneda(gananciaNeta)}
+            </p>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardContent className="py-4">
             <p className="mb-1 text-xs uppercase tracking-wider text-text-muted">
@@ -124,22 +169,6 @@ export function DashboardPage() {
               <Users className="size-5 text-brand-light" />
               {alumnosActivos}
             </p>
-          </CardContent>
-        </Card>
-
-        <Card className={pagosPorVerificar > 0 ? "border-l-4 border-l-warning" : ""}>
-          <CardContent className="py-4">
-            <p className="mb-1 text-xs uppercase tracking-wider text-text-muted">
-              Pagos por verificar
-            </p>
-            <p className="text-2xl font-bold text-warning">{pagosPorVerificar}</p>
-          </CardContent>
-        </Card>
-
-        <Card className={sinRenovar > 0 ? "border-l-4 border-l-error" : ""}>
-          <CardContent className="py-4">
-            <p className="mb-1 text-xs uppercase tracking-wider text-text-muted">Sin renovar</p>
-            <p className="text-2xl font-bold text-error">{sinRenovar}</p>
           </CardContent>
         </Card>
       </div>
@@ -176,7 +205,7 @@ export function DashboardPage() {
         </Link>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card>
           <CardContent className="py-4">
             <h2 className="mb-4 font-semibold text-text">Clases de hoy</h2>
@@ -213,6 +242,34 @@ export function DashboardPage() {
                     <p className="text-xs text-text-muted">
                       {formatearFecha(e.fecha)} · {e.hora.slice(0, 5)}
                       {e.lugar ? ` · ${e.lugar}` : ""}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="py-4">
+            <h2 className="mb-4 flex items-center gap-2 font-semibold text-text">
+              <Music className="size-5 text-brand-light" />
+              Próximos contratos
+            </h2>
+            {proximosContratos.length === 0 ? (
+              <p className="text-sm text-text-muted">No hay contratos próximos.</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {proximosContratos.map((g) => (
+                  <div key={g.id} className="rounded-control border border-white/10 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-medium text-text">{g.evento}</p>
+                      <Badge variant={g.estado === "confirmado" ? "success" : "warning"}>
+                        {g.estado}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-text-muted">
+                      {formatearFecha(g.fecha)} · {formatearMoneda(g.pago)}
                     </p>
                   </div>
                 ))}
