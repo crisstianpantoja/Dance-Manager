@@ -13,6 +13,7 @@ import { ClassSeriesPage } from "@/pages/admin/ClassSeriesPage"
 import { EventsPage } from "@/pages/admin/EventsPage"
 import { PaymentsPage } from "@/pages/admin/PaymentsPage"
 import { PlansPage } from "@/pages/admin/PlansPage"
+import { RetentionPage } from "@/pages/admin/RetentionPage"
 import { StudentsPage } from "@/pages/admin/StudentsPage"
 import { TeachersPage } from "@/pages/admin/TeachersPage"
 import { CalendarioPage } from "@/pages/alumno/CalendarioPage"
@@ -74,6 +75,7 @@ function App() {
           <Route path="academias" element={<AcademiesPage />} />
           <Route path="planes" element={<PlansPage />} />
           <Route path="pagos" element={<PaymentsPage />} />
+          <Route path="retencion" element={<RetentionPage />} />
         </Route>
 
         <Route

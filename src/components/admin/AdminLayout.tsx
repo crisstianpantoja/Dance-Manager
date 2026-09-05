@@ -14,6 +14,7 @@ const TABS = [
   { to: "/admin/academias", label: "Academias" },
   { to: "/admin/planes", label: "Planes" },
   { to: "/admin/pagos", label: "Pagos" },
+  { to: "/admin/retencion", label: "Retención" },
 ]
 
 export function AdminLayout() {
