@@ -1,4 +1,3 @@
-import { LogOut } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
@@ -19,8 +18,8 @@ interface FilaOcurrencia {
   class_series: { titulo: string; categoria: string | null; lugar: string | null } | null
 }
 
-export function StudentCalendarPage() {
-  const { profile, signOut } = useAuth()
+export function CalendarioPage() {
+  const { profile } = useAuth()
   const [ocurrencias, setOcurrencias] = useState<OcurrenciaConSerie[]>([])
   const [cargando, setCargando] = useState(true)
 
@@ -79,56 +78,40 @@ export function StudentCalendarPage() {
   }, {})
 
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-        <div>
-          <p className="text-lg font-bold leading-none text-text">Dance Manager</p>
-          <p className="text-xs text-text-muted">{profile?.nombre}</p>
-        </div>
-        <button
-          onClick={signOut}
-          className="flex items-center gap-1.5 rounded-control px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-hover hover:text-text"
-        >
-          <LogOut className="size-4" />
-          Salir
-        </button>
-      </header>
+    <div className="flex flex-col gap-4">
+      <h1 className="text-xl font-bold text-text">Calendario de tu academia</h1>
 
-      <main className="mx-auto flex max-w-lg flex-col gap-4 px-4 py-6">
-        <h1 className="text-xl font-bold text-text">Calendario de tu academia</h1>
-
-        {cargando ? (
-          <p className="text-sm text-text-muted">Cargando...</p>
-        ) : Object.keys(porFecha).length === 0 ? (
-          <Card>
-            <CardContent className="py-6 text-center text-sm text-text-muted">
-              Todavía no hay clases programadas para tu academia.
-            </CardContent>
-          </Card>
-        ) : (
-          Object.entries(porFecha).map(([fecha, filas]) => (
-            <div key={fecha} className="flex flex-col gap-2">
-              <p className="text-sm font-semibold text-text-muted">{formatearFecha(fecha)}</p>
-              {filas.map((oc) => (
-                <Card key={oc.id}>
-                  <CardContent className="flex items-center justify-between py-3">
-                    <div>
-                      <p className="font-medium text-text">
-                        {oc.hora.slice(0, 5)} · {oc.titulo}
-                      </p>
-                      <p className="text-xs text-text-muted">
-                        {oc.categoria ?? "Sin categoría"}
-                        {oc.lugar ? ` · ${oc.lugar}` : ""}
-                      </p>
-                    </div>
-                    <Badge>Programada</Badge>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ))
-        )}
-      </main>
+      {cargando ? (
+        <p className="text-sm text-text-muted">Cargando...</p>
+      ) : Object.keys(porFecha).length === 0 ? (
+        <Card>
+          <CardContent className="py-6 text-center text-sm text-text-muted">
+            Todavía no hay clases programadas para tu academia.
+          </CardContent>
+        </Card>
+      ) : (
+        Object.entries(porFecha).map(([fecha, filas]) => (
+          <div key={fecha} className="flex flex-col gap-2">
+            <p className="text-sm font-semibold text-text-muted">{formatearFecha(fecha)}</p>
+            {filas.map((oc) => (
+              <Card key={oc.id}>
+                <CardContent className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="font-medium text-text">
+                      {oc.hora.slice(0, 5)} · {oc.titulo}
+                    </p>
+                    <p className="text-xs text-text-muted">
+                      {oc.categoria ?? "Sin categoría"}
+                      {oc.lugar ? ` · ${oc.lugar}` : ""}
+                    </p>
+                  </div>
+                  <Badge>Programada</Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ))
+      )}
     </div>
   )
 }

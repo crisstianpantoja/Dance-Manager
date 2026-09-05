@@ -10,6 +10,9 @@ export interface Student {
   tipo: TipoAlumno
   nivel: NivelAlumno
   academia_id: string | null
+  tema_carnet: string | null
+  acepto_terminos: boolean
+  fecha_acepto_terminos: string | null
 }
 
 export interface StudentInput {

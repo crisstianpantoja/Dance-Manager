@@ -2,19 +2,24 @@ import { Navigate, Route, Routes } from "react-router-dom"
 
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { AdminLayout } from "@/components/admin/AdminLayout"
+import { AlumnoLayout } from "@/components/alumno/AlumnoLayout"
 import { AuthProvider } from "@/context/AuthContext"
 import { useAuth } from "@/context/AuthContext"
 import { AcademiesPage } from "@/pages/admin/AcademiesPage"
 import { AttendancePage } from "@/pages/admin/AttendancePage"
 import { CalendarPage } from "@/pages/admin/CalendarPage"
 import { ClassSeriesPage } from "@/pages/admin/ClassSeriesPage"
+import { EventsPage } from "@/pages/admin/EventsPage"
 import { PaymentsPage } from "@/pages/admin/PaymentsPage"
 import { PlansPage } from "@/pages/admin/PlansPage"
 import { StudentsPage } from "@/pages/admin/StudentsPage"
+import { CalendarioPage } from "@/pages/alumno/CalendarioPage"
+import { HistoricoPage } from "@/pages/alumno/HistoricoPage"
+import { PerfilPage } from "@/pages/alumno/PerfilPage"
+import { ReservasPage } from "@/pages/alumno/ReservasPage"
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage"
 import { LoginPage } from "@/pages/LoginPage"
 import { PortalPlaceholder } from "@/pages/PortalPlaceholder"
-import { StudentCalendarPage } from "@/pages/StudentCalendarPage"
 import { UpdatePasswordPage } from "@/pages/UpdatePasswordPage"
 
 function InicioSegunRol() {
@@ -25,7 +30,7 @@ function InicioSegunRol() {
   }
 
   if (profile?.rol === "alumno") {
-    return <StudentCalendarPage />
+    return <Navigate to="/alumno/perfil" replace />
   }
 
   return <PortalPlaceholder />
@@ -60,10 +65,26 @@ function App() {
           <Route path="asistencia" element={<AttendancePage />} />
           <Route path="calendario" element={<CalendarPage />} />
           <Route path="clases" element={<ClassSeriesPage />} />
+          <Route path="eventos" element={<EventsPage />} />
           <Route path="alumnos" element={<StudentsPage />} />
           <Route path="academias" element={<AcademiesPage />} />
           <Route path="planes" element={<PlansPage />} />
           <Route path="pagos" element={<PaymentsPage />} />
+        </Route>
+
+        <Route
+          path="/alumno"
+          element={
+            <ProtectedRoute rolesPermitidos={["alumno"]}>
+              <AlumnoLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="perfil" replace />} />
+          <Route path="perfil" element={<PerfilPage />} />
+          <Route path="calendario" element={<CalendarioPage />} />
+          <Route path="reservas" element={<ReservasPage />} />
+          <Route path="historico" element={<HistoricoPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -8,6 +8,7 @@ const TABS = [
   { to: "/admin/asistencia", label: "Asistencia" },
   { to: "/admin/calendario", label: "Calendario" },
   { to: "/admin/clases", label: "Clases" },
+  { to: "/admin/eventos", label: "Eventos" },
   { to: "/admin/alumnos", label: "Alumnos" },
   { to: "/admin/academias", label: "Academias" },
   { to: "/admin/planes", label: "Planes" },
