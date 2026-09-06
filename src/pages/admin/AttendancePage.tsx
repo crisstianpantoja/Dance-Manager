@@ -99,6 +99,7 @@ export function AttendancePage() {
       return
     }
 
+    if (origen === "qr") setCamaraActiva(false)
     setProcesando(true)
 
     try {
