@@ -3,9 +3,11 @@ import { useEffect, useRef, useState } from "react"
 
 import { QrScannerView } from "@/components/QrScannerView"
 import { RegistroAsistenciaDialog } from "@/pages/admin/RegistroAsistenciaDialog"
+import { TeacherAttendanceSection } from "@/pages/admin/TeacherAttendanceSection"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 import {
   Table,
   TableBody,
@@ -42,6 +44,7 @@ function mensajeRegistro(nombre: string, estadoPlan: AttendanceRecord["estado_pl
 }
 
 export function AttendancePage() {
+  const [modo, setModo] = useState<"alumnos" | "profesores">("alumnos")
   const [alumnos, setAlumnos] = useState<Student[]>([])
   const [ocurrencias, setOcurrencias] = useState<OcurrenciaHoy[]>([])
   const [registros, setRegistros] = useState<RegistroDelDia[]>([])
@@ -204,12 +207,33 @@ export function AttendancePage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-text">Asistencia</h1>
-        <Button size="sm" variant="outline" onClick={abrirRegistroManual}>
-          <UserPlus className="size-4" />
-          Registro manual
-        </Button>
+        {modo === "alumnos" && (
+          <Button size="sm" variant="outline" onClick={abrirRegistroManual}>
+            <UserPlus className="size-4" />
+            Registro manual
+          </Button>
+        )}
       </div>
 
+      <div className="flex gap-1 self-start rounded-control border border-white/10 bg-surface p-1">
+        {(["alumnos", "profesores"] as const).map((valor) => (
+          <button
+            key={valor}
+            onClick={() => setModo(valor)}
+            className={cn(
+              "rounded-control px-4 py-1.5 text-sm font-medium capitalize transition-colors",
+              modo === valor ? "bg-brand text-white" : "text-text-muted hover:text-text",
+            )}
+          >
+            {valor}
+          </button>
+        ))}
+      </div>
+
+      {modo === "profesores" ? (
+        <TeacherAttendanceSection />
+      ) : (
+        <>
       {banner && (
         <div
           className={
@@ -332,6 +356,8 @@ export function AttendancePage() {
           cargarTodo()
         }}
       />
+        </>
+      )}
     </div>
   )
 }
