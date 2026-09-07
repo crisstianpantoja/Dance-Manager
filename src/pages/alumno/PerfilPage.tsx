@@ -15,7 +15,7 @@ import { useAuth } from "@/context/AuthContext"
 import { fechaHoy } from "@/lib/attendance"
 import type { ThemeId } from "@/lib/carnet"
 import { listarEvaluaciones } from "@/lib/evaluations"
-import { formatearFecha } from "@/lib/format"
+import { formatearFecha, formatearFechaObjeto } from "@/lib/format"
 import { aceptarTerminos } from "@/lib/studentPortal"
 import { supabase } from "@/lib/supabase"
 import type { StudentEvaluation } from "@/types/evaluation"
@@ -32,6 +32,18 @@ const TIPO_LABEL: Record<Student["tipo"], string> = {
   academia: "Academia",
   privada: "Privada",
   ambas: "Academia + privada",
+}
+
+function proximoCambioTemaDe(alumno: Student): Date | null {
+  if (!alumno.tema_carnet_actualizado_en) return null
+  const fecha = new Date(alumno.tema_carnet_actualizado_en)
+  fecha.setMonth(fecha.getMonth() + 12)
+  return fecha
+}
+
+function puedeCambiarTema(alumno: Student): boolean {
+  const proximo = proximoCambioTemaDe(alumno)
+  return !proximo || proximo <= new Date()
 }
 
 export function PerfilPage() {
@@ -118,17 +130,22 @@ export function PerfilPage() {
   }
 
   async function handleCambiarTema(id: ThemeId) {
-    if (!alumno) return
-    const anterior = alumno.tema_carnet
-    setAlumno({ ...alumno, tema_carnet: id })
+    if (!alumno || !puedeCambiarTema(alumno)) return
+    const anterior = { tema_carnet: alumno.tema_carnet, actualizado: alumno.tema_carnet_actualizado_en }
+    const ahora = new Date().toISOString()
+    setAlumno({ ...alumno, tema_carnet: id, tema_carnet_actualizado_en: ahora })
 
     const { error } = await supabase
       .from("students")
-      .update({ tema_carnet: id })
+      .update({ tema_carnet: id, tema_carnet_actualizado_en: ahora })
       .eq("id", alumno.id)
 
     if (error) {
-      setAlumno((actual) => (actual ? { ...actual, tema_carnet: anterior } : actual))
+      setAlumno((actual) =>
+        actual
+          ? { ...actual, tema_carnet: anterior.tema_carnet, tema_carnet_actualizado_en: anterior.actualizado }
+          : actual,
+      )
     }
   }
 
@@ -142,6 +159,9 @@ export function PerfilPage() {
   )
   const ultimaEvaluacion = evaluaciones[0] ?? null
   const notasEvaluaciones = evaluaciones.filter((evaluacion) => evaluacion.nota?.trim())
+
+  const proximoCambioTema = proximoCambioTemaDe(alumno)
+  const temaBloqueado = !puedeCambiarTema(alumno)
 
   return (
     <div className="flex flex-col gap-6">
@@ -223,7 +243,16 @@ export function PerfilPage() {
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-6">
             <DigitalCard alumno={alumno} />
-            <ThemePicker value={alumno.tema_carnet} onChange={handleCambiarTema} />
+            <ThemePicker
+              value={alumno.tema_carnet}
+              onChange={handleCambiarTema}
+              disabled={temaBloqueado}
+            />
+            <p className="text-xs text-text-muted">
+              {temaBloqueado && proximoCambioTema
+                ? `Podrás cambiar el color del carnet a partir del ${formatearFechaObjeto(proximoCambioTema)}.`
+                : "Puedes elegir el color del carnet una vez cada 12 meses."}
+            </p>
             <CarnetDownloadButton alumno={alumno} />
             <p className="text-xs text-text-muted">
               Muestra este código en la puerta para registrar tu asistencia.

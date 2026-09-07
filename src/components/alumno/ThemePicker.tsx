@@ -10,7 +10,7 @@ interface ThemePickerProps {
 }
 
 export function ThemePicker({ value, onChange, disabled }: ThemePickerProps) {
-  const actual = (value || "magenta") as ThemeId
+  const actual = (value || "purple") as ThemeId
 
   return (
     <div className="flex items-center gap-3">

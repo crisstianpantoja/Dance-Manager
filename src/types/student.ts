@@ -11,6 +11,7 @@ export interface Student {
   nivel: NivelAlumno
   academia_id: string | null
   tema_carnet: string | null
+  tema_carnet_actualizado_en: string | null
   acepto_terminos: boolean
   fecha_acepto_terminos: string | null
 }

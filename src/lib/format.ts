@@ -18,3 +18,7 @@ export function formatearFecha(valor: string | null) {
   if (!valor) return "—"
   return formateadorFecha.format(new Date(`${valor}T00:00:00`))
 }
+
+export function formatearFechaObjeto(fecha: Date) {
+  return formateadorFecha.format(fecha)
+}
