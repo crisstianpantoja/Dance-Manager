@@ -21,6 +21,7 @@ import {
   horaAhora,
   registrarAsistencia,
 } from "@/lib/attendance"
+import { reproducirSonidoAdvertencia, reproducirSonidoExito } from "@/lib/sound"
 import { supabase } from "@/lib/supabase"
 import {
   ES_ESTADO_EXITOSO,
@@ -32,6 +33,12 @@ import type { Student } from "@/types/student"
 
 interface RegistroDelDia extends AttendanceRecord {
   alumno_nombre: string
+}
+
+function mensajeRegistro(nombre: string, estadoPlan: AttendanceRecord["estado_plan"]) {
+  return ES_ESTADO_EXITOSO[estadoPlan]
+    ? `${nombre}: se registró la clase exitosamente (${ETIQUETA_ESTADO_PLAN[estadoPlan]})`
+    : `${nombre}: ${ETIQUETA_ESTADO_PLAN[estadoPlan]}`
 }
 
 export function AttendancePage() {
@@ -87,6 +94,8 @@ export function AttendancePage() {
 
   function mostrarBanner(mensaje: string, exito: boolean) {
     setBanner({ mensaje, exito })
+    if (exito) reproducirSonidoExito()
+    else reproducirSonidoAdvertencia()
   }
 
   async function handleScan(documento: string, origen: "qr" | "manual") {
@@ -116,10 +125,7 @@ export function AttendancePage() {
           },
           origen,
         )
-        mostrarBanner(
-          `${alumno.nombre}: ${ETIQUETA_ESTADO_PLAN[estado_plan]}`,
-          ES_ESTADO_EXITOSO[estado_plan],
-        )
+        mostrarBanner(mensajeRegistro(alumno.nombre, estado_plan), ES_ESTADO_EXITOSO[estado_plan])
         cargarTodo()
         return
       }
@@ -145,10 +151,7 @@ export function AttendancePage() {
           },
           origen,
         )
-        mostrarBanner(
-          `${alumno.nombre}: ${ETIQUETA_ESTADO_PLAN[estado_plan]}`,
-          ES_ESTADO_EXITOSO[estado_plan],
-        )
+        mostrarBanner(mensajeRegistro(alumno.nombre, estado_plan), ES_ESTADO_EXITOSO[estado_plan])
         cargarTodo()
         return
       }

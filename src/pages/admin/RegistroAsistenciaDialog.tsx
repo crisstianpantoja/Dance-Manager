@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { fechaHoy, horaAhora, registrarAsistencia } from "@/lib/attendance"
-import type { OcurrenciaHoy } from "@/types/attendance"
+import { ES_ESTADO_EXITOSO, ETIQUETA_ESTADO_PLAN, type OcurrenciaHoy } from "@/types/attendance"
 import type { Student } from "@/types/student"
 
 const OTRA_CLASE = "otra"
@@ -101,9 +101,14 @@ export function RegistroAsistenciaDialog({
           )
 
       const alumno = alumnos.find((a) => a.id === alumnoId) ?? alumnoPreseleccionado
+      const nombre = alumno?.nombre ?? "Alumno"
+      const exito = ES_ESTADO_EXITOSO[estado_plan]
+
       onRegistrado(
-        `${alumno?.nombre ?? "Alumno"}: asistencia registrada.`,
-        estado_plan === "cupo" || estado_plan === "ilimitada",
+        exito
+          ? `${nombre}: se registró la clase exitosamente (${ETIQUETA_ESTADO_PLAN[estado_plan]})`
+          : `${nombre}: ${ETIQUETA_ESTADO_PLAN[estado_plan]}`,
+        exito,
       )
       onOpenChange(false)
     } catch (err) {
