@@ -46,9 +46,9 @@ export function PerfilPage() {
   const [dialogoAbierto, setDialogoAbierto] = useState(false)
   const [editarAbierto, setEditarAbierto] = useState(false)
 
-  async function cargarDatos() {
+  async function cargarDatos(silencioso = false) {
     if (!profile?.id) return
-    setCargando(true)
+    if (!silencioso) setCargando(true)
 
     const [{ data: alumnoData }, { data: pagosData }, { data: planesData }, evaluacionesData] =
       await Promise.all([
@@ -81,6 +81,26 @@ export function PerfilPage() {
 
   useEffect(() => {
     cargarDatos()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id])
+
+  useEffect(() => {
+    // El admin/profesor puede registrar una asistencia mientras el alumno
+    // tiene esta pantalla abierta en otro dispositivo: refresca sola al
+    // volver a la pestaña y cada cierto tiempo, sin recargar la página.
+    function alVolverAEnfocar() {
+      if (document.visibilityState === "visible") cargarDatos(true)
+    }
+
+    window.addEventListener("focus", alVolverAEnfocar)
+    document.addEventListener("visibilitychange", alVolverAEnfocar)
+    const intervalo = window.setInterval(() => cargarDatos(true), 15000)
+
+    return () => {
+      window.removeEventListener("focus", alVolverAEnfocar)
+      document.removeEventListener("visibilitychange", alVolverAEnfocar)
+      window.clearInterval(intervalo)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id])
 

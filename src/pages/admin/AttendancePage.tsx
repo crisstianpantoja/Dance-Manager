@@ -21,7 +21,7 @@ import {
   horaAhora,
   registrarAsistencia,
 } from "@/lib/attendance"
-import { reproducirSonidoAdvertencia, reproducirSonidoExito } from "@/lib/sound"
+import { decirClaseRegistrada, reproducirSonidoAdvertencia } from "@/lib/sound"
 import { supabase } from "@/lib/supabase"
 import {
   ES_ESTADO_EXITOSO,
@@ -48,6 +48,8 @@ export function AttendancePage() {
   const [cargando, setCargando] = useState(true)
 
   const [camaraActiva, setCamaraActiva] = useState(false)
+  const [camaraKey, setCamaraKey] = useState(0)
+  const contenedorCamaraRef = useRef<HTMLDivElement>(null)
   const [documentoManual, setDocumentoManual] = useState("")
   const [procesando, setProcesando] = useState(false)
   const [banner, setBanner] = useState<{ mensaje: string; exito: boolean } | null>(null)
@@ -94,8 +96,21 @@ export function AttendancePage() {
 
   function mostrarBanner(mensaje: string, exito: boolean) {
     setBanner({ mensaje, exito })
-    if (exito) reproducirSonidoExito()
+    if (exito) decirClaseRegistrada()
     else reproducirSonidoAdvertencia()
+  }
+
+  function apagarCamara() {
+    // Respaldo por si la librería del lector no libera la cámara sola: paramos
+    // cualquier <video> activo dentro del contenedor y forzamos un remount la
+    // próxima vez que se active, para no arrastrar un stream colgado.
+    contenedorCamaraRef.current?.querySelectorAll("video").forEach((video) => {
+      const stream = video.srcObject as MediaStream | null
+      stream?.getTracks().forEach((track) => track.stop())
+      video.srcObject = null
+    })
+    setCamaraKey((k) => k + 1)
+    setCamaraActiva(false)
   }
 
   async function handleScan(documento: string, origen: "qr" | "manual") {
@@ -108,7 +123,7 @@ export function AttendancePage() {
       return
     }
 
-    if (origen === "qr") setCamaraActiva(false)
+    if (origen === "qr") apagarCamara()
     setProcesando(true)
 
     try {
@@ -237,7 +252,7 @@ export function AttendancePage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCamaraActiva((v) => !v)}
+            onClick={() => (camaraActiva ? apagarCamara() : setCamaraActiva(true))}
           >
             {camaraActiva ? <CameraOff className="size-4" /> : <Camera className="size-4" />}
             {camaraActiva ? "Apagar cámara" : "Activar cámara"}
@@ -245,8 +260,9 @@ export function AttendancePage() {
         </div>
 
         {camaraActiva && (
-          <div className="overflow-hidden rounded-control">
+          <div ref={contenedorCamaraRef} className="overflow-hidden rounded-control">
             <Scanner
+              key={camaraKey}
               onScan={handleDetectado}
               onError={() => mostrarBanner("No se pudo acceder a la cámara.", false)}
               formats={["qr_code"]}

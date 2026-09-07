@@ -39,7 +39,7 @@ function tono(frecuencia: number, duracionMs: number, retrasoMs = 0) {
   oscilador.stop(fin + 0.02)
 }
 
-/** Beep agudo y corto: asistencia registrada con éxito. */
+/** Beep agudo y corto: asistencia registrada con éxito (respaldo si no hay voz). */
 export function reproducirSonidoExito() {
   tono(880, 130)
 }
@@ -48,4 +48,39 @@ export function reproducirSonidoExito() {
 export function reproducirSonidoAdvertencia() {
   tono(320, 110)
   tono(320, 110, 150)
+}
+
+function obtenerVozEnEspanol(): SpeechSynthesisVoice | undefined {
+  const voces = window.speechSynthesis.getVoices()
+  return (
+    voces.find((v) => v.lang?.toLowerCase().startsWith("es")) ??
+    voces.find((v) => v.lang?.toLowerCase().startsWith("es-")) ??
+    undefined
+  )
+}
+
+/** Dice el texto en voz alta (español). Si el navegador no soporta voz, suena un beep. */
+export function decir(texto: string) {
+  if (typeof window === "undefined" || !window.speechSynthesis) {
+    reproducirSonidoExito()
+    return
+  }
+
+  try {
+    window.speechSynthesis.cancel()
+    const utterancia = new SpeechSynthesisUtterance(texto)
+    utterancia.lang = "es-ES"
+    utterancia.rate = 1
+    utterancia.volume = 1
+    const voz = obtenerVozEnEspanol()
+    if (voz) utterancia.voice = voz
+    window.speechSynthesis.speak(utterancia)
+  } catch {
+    reproducirSonidoExito()
+  }
+}
+
+/** Voz: "Clase registrada con éxito." */
+export function decirClaseRegistrada() {
+  decir("Clase registrada con éxito.")
 }
