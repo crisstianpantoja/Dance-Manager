@@ -1,0 +1,118 @@
+import { useEffect, useState, type FormEvent } from "react"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { actualizarAjustes, obtenerAjustes } from "@/lib/settings"
+import { subirFoto } from "@/lib/storage"
+
+export function SettingsPage() {
+  const [nombreApp, setNombreApp] = useState("")
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [archivoLogo, setArchivoLogo] = useState<File | null>(null)
+  const [cargando, setCargando] = useState(true)
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [exito, setExito] = useState(false)
+
+  async function cargar() {
+    setCargando(true)
+    const ajustes = await obtenerAjustes()
+    setNombreApp(ajustes.nombre_app)
+    setLogoUrl(ajustes.logo_url)
+    setCargando(false)
+  }
+
+  useEffect(() => {
+    cargar()
+  }, [])
+
+  async function handleSubmit(evento: FormEvent) {
+    evento.preventDefault()
+    setError(null)
+    setExito(false)
+    setGuardando(true)
+
+    try {
+      let urlLogo = logoUrl
+
+      if (archivoLogo) {
+        urlLogo = await subirFoto(archivoLogo, "marca")
+      }
+
+      await actualizarAjustes({ nombre_app: nombreApp, logo_url: urlLogo })
+      setLogoUrl(urlLogo)
+      setArchivoLogo(null)
+      setExito(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo guardar los ajustes.")
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  const vistaPrevia = archivoLogo ? URL.createObjectURL(archivoLogo) : logoUrl
+
+  if (cargando) {
+    return <p className="text-sm text-text-muted">Cargando...</p>
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h1 className="text-xl font-bold text-text">Ajustes</h1>
+
+      <Card>
+        <CardContent className="py-6">
+          <form onSubmit={handleSubmit} className="flex max-w-md flex-col gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-control border border-white/10 bg-surface-hover">
+                {vistaPrevia ? (
+                  <img src={vistaPrevia} alt="Logo" className="size-full object-contain" />
+                ) : (
+                  <span className="text-xs text-text-muted">Sin logo</span>
+                )}
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="logo">Logo de la app</Label>
+                <input
+                  id="logo"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setArchivoLogo(e.target.files?.[0] ?? null)}
+                  className="text-sm text-text-muted file:mr-3 file:rounded-control file:border-0 file:bg-surface-hover file:px-3 file:py-1.5 file:text-sm file:text-text"
+                />
+                <p className="text-xs text-text-muted">
+                  Aparece en el login y en el menú. Déjalo vacío para usar el diseño por defecto.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="nombreApp">Nombre de la app</Label>
+              <Input
+                id="nombreApp"
+                value={nombreApp}
+                onChange={(e) => setNombreApp(e.target.value)}
+                required
+              />
+            </div>
+
+            {error && (
+              <p className="rounded-control bg-error/10 px-3 py-2 text-sm text-error">{error}</p>
+            )}
+            {exito && (
+              <p className="rounded-control bg-success/10 px-3 py-2 text-sm text-success">
+                Ajustes guardados.
+              </p>
+            )}
+
+            <Button type="submit" disabled={guardando} className="self-start">
+              {guardando ? "Guardando..." : "Guardar cambios"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

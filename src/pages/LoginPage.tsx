@@ -6,9 +6,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/context/AuthContext"
+import { useAppSettings } from "@/hooks/useAppSettings"
 
 export function LoginPage() {
   const { session, loading, signIn } = useAuth()
+  const ajustes = useAppSettings()
   const location = useLocation()
   const [documento, setDocumento] = useState("")
   const [password, setPassword] = useState("")
@@ -35,10 +37,14 @@ export function LoginPage() {
     <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-2 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-control bg-gradient-to-br from-brand-light to-brand-dark text-2xl font-bold text-white">
-            DM
+          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-control bg-gradient-to-br from-brand-light to-brand-dark text-2xl font-bold text-white">
+            {ajustes.logo_url ? (
+              <img src={ajustes.logo_url} alt={ajustes.nombre_app} className="size-full object-cover" />
+            ) : (
+              "DM"
+            )}
           </div>
-          <h1 className="text-2xl font-bold text-text">Dance Manager</h1>
+          <h1 className="text-2xl font-bold text-text">{ajustes.nombre_app}</h1>
           <p className="text-sm text-text-muted">Ingresa con tu documento y contraseña</p>
         </div>
 

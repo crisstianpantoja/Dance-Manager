@@ -9,6 +9,7 @@ import {
   Music,
   PartyPopper,
   QrCode,
+  Settings,
   Tag,
   Ticket,
   UserCircle,
@@ -20,6 +21,7 @@ import { useState } from "react"
 import { NavLink, Outlet } from "react-router-dom"
 
 import { useAuth } from "@/context/AuthContext"
+import { useAppSettings } from "@/hooks/useAppSettings"
 import { cn } from "@/lib/utils"
 
 const NAV_ITEMS = [
@@ -36,11 +38,13 @@ const NAV_ITEMS = [
   { to: "/admin/gastos", label: "Gastos", icon: Wallet },
   { to: "/admin/contratos", label: "Contratos", icon: Music },
   { to: "/admin/retencion", label: "Retención", icon: AlertTriangle },
+  { to: "/admin/ajustes", label: "Ajustes", icon: Settings },
 ]
 
 export function AdminLayout() {
   const { profile, signOut } = useAuth()
   const [menuAbierto, setMenuAbierto] = useState(false)
+  const ajustes = useAppSettings()
 
   return (
     <div className="flex min-h-dvh bg-background">
@@ -48,9 +52,13 @@ export function AdminLayout() {
       <aside className="hidden w-64 shrink-0 flex-col border-r border-white/10 bg-surface md:flex">
         <div className="flex items-start justify-between p-6">
           <div>
-            <p className="text-2xl font-extrabold tracking-tight text-text">
-              Dance<span className="text-brand">M</span>anager
-            </p>
+            {ajustes.logo_url ? (
+              <img src={ajustes.logo_url} alt={ajustes.nombre_app} className="h-9 w-auto object-contain" />
+            ) : (
+              <p className="text-2xl font-extrabold tracking-tight text-text">
+                Dance<span className="text-brand">M</span>anager
+              </p>
+            )}
             <p className="text-xs text-text-muted">{profile?.nombre}</p>
           </div>
           <button

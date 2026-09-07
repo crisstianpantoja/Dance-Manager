@@ -17,6 +17,7 @@ import { GigsPage } from "@/pages/admin/GigsPage"
 import { PaymentsPage } from "@/pages/admin/PaymentsPage"
 import { PlansPage } from "@/pages/admin/PlansPage"
 import { RetentionPage } from "@/pages/admin/RetentionPage"
+import { SettingsPage } from "@/pages/admin/SettingsPage"
 import { StudentsPage } from "@/pages/admin/StudentsPage"
 import { TeachersPage } from "@/pages/admin/TeachersPage"
 import { CalendarioPage } from "@/pages/alumno/CalendarioPage"
@@ -82,6 +83,7 @@ function App() {
           <Route path="gastos" element={<GastosPage />} />
           <Route path="contratos" element={<GigsPage />} />
           <Route path="retencion" element={<RetentionPage />} />
+          <Route path="ajustes" element={<SettingsPage />} />
         </Route>
 
         <Route

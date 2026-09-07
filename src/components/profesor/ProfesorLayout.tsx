@@ -2,6 +2,7 @@ import { LogOut } from "lucide-react"
 import { NavLink, Outlet } from "react-router-dom"
 
 import { useAuth } from "@/context/AuthContext"
+import { useAppSettings } from "@/hooks/useAppSettings"
 import { cn } from "@/lib/utils"
 
 const TABS = [
@@ -12,13 +13,18 @@ const TABS = [
 
 export function ProfesorLayout() {
   const { profile, signOut } = useAuth()
+  const ajustes = useAppSettings()
 
   return (
     <div className="min-h-dvh bg-background">
       <header className="sticky top-0 z-10 border-b border-white/10 bg-background/95 backdrop-blur">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
-            <p className="text-lg font-bold leading-none text-text">Dance Manager</p>
+            {ajustes.logo_url ? (
+              <img src={ajustes.logo_url} alt={ajustes.nombre_app} className="h-7 w-auto object-contain" />
+            ) : (
+              <p className="text-lg font-bold leading-none text-text">{ajustes.nombre_app}</p>
+            )}
             <p className="text-xs text-text-muted">{profile?.nombre}</p>
           </div>
           <button
