@@ -1,11 +1,13 @@
-import { ClipboardList, Pencil, Plus, Trash2 } from "lucide-react"
+import { ClipboardList, LayoutGrid, List, Pencil, Plus, Trash2, Upload } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 
+import { BulkImportDialog } from "@/pages/admin/BulkImportDialog"
 import { StudentFormDialog } from "@/pages/admin/StudentFormDialog"
 import { EvaluarDialog } from "@/pages/profesor/EvaluarDialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Table,
   TableBody,
@@ -16,8 +18,48 @@ import {
 } from "@/components/ui/table"
 import { eliminarAlumno } from "@/lib/adminStudents"
 import { supabase } from "@/lib/supabase"
+import { cn } from "@/lib/utils"
 import type { Academy } from "@/types/academy"
 import type { Student } from "@/types/student"
+
+type Vista = "lista" | "tarjetas"
+
+const CLAVE_VISTA = "alumnos_vista"
+
+interface AccionesAlumnoProps {
+  alumno: Student
+  eliminando: string | null
+  onEvaluar: (alumno: Student) => void
+  onEditar: (alumno: Student) => void
+  onEliminar: (alumno: Student) => void
+}
+
+function AccionesAlumno({
+  alumno,
+  eliminando,
+  onEvaluar,
+  onEditar,
+  onEliminar,
+}: AccionesAlumnoProps) {
+  return (
+    <div className="flex justify-end gap-1">
+      <Button variant="ghost" size="icon" title="Evaluar" onClick={() => onEvaluar(alumno)}>
+        <ClipboardList className="size-4" />
+      </Button>
+      <Button variant="ghost" size="icon" onClick={() => onEditar(alumno)}>
+        <Pencil className="size-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        disabled={eliminando === alumno.id}
+        onClick={() => onEliminar(alumno)}
+      >
+        <Trash2 className="size-4 text-error" />
+      </Button>
+    </div>
+  )
+}
 
 export function StudentsPage() {
   const [alumnos, setAlumnos] = useState<Student[]>([])
@@ -27,6 +69,10 @@ export function StudentsPage() {
   const [alumnoEditando, setAlumnoEditando] = useState<Student | null>(null)
   const [eliminando, setEliminando] = useState<string | null>(null)
   const [alumnoEvaluando, setAlumnoEvaluando] = useState<Student | null>(null)
+  const [importAbierto, setImportAbierto] = useState(false)
+  const [vista, setVista] = useState<Vista>(
+    () => (localStorage.getItem(CLAVE_VISTA) as Vista | null) ?? "lista",
+  )
 
   const academiasPorId = useMemo(
     () => new Map(academias.map((academia) => [academia.id, academia.nombre])),
@@ -47,6 +93,11 @@ export function StudentsPage() {
   useEffect(() => {
     cargarDatos()
   }, [])
+
+  function cambiarVista(nueva: Vista) {
+    setVista(nueva)
+    localStorage.setItem(CLAVE_VISTA, nueva)
+  }
 
   function abrirCrear() {
     setAlumnoEditando(null)
@@ -79,7 +130,7 @@ export function StudentsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-text">Alumnos</h1>
           {!cargando && (
@@ -92,10 +143,43 @@ export function StudentsPage() {
             </p>
           )}
         </div>
-        <Button onClick={abrirCrear} size="sm">
-          <Plus className="size-4" />
-          Nuevo alumno
-        </Button>
+
+        <div className="flex items-center gap-2">
+          <div className="flex items-center rounded-control border border-white/15 p-0.5">
+            <button
+              type="button"
+              title="Vista de lista"
+              onClick={() => cambiarVista("lista")}
+              className={cn(
+                "rounded-[0.5rem] p-2 transition-colors",
+                vista === "lista" ? "bg-brand text-white" : "text-text-muted hover:text-text",
+              )}
+            >
+              <List className="size-4" />
+            </button>
+            <button
+              type="button"
+              title="Vista de tarjetas"
+              onClick={() => cambiarVista("tarjetas")}
+              className={cn(
+                "rounded-[0.5rem] p-2 transition-colors",
+                vista === "tarjetas" ? "bg-brand text-white" : "text-text-muted hover:text-text",
+              )}
+            >
+              <LayoutGrid className="size-4" />
+            </button>
+          </div>
+
+          <Button variant="outline" size="sm" onClick={() => setImportAbierto(true)}>
+            <Upload className="size-4" />
+            Carga masiva
+          </Button>
+
+          <Button onClick={abrirCrear} size="sm">
+            <Plus className="size-4" />
+            Nuevo alumno
+          </Button>
+        </div>
       </div>
 
       {cargando ? (
@@ -107,6 +191,38 @@ export function StudentsPage() {
             <Plus className="size-4" />
             Registrar el primero
           </Button>
+        </div>
+      ) : vista === "tarjetas" ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {alumnos.map((alumno) => (
+            <Card key={alumno.id}>
+              <CardContent className="flex flex-col items-center gap-3 py-6 text-center">
+                <Avatar className="size-14">
+                  <AvatarImage src={alumno.foto ?? undefined} alt={alumno.nombre} />
+                  <AvatarFallback>{alumno.nombre.slice(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium text-text">{alumno.nombre}</p>
+                  <p className="text-xs text-text-muted">{alumno.documento}</p>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Badge variant={alumno.tipo === "privada" ? "muted" : "default"}>
+                    {alumno.nivel}
+                  </Badge>
+                  <Badge variant="muted">
+                    {alumno.academia_id ? academiasPorId.get(alumno.academia_id) : "Sin academia"}
+                  </Badge>
+                </div>
+                <AccionesAlumno
+                  alumno={alumno}
+                  eliminando={eliminando}
+                  onEvaluar={setAlumnoEvaluando}
+                  onEditar={abrirEditar}
+                  onEliminar={eliminar}
+                />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : (
         <Table>
@@ -142,27 +258,13 @@ export function StudentsPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      title="Evaluar"
-                      onClick={() => setAlumnoEvaluando(alumno)}
-                    >
-                      <ClipboardList className="size-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => abrirEditar(alumno)}>
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={eliminando === alumno.id}
-                      onClick={() => eliminar(alumno)}
-                    >
-                      <Trash2 className="size-4 text-error" />
-                    </Button>
-                  </div>
+                  <AccionesAlumno
+                    alumno={alumno}
+                    eliminando={eliminando}
+                    onEvaluar={setAlumnoEvaluando}
+                    onEditar={abrirEditar}
+                    onEliminar={eliminar}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -176,6 +278,13 @@ export function StudentsPage() {
         alumno={alumnoEditando}
         academias={academias}
         onSaved={cargarDatos}
+      />
+
+      <BulkImportDialog
+        open={importAbierto}
+        onOpenChange={setImportAbierto}
+        academias={academias}
+        onImportado={cargarDatos}
       />
 
       {alumnoEvaluando && (
