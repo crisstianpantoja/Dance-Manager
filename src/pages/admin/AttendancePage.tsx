@@ -1,7 +1,7 @@
-import { Scanner, type IDetectedBarcode } from "@yudiel/react-qr-scanner"
 import { Camera, CameraOff, RotateCcw, UserPlus } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
+import { QrScannerView } from "@/components/QrScannerView"
 import { RegistroAsistenciaDialog } from "@/pages/admin/RegistroAsistenciaDialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -48,8 +48,6 @@ export function AttendancePage() {
   const [cargando, setCargando] = useState(true)
 
   const [camaraActiva, setCamaraActiva] = useState(false)
-  const [camaraKey, setCamaraKey] = useState(0)
-  const contenedorCamaraRef = useRef<HTMLDivElement>(null)
   const [documentoManual, setDocumentoManual] = useState("")
   const [procesando, setProcesando] = useState(false)
   const [banner, setBanner] = useState<{ mensaje: string; exito: boolean } | null>(null)
@@ -100,26 +98,6 @@ export function AttendancePage() {
     else reproducirSonidoAdvertencia()
   }
 
-  function detenerVideosActivos(raiz: ParentNode) {
-    raiz.querySelectorAll("video").forEach((video) => {
-      const stream = video.srcObject as MediaStream | null
-      stream?.getTracks().forEach((track) => track.stop())
-      video.srcObject = null
-    })
-  }
-
-  function apagarCamara() {
-    // Respaldo por si la librería del lector no libera la cámara sola: paramos
-    // cualquier <video> activo y forzamos un remount la próxima vez que se
-    // active. El segundo barrido (con retraso) cubre el caso en que la
-    // cámara apenas estaba inicializando cuando se detectó el QR y el
-    // stream se conecta al <video> justo después de este primer intento.
-    detenerVideosActivos(contenedorCamaraRef.current ?? document)
-    setCamaraKey((k) => k + 1)
-    setCamaraActiva(false)
-    window.setTimeout(() => detenerVideosActivos(document), 400)
-  }
-
   async function handleScan(documento: string, origen: "qr" | "manual") {
     const valor = documento.trim()
     if (!valor || procesando) return
@@ -130,7 +108,7 @@ export function AttendancePage() {
       return
     }
 
-    if (origen === "qr") apagarCamara()
+    if (origen === "qr") setCamaraActiva(false)
     setProcesando(true)
 
     try {
@@ -191,8 +169,7 @@ export function AttendancePage() {
     }
   }
 
-  function handleDetectado(codigos: IDetectedBarcode[]) {
-    const valor = codigos[0]?.rawValue
+  function handleDetectado(valor: string) {
     if (!valor) return
 
     const ahora = Date.now()
@@ -259,7 +236,7 @@ export function AttendancePage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => (camaraActiva ? apagarCamara() : setCamaraActiva(true))}
+            onClick={() => setCamaraActiva((v) => !v)}
           >
             {camaraActiva ? <CameraOff className="size-4" /> : <Camera className="size-4" />}
             {camaraActiva ? "Detener lectura" : "Leer QR"}
@@ -267,13 +244,11 @@ export function AttendancePage() {
         </div>
 
         {camaraActiva && (
-          <div ref={contenedorCamaraRef} className="overflow-hidden rounded-control">
-            <Scanner
-              key={camaraKey}
+          <div className="overflow-hidden rounded-control">
+            <QrScannerView
               onScan={handleDetectado}
-              onError={() => mostrarBanner("No se pudo acceder a la cámara.", false)}
-              formats={["qr_code"]}
-              styles={{ container: { width: "100%" } }}
+              onError={(mensaje) => mostrarBanner(mensaje, false)}
+              className="w-full"
             />
           </div>
         )}

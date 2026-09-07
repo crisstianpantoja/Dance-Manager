@@ -1,7 +1,7 @@
-import { Scanner, type IDetectedBarcode } from "@yudiel/react-qr-scanner"
 import { Camera, CameraOff, ClipboardList, Search } from "lucide-react"
 import { useRef, useState } from "react"
 
+import { QrScannerView } from "@/components/QrScannerView"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -56,8 +56,7 @@ export function CarnetLookupPage() {
     setBuscando(false)
   }
 
-  function handleDetectado(codigos: IDetectedBarcode[]) {
-    const valor = codigos[0]?.rawValue
+  function handleDetectado(valor: string) {
     if (!valor) return
 
     const ahora = Date.now()
@@ -69,6 +68,7 @@ export function CarnetLookupPage() {
       return
     }
     ultimoEscaneo.current = { valor, ts: ahora }
+    setCamaraActiva(false)
     buscar(valor)
   }
 
@@ -92,11 +92,10 @@ export function CarnetLookupPage() {
 
         {camaraActiva && (
           <div className="overflow-hidden rounded-control">
-            <Scanner
+            <QrScannerView
               onScan={handleDetectado}
-              onError={() => setError("No se pudo acceder a la cámara.")}
-              formats={["qr_code"]}
-              styles={{ container: { width: "100%" } }}
+              onError={(mensaje) => setError(mensaje)}
+              className="w-full"
             />
           </div>
         )}
