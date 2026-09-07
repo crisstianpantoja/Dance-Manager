@@ -1,7 +1,7 @@
 // Edge Function: genera el enlace para "Guardar en Google Wallet" del
-// carnet del propio alumno. Firma un JWT con la cuenta de servicio de
-// Google Wallet (llave privada, nunca expuesta al cliente) y arma un
-// "Generic pass" con los datos del alumno. El alumno solo puede pedir su
+// carnet del propio alumno. Crea/actualiza el objeto en Google Wallet vía
+// su API REST (autenticado con la cuenta de servicio) y firma un JWT de
+// referencia para el enlace de guardado. El alumno solo puede pedir su
 // propio carnet (auth.uid() = students.id).
 // Deploy: supabase functions deploy wallet-pass
 
@@ -91,6 +91,71 @@ async function firmarJWT(payload: unknown, llavePem: string): Promise<string> {
   return `${entrada}.${base64url(new Uint8Array(firma))}`
 }
 
+async function obtenerAccessToken(): Promise<string> {
+  const ahora = Math.floor(Date.now() / 1000)
+  const claims = {
+    iss: WALLET_SERVICE_ACCOUNT_EMAIL,
+    scope: "https://www.googleapis.com/auth/wallet_object.issuer",
+    aud: "https://oauth2.googleapis.com/token",
+    iat: ahora,
+    exp: ahora + 3600,
+  }
+  const assertion = await firmarJWT(claims, WALLET_PRIVATE_KEY)
+
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion,
+    }),
+  })
+
+  const data = await res.json()
+  if (!res.ok) {
+    throw new Error(`No se pudo autenticar con Google (${res.status}): ${JSON.stringify(data)}`)
+  }
+  return data.access_token as string
+}
+
+interface ResultadoUpsert {
+  ok: boolean
+  accion: string
+  status?: number
+  error?: unknown
+}
+
+async function upsertGenericObject(
+  token: string,
+  objeto: Record<string, unknown>,
+): Promise<ResultadoUpsert> {
+  const base = "https://walletobjects.googleapis.com/walletobjects/v1/genericObject"
+
+  const insertRes = await fetch(base, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(objeto),
+  })
+
+  if (insertRes.ok) return { ok: true, accion: "insert" }
+
+  if (insertRes.status !== 409) {
+    return { ok: false, accion: "insert", status: insertRes.status, error: await insertRes.json() }
+  }
+
+  const patchRes = await fetch(`${base}/${objeto.id}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(objeto),
+  })
+
+  if (!patchRes.ok) {
+    return { ok: false, accion: "patch", status: patchRes.status, error: await patchRes.json() }
+  }
+
+  return { ok: true, accion: "patch" }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
 
@@ -140,17 +205,31 @@ Deno.serve(async (req) => {
     },
   }
 
-  const claims = {
-    iss: WALLET_SERVICE_ACCOUNT_EMAIL,
-    aud: "google",
-    typ: "savetowallet",
-    origins: [WALLET_ORIGIN],
-    iat: Math.floor(Date.now() / 1000),
-    payload: { genericObjects: [genericObject] },
-  }
-
   try {
-    const jwt = await firmarJWT(claims, WALLET_PRIVATE_KEY)
+    const token = await obtenerAccessToken()
+    const resultado = await upsertGenericObject(token, genericObject)
+
+    if (!resultado.ok) {
+      return json(
+        {
+          error: `Google rechazó el carnet (${resultado.accion}, status ${resultado.status}): ${JSON.stringify(resultado.error)}`,
+        },
+        400,
+      )
+    }
+
+    const jwt = await firmarJWT(
+      {
+        iss: WALLET_SERVICE_ACCOUNT_EMAIL,
+        aud: "google",
+        typ: "savetowallet",
+        origins: [WALLET_ORIGIN],
+        iat: Math.floor(Date.now() / 1000),
+        payload: { genericObjects: [{ id: objectId }] },
+      },
+      WALLET_PRIVATE_KEY,
+    )
+
     return json({ saveUrl: `https://pay.google.com/gp/v/save/${jwt}` })
   } catch (err) {
     return json(
