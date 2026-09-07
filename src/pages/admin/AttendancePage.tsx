@@ -100,17 +100,24 @@ export function AttendancePage() {
     else reproducirSonidoAdvertencia()
   }
 
-  function apagarCamara() {
-    // Respaldo por si la librería del lector no libera la cámara sola: paramos
-    // cualquier <video> activo dentro del contenedor y forzamos un remount la
-    // próxima vez que se active, para no arrastrar un stream colgado.
-    contenedorCamaraRef.current?.querySelectorAll("video").forEach((video) => {
+  function detenerVideosActivos(raiz: ParentNode) {
+    raiz.querySelectorAll("video").forEach((video) => {
       const stream = video.srcObject as MediaStream | null
       stream?.getTracks().forEach((track) => track.stop())
       video.srcObject = null
     })
+  }
+
+  function apagarCamara() {
+    // Respaldo por si la librería del lector no libera la cámara sola: paramos
+    // cualquier <video> activo y forzamos un remount la próxima vez que se
+    // active. El segundo barrido (con retraso) cubre el caso en que la
+    // cámara apenas estaba inicializando cuando se detectó el QR y el
+    // stream se conecta al <video> justo después de este primer intento.
+    detenerVideosActivos(contenedorCamaraRef.current ?? document)
     setCamaraKey((k) => k + 1)
     setCamaraActiva(false)
+    window.setTimeout(() => detenerVideosActivos(document), 400)
   }
 
   async function handleScan(documento: string, origen: "qr" | "manual") {
@@ -255,7 +262,7 @@ export function AttendancePage() {
             onClick={() => (camaraActiva ? apagarCamara() : setCamaraActiva(true))}
           >
             {camaraActiva ? <CameraOff className="size-4" /> : <Camera className="size-4" />}
-            {camaraActiva ? "Apagar cámara" : "Activar cámara"}
+            {camaraActiva ? "Detener lectura" : "Leer QR"}
           </Button>
         </div>
 

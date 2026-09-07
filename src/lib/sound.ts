@@ -80,7 +80,9 @@ export function decir(texto: string) {
   }
 }
 
-/** Voz: "Clase registrada con éxito." */
+/** Beep + voz: "Clase registrada con éxito." (el beep suena siempre, la voz
+ * depende de que el navegador tenga un motor de texto a voz disponible). */
 export function decirClaseRegistrada() {
+  reproducirSonidoExito()
   decir("Clase registrada con éxito.")
 }

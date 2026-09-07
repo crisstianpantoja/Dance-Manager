@@ -86,7 +86,7 @@ export function CarnetLookupPage() {
           <p className="text-sm font-medium text-text">Escanear carnet (QR)</p>
           <Button variant="outline" size="sm" onClick={() => setCamaraActiva((v) => !v)}>
             {camaraActiva ? <CameraOff className="size-4" /> : <Camera className="size-4" />}
-            {camaraActiva ? "Apagar cámara" : "Activar cámara"}
+            {camaraActiva ? "Detener lectura" : "Leer QR"}
           </Button>
         </div>
 
