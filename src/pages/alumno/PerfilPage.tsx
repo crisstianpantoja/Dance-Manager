@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { CarnetDownloadButton } from "@/components/alumno/CarnetDownloadButton"
 import { CompetencyRadar } from "@/components/alumno/CompetencyRadar"
 import { DigitalCard } from "@/components/alumno/DigitalCard"
+import { GoogleWalletButton } from "@/components/alumno/GoogleWalletButton"
 import { ThemePicker } from "@/components/alumno/ThemePicker"
 import { EditProfileDialog } from "@/pages/alumno/EditProfileDialog"
 import { ReportarPagoDialog } from "@/pages/alumno/ReportarPagoDialog"
@@ -253,7 +254,10 @@ export function PerfilPage() {
                 ? `Podrás cambiar el color del carnet a partir del ${formatearFechaObjeto(proximoCambioTema)}.`
                 : "Puedes elegir el color del carnet una vez cada 12 meses."}
             </p>
-            <CarnetDownloadButton alumno={alumno} />
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <CarnetDownloadButton alumno={alumno} />
+              <GoogleWalletButton />
+            </div>
             <p className="text-xs text-text-muted">
               Muestra este código en la puerta para registrar tu asistencia.
             </p>
