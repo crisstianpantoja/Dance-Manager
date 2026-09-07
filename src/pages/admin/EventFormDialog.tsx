@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { subirFoto } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
 import type { EventoDM } from "@/types/event"
 
@@ -32,6 +33,8 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
   const [lugar, setLugar] = useState("")
   const [descripcion, setDescripcion] = useState("")
   const [cupoMaximo, setCupoMaximo] = useState("")
+  const [imagenUrl, setImagenUrl] = useState<string | null>(null)
+  const [archivoImagen, setArchivoImagen] = useState<File | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -43,6 +46,8 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
     setLugar(evento?.lugar ?? "")
     setDescripcion(evento?.descripcion ?? "")
     setCupoMaximo(evento?.cupo_maximo?.toString() ?? "")
+    setImagenUrl(evento?.imagen_url ?? null)
+    setArchivoImagen(null)
     setError(null)
   }, [open, evento])
 
@@ -51,16 +56,23 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
     setError(null)
     setGuardando(true)
 
-    const datos = {
-      titulo,
-      fecha,
-      hora,
-      lugar: lugar || null,
-      descripcion: descripcion || null,
-      cupo_maximo: cupoMaximo ? Number(cupoMaximo) : null,
-    }
-
     try {
+      let urlImagen = imagenUrl
+
+      if (archivoImagen) {
+        urlImagen = await subirFoto(archivoImagen, "eventos")
+      }
+
+      const datos = {
+        titulo,
+        fecha,
+        hora,
+        lugar: lugar || null,
+        descripcion: descripcion || null,
+        cupo_maximo: cupoMaximo ? Number(cupoMaximo) : null,
+        imagen_url: urlImagen,
+      }
+
       if (evento) {
         const { error } = await supabase.from("events").update(datos).eq("id", evento.id)
         if (error) throw error
@@ -78,6 +90,8 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
     }
   }
 
+  const vistaPrevia = archivoImagen ? URL.createObjectURL(archivoImagen) : imagenUrl
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -86,6 +100,26 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-control border border-white/10 bg-surface-hover">
+              {vistaPrevia ? (
+                <img src={vistaPrevia} alt="" className="size-full object-cover" />
+              ) : (
+                <span className="text-xs text-text-muted">Sin foto</span>
+              )}
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="imagen">Imagen del evento</Label>
+              <input
+                id="imagen"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setArchivoImagen(e.target.files?.[0] ?? null)}
+                className="text-sm text-text-muted file:mr-3 file:rounded-control file:border-0 file:bg-surface-hover file:px-3 file:py-1.5 file:text-sm file:text-text"
+              />
+            </div>
+          </div>
+
           <div className="flex flex-col gap-2">
             <Label htmlFor="titulo">Título</Label>
             <Input id="titulo" value={titulo} onChange={(e) => setTitulo(e.target.value)} required />

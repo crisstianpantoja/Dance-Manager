@@ -64,18 +64,27 @@ export function EventsPage() {
         <div className="flex flex-col gap-2">
           {eventos.map((evento) => (
             <Card key={evento.id}>
-              <CardContent className="flex items-center justify-between py-3">
-                <div>
-                  <p className="font-medium text-text">{evento.titulo}</p>
-                  <p className="text-xs text-text-muted">
-                    {formatearFecha(evento.fecha)} · {evento.hora.slice(0, 5)}
-                    {evento.lugar ? ` · ${evento.lugar}` : ""}
-                  </p>
-                  {evento.cupo_maximo && (
-                    <Badge variant="muted" className="mt-1">
-                      {evento.reservas.length}/{evento.cupo_maximo} reservas
-                    </Badge>
+              <CardContent className="flex items-center justify-between gap-3 py-3">
+                <div className="flex items-center gap-3">
+                  {evento.imagen_url && (
+                    <img
+                      src={evento.imagen_url}
+                      alt=""
+                      className="size-12 shrink-0 rounded-control object-cover"
+                    />
                   )}
+                  <div>
+                    <p className="font-medium text-text">{evento.titulo}</p>
+                    <p className="text-xs text-text-muted">
+                      {formatearFecha(evento.fecha)} · {evento.hora.slice(0, 5)}
+                      {evento.lugar ? ` · ${evento.lugar}` : ""}
+                    </p>
+                    {evento.cupo_maximo && (
+                      <Badge variant="muted" className="mt-1">
+                        {evento.reservas.length}/{evento.cupo_maximo} reservas
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => abrirEditar(evento)}>

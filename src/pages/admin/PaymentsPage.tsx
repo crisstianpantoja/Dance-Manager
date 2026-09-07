@@ -31,6 +31,17 @@ const ETIQUETA_ESTADO: Record<EstadoPago, string> = {
   rechazado: "Rechazado",
 }
 
+const ETIQUETA_METODO: Record<string, string> = {
+  efectivo: "Efectivo",
+  transferencia: "Transferencia",
+  tarjeta: "Tarjeta",
+}
+
+function etiquetaMetodo(metodo: string | null) {
+  if (!metodo) return "—"
+  return ETIQUETA_METODO[metodo] ?? metodo
+}
+
 export function PaymentsPage() {
   const [pagos, setPagos] = useState<Payment[]>([])
   const [alumnos, setAlumnos] = useState<Student[]>([])
@@ -120,6 +131,7 @@ export function PaymentsPage() {
               <TableHead>Alumno</TableHead>
               <TableHead>Concepto</TableHead>
               <TableHead>Monto</TableHead>
+              <TableHead>Método</TableHead>
               <TableHead>Vence</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="w-32 text-right">Acciones</TableHead>
@@ -149,6 +161,7 @@ export function PaymentsPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-text">{formatearMoneda(pago.monto)}</TableCell>
+                  <TableCell className="text-text-muted">{etiquetaMetodo(pago.metodo)}</TableCell>
                   <TableCell className="text-text-muted">
                     {formatearFecha(pago.fecha_vencimiento)}
                   </TableCell>

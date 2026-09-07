@@ -174,7 +174,14 @@ export function ReservasPage() {
             const lleno = evento.cupo_maximo ? evento.reservas.length >= evento.cupo_maximo : false
 
             return (
-              <Card key={evento.id}>
+              <Card key={evento.id} className="overflow-hidden">
+                {evento.imagen_url && (
+                  <img
+                    src={evento.imagen_url}
+                    alt=""
+                    className="h-32 w-full object-cover"
+                  />
+                )}
                 <CardContent className="flex items-center justify-between py-3">
                   <div>
                     <p className="font-medium text-text">{evento.titulo}</p>

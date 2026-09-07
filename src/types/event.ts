@@ -7,4 +7,5 @@ export interface EventoDM {
   descripcion: string | null
   cupo_maximo: number | null
   reservas: string[]
+  imagen_url: string | null
 }
