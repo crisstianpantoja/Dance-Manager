@@ -12,29 +12,27 @@ const TABS = [
 
 export function AlumnoLayout() {
   return (
-    <div className="flex min-h-dvh flex-col bg-background pb-20">
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6">
+    <div className="flex min-h-dvh flex-col pb-24">
+      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-6 animate-fade-in">
         <Outlet />
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 border-t border-white/10 bg-surface/95 backdrop-blur">
-        <div className="mx-auto flex max-w-lg items-stretch justify-around">
-          {TABS.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                cn(
-                  "flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-medium transition-colors",
-                  isActive ? "text-brand-light" : "text-text-muted hover:text-text",
-                )
-              }
-            >
-              <Icon className="size-5" />
-              {label}
-            </NavLink>
-          ))}
-        </div>
+      <nav className="fixed inset-x-4 bottom-4 z-40 mx-auto flex max-w-lg items-stretch justify-around rounded-2xl border border-white/10 bg-surface/95 p-1.5 shadow-2xl backdrop-blur-xl">
+        {TABS.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) =>
+              cn(
+                "flex flex-1 flex-col items-center gap-1 rounded-xl py-2.5 text-xs font-medium transition-colors",
+                isActive ? "bg-brand/10 text-brand-light" : "text-text-muted hover:text-text",
+              )
+            }
+          >
+            <Icon className="size-5" />
+            {label}
+          </NavLink>
+        ))}
       </nav>
     </div>
   )

@@ -4,15 +4,15 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium",
   {
     variants: {
       variant: {
-        default: "bg-brand/15 text-brand-light",
-        success: "bg-success/15 text-success",
-        warning: "bg-warning/15 text-warning",
-        error: "bg-error/15 text-error",
-        muted: "bg-surface-hover text-text-muted",
+        default: "border-brand/20 bg-brand/15 text-brand-light",
+        success: "border-success/20 bg-success/15 text-success",
+        warning: "border-warning/20 bg-warning/15 text-warning",
+        error: "border-error/20 bg-error/15 text-error",
+        muted: "border-white/10 bg-surface-hover text-text-muted",
       },
     },
     defaultVariants: {

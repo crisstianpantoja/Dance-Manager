@@ -16,8 +16,8 @@ export function ProfesorLayout() {
   const ajustes = useAppSettings()
 
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="sticky top-0 z-10 border-b border-white/10 bg-background/95 backdrop-blur">
+    <div className="min-h-dvh">
+      <header className="sticky top-0 z-10 border-b border-white/10 bg-background/80 backdrop-blur-xl">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
             {ajustes.logo_url ? (
@@ -45,7 +45,7 @@ export function ProfesorLayout() {
                 cn(
                   "whitespace-nowrap rounded-control px-4 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-brand text-white"
+                    ? "bg-brand text-white shadow-md shadow-brand/20"
                     : "text-text-muted hover:bg-surface-hover hover:text-text",
                 )
               }
@@ -56,7 +56,7 @@ export function ProfesorLayout() {
         </nav>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-6">
+      <main className="mx-auto max-w-4xl px-4 py-6 animate-fade-in">
         <Outlet />
       </main>
     </div>

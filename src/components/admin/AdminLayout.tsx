@@ -22,6 +22,7 @@ import { NavLink, Outlet } from "react-router-dom"
 
 import { useAuth } from "@/context/AuthContext"
 import { useAppSettings } from "@/hooks/useAppSettings"
+import { usePagosPendientes } from "@/hooks/usePagosPendientes"
 import { cn } from "@/lib/utils"
 
 const NAV_ITEMS = [
@@ -45,11 +46,12 @@ export function AdminLayout() {
   const { profile, signOut } = useAuth()
   const [menuAbierto, setMenuAbierto] = useState(false)
   const ajustes = useAppSettings()
+  const pagosPendientes = usePagosPendientes()
 
   return (
-    <div className="flex min-h-dvh bg-background">
+    <div className="flex min-h-dvh">
       {/* Sidebar de escritorio */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-white/10 bg-surface md:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-white/10 bg-gradient-to-b from-surface to-surface/90 md:flex">
         <div className="flex items-start justify-between p-6">
           <div>
             {ajustes.logo_url ? (
@@ -86,13 +88,18 @@ export function AdminLayout() {
             >
               <Icon className="size-5" />
               {label}
+              {to === "/admin/pagos" && pagosPendientes > 0 && (
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-warning px-1.5 text-[10px] font-bold text-background">
+                  {pagosPendientes}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
       </aside>
 
       {/* Contenido */}
-      <main className="min-w-0 flex-1 overflow-x-hidden px-4 py-6 pb-24 md:px-8 md:pb-6">
+      <main className="min-w-0 flex-1 overflow-x-hidden px-4 py-6 pb-24 md:px-8 md:pb-6 animate-fade-in">
         <Outlet />
       </main>
 
@@ -144,7 +151,7 @@ export function AdminLayout() {
                 onClick={() => setMenuAbierto(false)}
                 className={({ isActive }) =>
                   cn(
-                    "flex flex-col items-center justify-center rounded-2xl border p-4 transition-colors",
+                    "relative flex flex-col items-center justify-center rounded-2xl border p-4 transition-colors",
                     isActive
                       ? "border-brand bg-brand/5 text-brand"
                       : "border-white/10 bg-background text-text-muted",
@@ -153,6 +160,11 @@ export function AdminLayout() {
               >
                 <Icon className="mb-2 size-6" />
                 <span className="text-center text-sm font-medium">{label}</span>
+                {to === "/admin/pagos" && pagosPendientes > 0 && (
+                  <span className="absolute right-3 top-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-warning px-1.5 text-[10px] font-bold text-background">
+                    {pagosPendientes}
+                  </span>
+                )}
               </NavLink>
             ))}
           </div>

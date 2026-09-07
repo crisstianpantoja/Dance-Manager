@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react"
 import { Link, Navigate, useLocation } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/context/AuthContext"
@@ -34,23 +34,24 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-2 text-center">
-          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-control bg-gradient-to-br from-brand-light to-brand-dark text-2xl font-bold text-white">
+    <div className="flex min-h-dvh items-center justify-center px-4">
+      <div className="w-full max-w-sm animate-fade-in-up">
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-brand-light to-brand-dark text-2xl font-bold text-white shadow-lg shadow-brand/30 ring-1 ring-white/10">
             {ajustes.logo_url ? (
               <img src={ajustes.logo_url} alt={ajustes.nombre_app} className="size-full object-cover" />
             ) : (
               "DM"
             )}
           </div>
-          <h1 className="text-2xl font-bold text-text">{ajustes.nombre_app}</h1>
-          <p className="text-sm text-text-muted">Ingresa con tu documento y contraseña</p>
+          <div>
+            <h1 className="text-2xl font-bold text-text">{ajustes.nombre_app}</h1>
+            <p className="text-sm text-text-muted">Ingresa con tu documento y contraseña</p>
+          </div>
         </div>
 
         <Card>
-          <CardHeader className="pb-0" />
-          <CardContent>
+          <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="documento">Documento</Label>

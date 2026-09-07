@@ -5,15 +5,16 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-control text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-light focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-control text-sm font-medium transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-light focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 disabled:active:scale-100 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-brand text-white hover:bg-brand-dark",
+        default:
+          "bg-brand text-white shadow-md shadow-brand/25 hover:bg-brand-dark hover:shadow-lg hover:shadow-brand/30",
         outline:
-          "border border-white/15 bg-transparent text-text hover:bg-surface-hover",
+          "border border-white/15 bg-transparent text-text hover:border-white/25 hover:bg-surface-hover",
         ghost: "bg-transparent text-text hover:bg-surface-hover",
-        destructive: "bg-error text-white hover:bg-error/90",
+        destructive: "bg-error text-white shadow-md shadow-error/20 hover:bg-error/90",
         link: "text-brand-light underline-offset-4 hover:underline",
       },
       size: {
