@@ -80,7 +80,18 @@ export function StudentsPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-text">Alumnos</h1>
+        <div>
+          <h1 className="text-xl font-bold text-text">Alumnos</h1>
+          {!cargando && (
+            <p className="text-sm text-text-muted">
+              {alumnos.length === 0
+                ? "Aún no hay alumnos registrados"
+                : alumnos.length === 1
+                  ? "1 alumno registrado"
+                  : `${alumnos.length} alumnos registrados`}
+            </p>
+          )}
+        </div>
         <Button onClick={abrirCrear} size="sm">
           <Plus className="size-4" />
           Nuevo alumno
@@ -90,7 +101,13 @@ export function StudentsPage() {
       {cargando ? (
         <p className="text-sm text-text-muted">Cargando...</p>
       ) : alumnos.length === 0 ? (
-        <p className="text-sm text-text-muted">Aún no hay alumnos registrados.</p>
+        <div className="flex flex-col items-center gap-3 rounded-control border border-dashed border-white/15 py-16 text-center">
+          <p className="text-sm text-text-muted">Aún no hay alumnos registrados.</p>
+          <Button onClick={abrirCrear} size="sm" variant="outline">
+            <Plus className="size-4" />
+            Registrar el primero
+          </Button>
+        </div>
       ) : (
         <Table>
           <TableHeader>

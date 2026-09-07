@@ -100,7 +100,9 @@ export function AdminLayout() {
 
       {/* Contenido */}
       <main className="min-w-0 flex-1 overflow-x-hidden px-4 py-6 pb-24 md:px-8 md:pb-6 animate-fade-in">
-        <Outlet />
+        <div className="mx-auto max-w-6xl">
+          <Outlet />
+        </div>
       </main>
 
       {/* Nav inferior de celular */}
