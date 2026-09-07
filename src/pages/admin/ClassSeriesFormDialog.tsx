@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { guardarProfesoresSerie, listarProfesoresSerie } from "@/lib/classSeriesTeachers"
 import { generarOcurrencias } from "@/lib/occurrences"
 import { supabase } from "@/lib/supabase"
 import type { Academy } from "@/types/academy"
@@ -57,6 +58,7 @@ export function ClassSeriesFormDialog({
   const [vigenteDesde, setVigenteDesde] = useState(hoyISO())
   const [vigenteHasta, setVigenteHasta] = useState("")
   const [profesorIds, setProfesorIds] = useState<string[]>([])
+  const [tarifasEspeciales, setTarifasEspeciales] = useState<Record<string, string>>({})
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -73,8 +75,28 @@ export function ClassSeriesFormDialog({
     setLugar(serie?.lugar ?? "")
     setVigenteDesde(serie?.vigente_desde ?? hoyISO())
     setVigenteHasta(serie?.vigente_hasta ?? "")
-    setProfesorIds(serie?.profesor_ids ?? [])
     setError(null)
+
+    if (serie) {
+      listarProfesoresSerie(serie.id)
+        .then((asignaciones) => {
+          setProfesorIds(asignaciones.map((a) => a.profesor_id))
+          setTarifasEspeciales(
+            Object.fromEntries(
+              asignaciones
+                .filter((a) => a.amount_override != null)
+                .map((a) => [a.profesor_id, String(a.amount_override)]),
+            ),
+          )
+        })
+        .catch(() => {
+          setProfesorIds(serie.profesor_ids ?? [])
+          setTarifasEspeciales({})
+        })
+    } else {
+      setProfesorIds([])
+      setTarifasEspeciales({})
+    }
   }, [open, serie])
 
   function toggleProfesor(id: string) {
@@ -99,7 +121,6 @@ export function ClassSeriesFormDialog({
       lugar: lugar || null,
       vigente_desde: vigenteDesde,
       vigente_hasta: vigenteHasta || null,
-      profesor_ids: profesorIds,
     }
 
     try {
@@ -123,6 +144,16 @@ export function ClassSeriesFormDialog({
         if (error) throw error
         serieGuardada = data as ClassSeries
       }
+
+      // Fuente normalizada: profesor_ids[] en class_series queda
+      // sincronizado automáticamente por esta RPC.
+      await guardarProfesoresSerie(
+        serieGuardada.id,
+        profesorIds.map((id) => ({
+          profesor_id: id,
+          amount_override: tarifasEspeciales[id] ? Number(tarifasEspeciales[id]) : null,
+        })),
+      )
 
       await generarOcurrencias(serieGuardada)
 
@@ -274,20 +305,37 @@ export function ClassSeriesFormDialog({
               </p>
             ) : (
               <div className="flex flex-col gap-1 rounded-control border border-white/10 p-2">
-                {profesores.map((profesor) => (
-                  <label
-                    key={profesor.id}
-                    className="flex items-center gap-2 rounded-control px-2 py-1.5 text-sm text-text hover:bg-surface-hover"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={profesorIds.includes(profesor.id)}
-                      onChange={() => toggleProfesor(profesor.id)}
-                      className="size-4 accent-brand"
-                    />
-                    {profesor.nombre}
-                  </label>
-                ))}
+                {profesores.map((profesor) => {
+                  const seleccionado = profesorIds.includes(profesor.id)
+                  return (
+                    <div key={profesor.id} className="flex flex-col gap-1.5 px-2 py-1.5">
+                      <label className="flex items-center gap-2 text-sm text-text">
+                        <input
+                          type="checkbox"
+                          checked={seleccionado}
+                          onChange={() => toggleProfesor(profesor.id)}
+                          className="size-4 accent-brand"
+                        />
+                        {profesor.nombre}
+                      </label>
+                      {seleccionado && (
+                        <Input
+                          type="number"
+                          min="0"
+                          placeholder="Tarifa especial para esta clase (opcional, ej. Workshop)"
+                          value={tarifasEspeciales[profesor.id] ?? ""}
+                          onChange={(e) =>
+                            setTarifasEspeciales((actual) => ({
+                              ...actual,
+                              [profesor.id]: e.target.value,
+                            }))
+                          }
+                          className="ml-6 w-auto text-xs"
+                        />
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>

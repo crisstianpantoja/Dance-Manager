@@ -5,6 +5,7 @@ export interface Teacher {
   contacto: string | null
   rol_interno: string | null
   foto: string | null
+  activo: boolean
 }
 
 export interface TeacherInput {
