@@ -3,9 +3,22 @@ import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { fechaHoy } from "@/lib/attendance"
-import { formatearFecha } from "@/lib/format"
+import { formatearFecha, formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
+import { confirmarPagoCanceladaExcepcional } from "@/lib/teacherAttendance"
 import type { OcurrenciaConSerie } from "@/types/classSeries"
+
+interface ProfesorAsignado {
+  profesor_id: string
+  nombre: string
+  estado_asistencia: string
+  valor_previsto: number | null
+  metodo_registro: string | null
+}
+
+interface OcurrenciaConProfesores extends OcurrenciaConSerie {
+  profesores: ProfesorAsignado[]
+}
 
 interface FilaOcurrencia {
   id: string
@@ -21,10 +34,17 @@ interface FilaOcurrencia {
     cupo_maximo: number | null
     lugar: string | null
   } | null
+  class_occurrence_teachers: {
+    profesor_id: string
+    estado_asistencia: string
+    valor_previsto: number | null
+    metodo_registro: string | null
+    teachers: { nombre: string } | { nombre: string }[] | null
+  }[]
 }
 
 export function CalendarPage() {
-  const [ocurrencias, setOcurrencias] = useState<OcurrenciaConSerie[]>([])
+  const [ocurrencias, setOcurrencias] = useState<OcurrenciaConProfesores[]>([])
   const [cargando, setCargando] = useState(true)
   const [procesando, setProcesando] = useState<string | null>(null)
 
@@ -32,13 +52,15 @@ export function CalendarPage() {
     setCargando(true)
     const { data } = await supabase
       .from("class_occurrences")
-      .select("*, class_series(titulo, categoria, cupo_maximo, lugar)")
+      .select(
+        "*, class_series(titulo, categoria, cupo_maximo, lugar), class_occurrence_teachers(profesor_id, estado_asistencia, valor_previsto, metodo_registro, teachers(nombre))",
+      )
       .gte("fecha", fechaHoy())
       .order("fecha")
       .order("hora")
       .limit(200)
 
-    const filas = (data as FilaOcurrencia[] | null) ?? []
+    const filas = (data as unknown as FilaOcurrencia[] | null) ?? []
     setOcurrencias(
       filas.map((f) => ({
         id: f.id,
@@ -52,6 +74,16 @@ export function CalendarPage() {
         categoria: f.class_series?.categoria ?? null,
         cupo_maximo: f.class_series?.cupo_maximo ?? null,
         lugar: f.class_series?.lugar ?? null,
+        profesores: (f.class_occurrence_teachers ?? []).map((cot) => {
+          const profesor = Array.isArray(cot.teachers) ? (cot.teachers[0] ?? null) : cot.teachers
+          return {
+            profesor_id: cot.profesor_id,
+            nombre: profesor?.nombre ?? "Profesor",
+            estado_asistencia: cot.estado_asistencia,
+            valor_previsto: cot.valor_previsto,
+            metodo_registro: cot.metodo_registro,
+          }
+        }),
       })),
     )
     setCargando(false)
@@ -60,6 +92,19 @@ export function CalendarPage() {
   useEffect(() => {
     cargarOcurrencias()
   }, [])
+
+  async function pagarExcepcional(occurrenceId: string, profesorId: string) {
+    if (!confirm("¿Pagar esta clase cancelada de todas formas?")) return
+    setProcesando(occurrenceId)
+    try {
+      await confirmarPagoCanceladaExcepcional(occurrenceId, profesorId)
+      cargarOcurrencias()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "No se pudo registrar el pago excepcional.")
+    } finally {
+      setProcesando(null)
+    }
+  }
 
   async function cambiarEstado(oc: OcurrenciaConSerie, estado: "programada" | "cancelada") {
     setProcesando(oc.id)
@@ -76,7 +121,7 @@ export function CalendarPage() {
     cargarOcurrencias()
   }
 
-  const porFecha = ocurrencias.reduce<Record<string, OcurrenciaConSerie[]>>((acc, oc) => {
+  const porFecha = ocurrencias.reduce<Record<string, OcurrenciaConProfesores[]>>((acc, oc) => {
     acc[oc.fecha] = acc[oc.fecha] ?? []
     acc[oc.fecha].push(oc)
     return acc
@@ -103,37 +148,64 @@ export function CalendarPage() {
                   <div
                     key={oc.id}
                     className={
-                      "flex items-center justify-between rounded-control border border-white/10 bg-surface px-4 py-3 " +
-                      (oc.estado === "cancelada" ? "opacity-50" : "")
+                      "flex flex-col gap-2 rounded-control border border-white/10 bg-surface px-4 py-3 " +
+                      (oc.estado === "cancelada" ? "opacity-90" : "")
                     }
                   >
-                    <div>
-                      <p className="font-medium text-text">
-                        {oc.hora.slice(0, 5)} · {oc.titulo}
-                      </p>
-                      <p className="text-xs text-text-muted">
-                        {oc.categoria ?? "Sin categoría"}
-                        {oc.lugar ? ` · ${oc.lugar}` : ""}
-                        {oc.cupo_maximo ? ` · ${oc.alumno_ids.length}/${oc.cupo_maximo} cupos` : ""}
-                      </p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-text">
+                          {oc.hora.slice(0, 5)} · {oc.titulo}
+                        </p>
+                        <p className="text-xs text-text-muted">
+                          {oc.categoria ?? "Sin categoría"}
+                          {oc.lugar ? ` · ${oc.lugar}` : ""}
+                          {oc.cupo_maximo ? ` · ${oc.alumno_ids.length}/${oc.cupo_maximo} cupos` : ""}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {oc.estado === "cancelada" ? (
+                          <Badge variant="muted">Cancelada</Badge>
+                        ) : (
+                          <Badge variant="success">Programada</Badge>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={procesando === oc.id}
+                          onClick={() =>
+                            cambiarEstado(oc, oc.estado === "cancelada" ? "programada" : "cancelada")
+                          }
+                        >
+                          {oc.estado === "cancelada" ? "Reactivar" : "Cancelar"}
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {oc.estado === "cancelada" ? (
-                        <Badge variant="muted">Cancelada</Badge>
-                      ) : (
-                        <Badge variant="success">Programada</Badge>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={procesando === oc.id}
-                        onClick={() =>
-                          cambiarEstado(oc, oc.estado === "cancelada" ? "programada" : "cancelada")
-                        }
-                      >
-                        {oc.estado === "cancelada" ? "Reactivar" : "Cancelar"}
-                      </Button>
-                    </div>
+
+                    {oc.estado === "cancelada" && oc.profesores.length > 0 && (
+                      <div className="flex flex-col gap-1 border-t border-white/10 pt-2">
+                        {oc.profesores.map((p) => (
+                          <div key={p.profesor_id} className="flex items-center justify-between text-xs">
+                            <span className="text-text-muted">
+                              {p.nombre}
+                              {p.valor_previsto != null ? ` · ${formatearMoneda(p.valor_previsto)}` : ""}
+                            </span>
+                            {p.metodo_registro === "cancelacion_pagada" ? (
+                              <Badge variant="success">Pagada</Badge>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={procesando === oc.id || p.valor_previsto == null}
+                                onClick={() => pagarExcepcional(oc.id, p.profesor_id)}
+                              >
+                                Pagar de todas formas
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
