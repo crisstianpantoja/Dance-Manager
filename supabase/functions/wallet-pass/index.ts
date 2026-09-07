@@ -62,6 +62,9 @@ async function importarLlavePrivada(pem: string): Promise<CryptoKey> {
   const cuerpo = pem
     .replace("-----BEGIN PRIVATE KEY-----", "")
     .replace("-----END PRIVATE KEY-----", "")
+    // El valor "private_key" del JSON trae \n literales (dos caracteres,
+    // no un salto de línea real) al pegarlo tal cual en un secreto.
+    .replace(/\\n/g, "")
     .replace(/\s+/g, "")
   const binario = Uint8Array.from(atob(cuerpo), (c) => c.charCodeAt(0))
   return crypto.subtle.importKey(
