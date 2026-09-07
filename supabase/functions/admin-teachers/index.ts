@@ -57,13 +57,15 @@ Deno.serve(async (req) => {
 
   const { data: callerProfile } = await admin
     .from("profiles")
-    .select("rol")
+    .select("rol, organization_id")
     .eq("id", caller.id)
     .single()
 
   if (callerProfile?.rol !== "admin") {
     return json({ error: "Solo un administrador puede realizar esta acción." }, 403)
   }
+
+  const organizationId = callerProfile.organization_id
 
   const payload: CreatePayload | DeletePayload = await req.json()
 
@@ -87,6 +89,7 @@ Deno.serve(async (req) => {
       documento: payload.documento.trim(),
       nombre: payload.nombre,
       rol: "profesor",
+      organization_id: organizationId,
     })
 
     if (errorPerfil) {
@@ -101,6 +104,7 @@ Deno.serve(async (req) => {
       contacto: payload.contacto ?? null,
       rol_interno: payload.rol_interno ?? null,
       foto: payload.foto ?? null,
+      organization_id: organizationId,
     })
 
     if (errorProfesor) {
