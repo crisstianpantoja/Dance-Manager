@@ -1,8 +1,9 @@
-import { DollarSign, Pencil, Plus, Trash2 } from "lucide-react"
+import { DollarSign, Pencil, Plus, QrCode, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { TeacherAgreementDialog } from "@/pages/admin/TeacherAgreementDialog"
 import { TeacherFormDialog } from "@/pages/admin/TeacherFormDialog"
+import { TeacherQrDialog } from "@/pages/admin/TeacherQrDialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,8 @@ export function TeachersPage() {
   const [profesorEditando, setProfesorEditando] = useState<Teacher | null>(null)
   const [acuerdoAbierto, setAcuerdoAbierto] = useState(false)
   const [profesorAcuerdo, setProfesorAcuerdo] = useState<Teacher | null>(null)
+  const [qrAbierto, setQrAbierto] = useState(false)
+  const [profesorQr, setProfesorQr] = useState<Teacher | null>(null)
   const [eliminando, setEliminando] = useState<string | null>(null)
 
   async function cargarProfesores() {
@@ -57,6 +60,11 @@ export function TeachersPage() {
   function abrirAcuerdo(profesor: Teacher) {
     setProfesorAcuerdo(profesor)
     setAcuerdoAbierto(true)
+  }
+
+  function abrirQr(profesor: Teacher) {
+    setProfesorQr(profesor)
+    setQrAbierto(true)
   }
 
   async function eliminar(profesor: Teacher) {
@@ -128,6 +136,14 @@ export function TeachersPage() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      title="Ver QR"
+                      onClick={() => abrirQr(profesor)}
+                    >
+                      <QrCode className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       title="Acuerdo económico"
                       onClick={() => abrirAcuerdo(profesor)}
                     >
@@ -157,6 +173,8 @@ export function TeachersPage() {
         onOpenChange={setAcuerdoAbierto}
         profesor={profesorAcuerdo}
       />
+
+      <TeacherQrDialog open={qrAbierto} onOpenChange={setQrAbierto} profesor={profesorQr} />
 
       <TeacherFormDialog
         open={dialogoAbierto}
