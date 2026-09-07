@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
 
   const { data: callerProfile } = await admin
     .from("profiles")
-    .select("rol")
+    .select("rol, organization_id")
     .eq("id", caller.id)
     .single()
 
@@ -132,6 +132,8 @@ Deno.serve(async (req) => {
     )
   }
 
+  const organizationId = callerProfile.organization_id
+
   const payload: RegisterPayload | AnularPayload = await req.json()
 
   if (payload.action === "register") {
@@ -141,6 +143,7 @@ Deno.serve(async (req) => {
       .from("students")
       .select("id, tipo")
       .eq("id", alumno_id)
+      .eq("organization_id", organizationId)
       .single()
 
     if (!alumno) return json({ error: "Alumno no encontrado." }, 404)
@@ -195,6 +198,7 @@ Deno.serve(async (req) => {
         consumio_cupo: eleccion.consume,
         estado_plan: eleccion.estado,
         payment_id: eleccion.plan?.id ?? null,
+        organization_id: organizationId,
       })
       .select()
       .single()
@@ -216,6 +220,7 @@ Deno.serve(async (req) => {
       .from("attendance_records")
       .select("*")
       .eq("id", payload.attendance_id)
+      .eq("organization_id", organizationId)
       .single()
 
     if (!registro) return json({ error: "Registro no encontrado." }, 404)

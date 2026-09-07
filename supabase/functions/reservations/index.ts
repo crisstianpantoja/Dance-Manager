@@ -42,6 +42,17 @@ Deno.serve(async (req) => {
   if (!caller) return json({ error: "No autorizado." }, 401)
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+
+  const { data: callerProfile } = await admin
+    .from("profiles")
+    .select("organization_id")
+    .eq("id", caller.id)
+    .single()
+
+  if (!callerProfile) return json({ error: "No autorizado." }, 401)
+
+  const organizationId = callerProfile.organization_id
+
   const { accion, id }: { accion: Accion; id: string } = await req.json()
 
   if (accion === "reservar_clase" || accion === "cancelar_clase") {
@@ -49,6 +60,7 @@ Deno.serve(async (req) => {
       .from("class_occurrences")
       .select("id, alumno_ids, estado, class_series(cupo_maximo)")
       .eq("id", id)
+      .eq("organization_id", organizationId)
       .single()
 
     if (!ocurrencia) return json({ error: "Clase no encontrada." }, 404)
@@ -83,6 +95,9 @@ Deno.serve(async (req) => {
   }
 
   if (accion === "reservar_evento" || accion === "cancelar_evento") {
+    // NOTA: "events" todavía no tiene organization_id (es parte de la
+    // siguiente tanda de migraciones); se actualizará este filtro cuando
+    // esa columna exista.
     const { data: evento } = await admin
       .from("events")
       .select("id, reservas, cupo_maximo")
