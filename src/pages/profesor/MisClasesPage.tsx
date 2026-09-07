@@ -1,30 +1,46 @@
 import { useEffect, useState } from "react"
 
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useAuth } from "@/context/AuthContext"
 import { fechaHoy } from "@/lib/attendance"
-import { formatearFecha } from "@/lib/format"
+import { formatearFecha, formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
-import type { OcurrenciaConSerie } from "@/types/classSeries"
+import { cn } from "@/lib/utils"
 
-interface FilaOcurrencia {
-  id: string
-  serie_id: string
-  academia_id: string | null
+type Pestana = "proximas" | "realizadas" | "canceladas"
+
+interface Fila {
   fecha: string
   hora: string
-  alumno_ids: string[]
-  class_series: {
-    titulo: string
-    categoria: string | null
-    lugar: string | null
-    cupo_maximo: number | null
+  titulo: string
+  lugar: string | null
+  estadoOcurrencia: string
+  valorGenerado: number | null
+  metodoRegistro: string | null
+}
+
+interface FilaCruda {
+  valor_generado: number | null
+  metodo_registro: string | null
+  class_occurrences: {
+    fecha: string
+    hora: string
+    estado: string
+    class_series: { titulo: string; lugar: string | null } | { titulo: string; lugar: string | null }[] | null
   } | null
 }
 
+const PESTANAS: { value: Pestana; label: string }[] = [
+  { value: "proximas", label: "Próximas" },
+  { value: "realizadas", label: "Realizadas" },
+  { value: "canceladas", label: "Canceladas" },
+]
+
 export function MisClasesPage() {
   const { profile } = useAuth()
-  const [ocurrencias, setOcurrencias] = useState<OcurrenciaConSerie[]>([])
+  const [pestana, setPestana] = useState<Pestana>("proximas")
+  const [filas, setFilas] = useState<Fila[]>([])
   const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
@@ -32,89 +48,95 @@ export function MisClasesPage() {
       if (!profile?.id) return
       setCargando(true)
 
-      const { data: seriesPropias } = await supabase
-        .from("class_series")
-        .select("id")
-        .contains("profesor_ids", [profile.id])
-
-      const serieIds = (seriesPropias ?? []).map((s) => s.id)
-
-      if (serieIds.length === 0) {
-        setOcurrencias([])
-        setCargando(false)
-        return
-      }
-
       const { data } = await supabase
-        .from("class_occurrences")
-        .select("*, class_series(titulo, categoria, lugar, cupo_maximo)")
-        .in("serie_id", serieIds)
-        .eq("estado", "programada")
-        .gte("fecha", fechaHoy())
-        .order("fecha")
-        .order("hora")
-        .limit(100)
+        .from("class_occurrence_teachers")
+        .select(
+          "valor_generado, metodo_registro, class_occurrences(fecha, hora, estado, class_series(titulo, lugar))",
+        )
+        .eq("profesor_id", profile.id)
 
-      const filas = (data as FilaOcurrencia[] | null) ?? []
-      setOcurrencias(
-        filas.map((f) => ({
-          id: f.id,
-          serie_id: f.serie_id,
-          academia_id: f.academia_id,
-          fecha: f.fecha,
-          hora: f.hora,
-          alumno_ids: f.alumno_ids,
-          estado: "programada",
-          titulo: f.class_series?.titulo ?? "Clase",
-          categoria: f.class_series?.categoria ?? null,
-          cupo_maximo: f.class_series?.cupo_maximo ?? null,
-          lugar: f.class_series?.lugar ?? null,
-        })),
-      )
+      const normalizadas: Fila[] = ((data as unknown as FilaCruda[]) ?? [])
+        .filter((f) => f.class_occurrences)
+        .map((f) => {
+          const serie = Array.isArray(f.class_occurrences?.class_series)
+            ? f.class_occurrences?.class_series[0]
+            : f.class_occurrences?.class_series
+          return {
+            fecha: f.class_occurrences!.fecha,
+            hora: f.class_occurrences!.hora,
+            estadoOcurrencia: f.class_occurrences!.estado,
+            titulo: serie?.titulo ?? "Clase",
+            lugar: serie?.lugar ?? null,
+            valorGenerado: f.valor_generado,
+            metodoRegistro: f.metodo_registro,
+          }
+        })
+        .sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora))
+
+      setFilas(normalizadas)
       setCargando(false)
     }
 
     cargar()
   }, [profile?.id])
 
-  const porFecha = ocurrencias.reduce<Record<string, OcurrenciaConSerie[]>>((acc, oc) => {
-    acc[oc.fecha] = acc[oc.fecha] ?? []
-    acc[oc.fecha].push(oc)
-    return acc
-  }, {})
+  const hoy = fechaHoy()
+  const visibles = filas.filter((f) => {
+    if (pestana === "canceladas") return f.estadoOcurrencia === "cancelada"
+    if (pestana === "realizadas") return f.valorGenerado != null
+    return f.estadoOcurrencia === "programada" && f.fecha >= hoy
+  })
 
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold text-text">Mis clases</h1>
 
+      <div className="flex gap-1 self-start rounded-control border border-white/10 bg-surface p-1">
+        {PESTANAS.map((p) => (
+          <button
+            key={p.value}
+            onClick={() => setPestana(p.value)}
+            className={cn(
+              "rounded-control px-4 py-1.5 text-sm font-medium transition-colors",
+              pestana === p.value ? "bg-brand text-white" : "text-text-muted hover:text-text",
+            )}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
       {cargando ? (
         <p className="text-sm text-text-muted">Cargando...</p>
-      ) : Object.keys(porFecha).length === 0 ? (
-        <p className="text-sm text-text-muted">
-          No tienes clases asignadas próximamente. Pídele al admin que te asigne en el
-          calendario.
-        </p>
+      ) : visibles.length === 0 ? (
+        <Card>
+          <CardContent className="py-6 text-center text-sm text-text-muted">
+            No hay clases en esta categoría.
+          </CardContent>
+        </Card>
       ) : (
-        Object.entries(porFecha).map(([fecha, filas]) => (
-          <div key={fecha} className="flex flex-col gap-2">
-            <p className="text-sm font-semibold text-text-muted">{formatearFecha(fecha)}</p>
-            {filas.map((oc) => (
-              <Card key={oc.id}>
-                <CardContent className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="font-medium text-text">
-                      {oc.hora.slice(0, 5)} · {oc.titulo}
-                    </p>
-                    <p className="text-xs text-text-muted">
-                      {oc.categoria ?? "Sin categoría"}
-                      {oc.lugar ? ` · ${oc.lugar}` : ""}
-                      {oc.cupo_maximo ? ` · ${oc.alumno_ids.length}/${oc.cupo_maximo} cupos` : ""}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        visibles.map((f, i) => (
+          <Card key={i}>
+            <CardContent className="flex items-center justify-between py-3">
+              <div>
+                <p className="font-medium text-text">
+                  {formatearFecha(f.fecha)} · {f.hora.slice(0, 5)}
+                </p>
+                <p className="text-xs text-text-muted">
+                  {f.titulo}
+                  {f.lugar ? ` · ${f.lugar}` : ""}
+                </p>
+              </div>
+              {pestana === "realizadas" && f.valorGenerado != null && (
+                <Badge variant="success">{formatearMoneda(f.valorGenerado)}</Badge>
+              )}
+              {pestana === "canceladas" && (
+                <Badge variant={f.metodoRegistro === "cancelacion_pagada" ? "success" : "muted"}>
+                  {f.metodoRegistro === "cancelacion_pagada" ? "Pagada" : "Sin pago"}
+                </Badge>
+              )}
+            </CardContent>
+          </Card>
         ))
       )}
     </div>

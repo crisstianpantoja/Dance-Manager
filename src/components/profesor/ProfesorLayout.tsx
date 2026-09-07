@@ -6,9 +6,13 @@ import { useAppSettings } from "@/hooks/useAppSettings"
 import { cn } from "@/lib/utils"
 
 const TABS = [
-  { to: "/profesor/asistencia", label: "Asistencia" },
+  { to: "/profesor/inicio", label: "Inicio" },
+  { to: "/profesor/calendario", label: "Calendario" },
   { to: "/profesor/clases", label: "Mis clases" },
+  { to: "/profesor/asistencia", label: "Asistencia" },
+  { to: "/profesor/finanzas", label: "Finanzas" },
   { to: "/profesor/carnet", label: "Carnet" },
+  { to: "/profesor/consultar-carnet", label: "Consultar" },
 ]
 
 export function ProfesorLayout() {
