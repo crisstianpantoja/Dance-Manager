@@ -102,15 +102,13 @@ export function InicioProfesorPage() {
           <div className="grid grid-cols-2 gap-3">
             <Card className="border-l-4 border-l-success">
               <CardContent className="py-4">
-                <p className="mb-1 text-xs uppercase tracking-wider text-text-muted">Generado</p>
+                <p className="mb-1 text-sm text-text-muted">Este mes has generado</p>
                 <p className="text-xl font-bold text-success">{formatearMoneda(resumen.generado)}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="py-4">
-                <p className="mb-1 text-xs uppercase tracking-wider text-text-muted">
-                  Pendiente por pagar
-                </p>
+                <p className="mb-1 text-sm text-text-muted">Todavía te deben</p>
                 <p className="text-xl font-bold text-text">
                   {formatearMoneda(resumen.pendiente_por_pagar)}
                 </p>
