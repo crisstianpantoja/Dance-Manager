@@ -9,6 +9,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Table,
   TableBody,
   TableCell,
@@ -25,6 +32,8 @@ import type { Student } from "@/types/student"
 type Vista = "lista" | "tarjetas"
 
 const CLAVE_VISTA = "alumnos_vista"
+const TODAS_LAS_SEDES = "todas"
+const SIN_SEDE = "sin-sede"
 
 interface AccionesAlumnoProps {
   alumno: Student
@@ -73,11 +82,18 @@ export function StudentsPage() {
   const [vista, setVista] = useState<Vista>(
     () => (localStorage.getItem(CLAVE_VISTA) as Vista | null) ?? "lista",
   )
+  const [filtroSede, setFiltroSede] = useState<string>(TODAS_LAS_SEDES)
 
   const academiasPorId = useMemo(
     () => new Map(academias.map((academia) => [academia.id, academia.nombre])),
     [academias],
   )
+
+  const alumnosFiltrados = useMemo(() => {
+    if (filtroSede === TODAS_LAS_SEDES) return alumnos
+    if (filtroSede === SIN_SEDE) return alumnos.filter((a) => !a.academia_id)
+    return alumnos.filter((a) => a.academia_id === filtroSede)
+  }, [alumnos, filtroSede])
 
   async function cargarDatos() {
     setCargando(true)
@@ -135,16 +151,35 @@ export function StudentsPage() {
           <h1 className="text-xl font-bold text-text">Alumnos</h1>
           {!cargando && (
             <p className="text-sm text-text-muted">
-              {alumnos.length === 0
-                ? "Aún no hay alumnos registrados"
-                : alumnos.length === 1
+              {alumnosFiltrados.length === 0
+                ? filtroSede === TODAS_LAS_SEDES
+                  ? "Aún no hay alumnos registrados"
+                  : "No hay alumnos en esta sede"
+                : alumnosFiltrados.length === 1
                   ? "1 alumno registrado"
-                  : `${alumnos.length} alumnos registrados`}
+                  : `${alumnosFiltrados.length} alumnos registrados`}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {academias.length > 0 && (
+            <Select value={filtroSede} onValueChange={setFiltroSede}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TODAS_LAS_SEDES}>Todas las sedes</SelectItem>
+                <SelectItem value={SIN_SEDE}>Sin sede</SelectItem>
+                {academias.map((academia) => (
+                  <SelectItem key={academia.id} value={academia.id}>
+                    {academia.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
           <div className="flex items-center rounded-control border border-white/15 p-0.5">
             <button
               type="button"
@@ -192,9 +227,11 @@ export function StudentsPage() {
             Registrar el primero
           </Button>
         </div>
+      ) : alumnosFiltrados.length === 0 ? (
+        <p className="py-16 text-center text-sm text-text-muted">No hay alumnos en esta sede.</p>
       ) : vista === "tarjetas" ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {alumnos.map((alumno) => (
+          {alumnosFiltrados.map((alumno) => (
             <Card key={alumno.id}>
               <CardContent className="flex flex-col items-center gap-3 py-6 text-center">
                 <Avatar className="size-14">
@@ -235,7 +272,7 @@ export function StudentsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {alumnos.map((alumno) => (
+            {alumnosFiltrados.map((alumno) => (
               <TableRow key={alumno.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">

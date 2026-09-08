@@ -1,8 +1,15 @@
 import { Pencil, Plus, RefreshCw, Trash2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { ClassSeriesFormDialog } from "@/pages/admin/ClassSeriesFormDialog"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -17,6 +24,9 @@ import type { Academy } from "@/types/academy"
 import { DIAS_SEMANA, type ClassSeries } from "@/types/classSeries"
 import type { Teacher } from "@/types/teacher"
 
+const TODAS_LAS_SEDES = "todas"
+const SIN_SEDE = "sin-sede"
+
 export function ClassSeriesPage() {
   const [series, setSeries] = useState<ClassSeries[]>([])
   const [academias, setAcademias] = useState<Academy[]>([])
@@ -25,6 +35,18 @@ export function ClassSeriesPage() {
   const [dialogoAbierto, setDialogoAbierto] = useState(false)
   const [serieEditando, setSerieEditando] = useState<ClassSeries | null>(null)
   const [procesando, setProcesando] = useState<string | null>(null)
+  const [filtroSede, setFiltroSede] = useState<string>(TODAS_LAS_SEDES)
+
+  const academiasPorId = useMemo(
+    () => new Map(academias.map((academia) => [academia.id, academia.nombre])),
+    [academias],
+  )
+
+  const seriesFiltradas = useMemo(() => {
+    if (filtroSede === TODAS_LAS_SEDES) return series
+    if (filtroSede === SIN_SEDE) return series.filter((s) => !s.academia_id)
+    return series.filter((s) => s.academia_id === filtroSede)
+  }, [series, filtroSede])
 
   async function cargarDatos() {
     setCargando(true)
@@ -84,29 +106,50 @@ export function ClassSeriesPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold text-text">Clases recurrentes</h1>
-        <Button onClick={abrirCrear} size="sm">
-          <Plus className="size-4" />
-          Nueva clase
-        </Button>
+        <div className="flex items-center gap-2">
+          {academias.length > 0 && (
+            <Select value={filtroSede} onValueChange={setFiltroSede}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TODAS_LAS_SEDES}>Todas las sedes</SelectItem>
+                <SelectItem value={SIN_SEDE}>Sin sede</SelectItem>
+                {academias.map((academia) => (
+                  <SelectItem key={academia.id} value={academia.id}>
+                    {academia.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <Button onClick={abrirCrear} size="sm">
+            <Plus className="size-4" />
+            Nueva clase
+          </Button>
+        </div>
       </div>
 
       {cargando ? (
         <p className="text-sm text-text-muted">Cargando...</p>
       ) : series.length === 0 ? (
         <p className="text-sm text-text-muted">Aún no hay clases recurrentes programadas.</p>
+      ) : seriesFiltradas.length === 0 ? (
+        <p className="py-16 text-center text-sm text-text-muted">No hay clases en esta sede.</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Clase</TableHead>
+              <TableHead>Sede</TableHead>
               <TableHead>Día y hora</TableHead>
               <TableHead className="w-32 text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {series.map((serie) => (
+            {seriesFiltradas.map((serie) => (
               <TableRow key={serie.id}>
                 <TableCell>
                   <p className="font-medium text-text">{serie.titulo}</p>
@@ -120,6 +163,9 @@ export function ClassSeriesPage() {
                           .join(", ")}`
                       : ""}
                   </p>
+                </TableCell>
+                <TableCell className="text-text-muted">
+                  {serie.academia_id ? (academiasPorId.get(serie.academia_id) ?? "—") : "—"}
                 </TableCell>
                 <TableCell className="text-text-muted">
                   {DIAS_SEMANA[serie.dia_semana]} · {serie.hora.slice(0, 5)}
