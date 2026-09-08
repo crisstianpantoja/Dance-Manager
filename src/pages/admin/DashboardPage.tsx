@@ -1,9 +1,12 @@
-import { AlertTriangle, Clock, Music, PartyPopper, Users } from "lucide-react"
+import { PartyPopper } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 
 import { AdminAssistantWidget } from "@/components/admin/AdminAssistantWidget"
-import { Badge } from "@/components/ui/badge"
+import { ClassCard, type ClaseHoyCompleta, type EstadoClaseHoy } from "@/components/admin/ClassCard"
+import { DashboardAlerts } from "@/components/admin/DashboardAlerts"
+import { DashboardSkeleton } from "@/components/admin/DashboardSkeleton"
+import { MetricCard } from "@/components/admin/MetricCard"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Select,
@@ -13,103 +16,96 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { fechaHoy } from "@/lib/attendance"
+import { PERIODOS, rangoDePeriodo, type Periodo } from "@/lib/dashboardPeriod"
+import { cargarDashboardAlertas, cargarDashboardKpis } from "@/lib/dashboardSummary"
+import type { AlertaDashboard, DashboardKpis } from "@/lib/dashboardSummary"
 import { formatearFecha, formatearMoneda } from "@/lib/format"
-import { calcularAlumnosSinRenovar } from "@/lib/retention"
 import { supabase } from "@/lib/supabase"
 import type { Academy } from "@/types/academy"
 import type { EventoDM } from "@/types/event"
-import type { Gig } from "@/types/gig"
 
 const TODAS_LAS_SEDES = "todas"
 const SIN_SEDE = "sin-sede"
+const SENTINEL_SIN_SEDE = "00000000-0000-0000-0000-000000000000"
 
-interface ClaseHoy {
+function academiaIdParaRpc(filtroSede: string): string | null {
+  if (filtroSede === TODAS_LAS_SEDES) return null
+  if (filtroSede === SIN_SEDE) return SENTINEL_SIN_SEDE
+  return filtroSede
+}
+
+function sumarMinutos(hora: string, minutos: number): string {
+  const [h, m] = hora.slice(0, 5).split(":").map(Number)
+  const total = h * 60 + m + minutos
+  const hh = Math.floor((total % (24 * 60)) / 60)
+  const mm = total % 60
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`
+}
+
+function estadoDeClase(
+  estadoOcurrencia: "programada" | "cancelada",
+  horaInicio: string,
+  horaFin: string,
+): EstadoClaseHoy {
+  if (estadoOcurrencia === "cancelada") return "cancelada"
+  const ahora = new Date().toTimeString().slice(0, 5)
+  if (ahora < horaInicio.slice(0, 5)) return "proxima"
+  if (ahora < horaFin) return "en_curso"
+  return "finalizada"
+}
+
+interface FilaOcurrenciaHoy {
   id: string
   hora: string
-  titulo: string
-  lugar: string | null
-  academia_id: string | null
-}
-
-interface AlumnoRaw {
-  id: string
-  academia_id: string | null
-}
-
-interface MontoConSede {
-  monto: number
-  academia_id: string | null
-}
-
-interface PagoRetencionRaw {
-  alumno_id: string
-  fecha_vencimiento: string | null
-  academia_id: string | null
-  nombre: string
-  contacto: string | null
+  estado: "programada" | "cancelada"
+  alumno_ids: string[]
+  class_series: {
+    titulo: string
+    nivel: string | null
+    duracion_min: number
+    lugar: string | null
+    cupo_maximo: number | null
+    academia_id: string | null
+    profesor_ids: string[]
+  } | null
 }
 
 export function DashboardPage() {
   const [cargando, setCargando] = useState(true)
   const [academias, setAcademias] = useState<Academy[]>([])
   const [filtroSede, setFiltroSede] = useState<string>(TODAS_LAS_SEDES)
+  const [periodo, setPeriodo] = useState<Periodo>("mes")
 
-  const [alumnos, setAlumnos] = useState<AlumnoRaw[]>([])
-  const [pagosMes, setPagosMes] = useState<MontoConSede[]>([])
-  const [gigsMes, setGigsMes] = useState<MontoConSede[]>([])
-  const [gastos, setGastos] = useState<MontoConSede[]>([])
-  const [pagosPendientesRaw, setPagosPendientesRaw] = useState<MontoConSede[]>([])
-  const [pagosRetencion, setPagosRetencion] = useState<PagoRetencionRaw[]>([])
-  const [clasesHoy, setClasesHoy] = useState<ClaseHoy[]>([])
+  const [kpis, setKpis] = useState<DashboardKpis | null>(null)
+  const [alertas, setAlertas] = useState<AlertaDashboard[]>([])
+  const [clasesHoy, setClasesHoy] = useState<ClaseHoyCompleta[]>([])
   const [proximosEventos, setProximosEventos] = useState<EventoDM[]>([])
-  const [proximosContratos, setProximosContratos] = useState<Gig[]>([])
 
   useEffect(() => {
     async function cargar() {
       setCargando(true)
       const hoy = fechaHoy()
-      const inicioMes = `${hoy.slice(0, 7)}-01`
+      const { desde, hasta } = rangoDePeriodo(periodo)
+      const academiaIdRpc = academiaIdParaRpc(filtroSede)
 
       const [
         { data: academiasData },
-        { data: alumnosData },
-        { data: pagosMesData },
-        { data: gigsMesData },
-        { data: gastosData },
-        { data: pagosPendientesData },
-        { data: pagosParaRetencion },
+        kpisData,
+        alertasData,
+        { data: teachersData },
         { data: ocurrenciasHoy },
         { data: eventos },
-        { data: contratos },
       ] = await Promise.all([
         supabase.from("academies").select("*").order("nombre"),
-        supabase.from("students").select("id, academia_id"),
-        supabase
-          .from("payments")
-          .select("monto, students(academia_id)")
-          .eq("estado", "pagado")
-          .gte("fecha", inicioMes)
-          .lte("fecha", hoy),
-        supabase
-          .from("gigs")
-          .select("pago, academia_id")
-          .eq("estado", "pagado")
-          .gte("fecha", inicioMes)
-          .lte("fecha", hoy),
-        supabase.from("expenses").select("monto, academia_id").gte("fecha", inicioMes).lte("fecha", hoy),
-        supabase
-          .from("payments")
-          .select("monto, students(academia_id)")
-          .eq("estado", "pendiente"),
-        supabase
-          .from("payments")
-          .select("alumno_id, fecha_vencimiento, students(nombre, contacto, academia_id)")
-          .eq("estado", "pagado"),
+        cargarDashboardKpis(academiaIdRpc, desde, hasta),
+        cargarDashboardAlertas(academiaIdRpc),
+        supabase.from("teachers").select("id, nombre"),
         supabase
           .from("class_occurrences")
-          .select("id, hora, class_series(titulo, lugar, academia_id)")
+          .select(
+            "id, hora, estado, alumno_ids, class_series(titulo, nivel, duracion_min, lugar, cupo_maximo, academia_id, profesor_ids)",
+          )
           .eq("fecha", hoy)
-          .eq("estado", "programada")
           .order("hora"),
         supabase
           .from("events")
@@ -118,326 +114,225 @@ export function DashboardPage() {
           .order("fecha")
           .order("hora")
           .limit(4),
-        supabase
-          .from("gigs")
-          .select("*")
-          .in("estado", ["cotizado", "confirmado"])
-          .gte("fecha", hoy)
-          .order("fecha")
-          .limit(4),
       ])
 
-      setAcademias((academiasData as Academy[]) ?? [])
-      setAlumnos((alumnosData as AlumnoRaw[]) ?? [])
-
-      type PagoConStudentEmbed = { monto: number; students: { academia_id: string | null } | { academia_id: string | null }[] | null }
-      const normalizarEmbed = <T,>(valor: T | T[] | null): T | null =>
-        Array.isArray(valor) ? (valor[0] ?? null) : valor
-
-      setPagosMes(
-        ((pagosMesData as PagoConStudentEmbed[] | null) ?? []).map((p) => ({
-          monto: Number(p.monto),
-          academia_id: normalizarEmbed(p.students)?.academia_id ?? null,
-        })),
-      )
-      setGigsMes(
-        ((gigsMesData as { pago: number; academia_id: string | null }[] | null) ?? []).map((g) => ({
-          monto: Number(g.pago),
-          academia_id: g.academia_id,
-        })),
-      )
-      setGastos(
-        ((gastosData as { monto: number; academia_id: string | null }[] | null) ?? []).map((g) => ({
-          monto: Number(g.monto),
-          academia_id: g.academia_id,
-        })),
-      )
-      setPagosPendientesRaw(
-        ((pagosPendientesData as PagoConStudentEmbed[] | null) ?? []).map((p) => ({
-          monto: Number(p.monto),
-          academia_id: normalizarEmbed(p.students)?.academia_id ?? null,
-        })),
-      )
-
-      type PagoRetencionEmbed = {
-        alumno_id: string
-        fecha_vencimiento: string | null
-        students:
-          | { nombre: string; contacto: string | null; academia_id: string | null }
-          | { nombre: string; contacto: string | null; academia_id: string | null }[]
-          | null
-      }
-      setPagosRetencion(
-        ((pagosParaRetencion as PagoRetencionEmbed[] | null) ?? []).map((p) => {
-          const alumno = normalizarEmbed(p.students)
-          return {
-            alumno_id: p.alumno_id,
-            fecha_vencimiento: p.fecha_vencimiento,
-            academia_id: alumno?.academia_id ?? null,
-            nombre: alumno?.nombre ?? "Alumno",
-            contacto: alumno?.contacto ?? null,
-          }
-        }),
-      )
-
-      type OcurrenciaEmbed = {
-        id: string
-        hora: string
-        class_series:
-          | { titulo: string; lugar: string | null; academia_id: string | null }
-          | { titulo: string; lugar: string | null; academia_id: string | null }[]
-          | null
-      }
-      setClasesHoy(
-        ((ocurrenciasHoy as OcurrenciaEmbed[] | null) ?? []).map((o) => {
-          const serie = normalizarEmbed(o.class_series)
-          return {
-            id: o.id,
-            hora: o.hora,
-            titulo: serie?.titulo ?? "Clase",
-            lugar: serie?.lugar ?? null,
-            academia_id: serie?.academia_id ?? null,
-          }
-        }),
-      )
+      const listaAcademias = (academiasData as Academy[]) ?? []
+      setAcademias(listaAcademias)
+      setKpis(kpisData)
+      setAlertas(alertasData)
       setProximosEventos((eventos as EventoDM[]) ?? [])
-      setProximosContratos((contratos as Gig[]) ?? [])
 
+      const academiasPorId = new Map(listaAcademias.map((a) => [a.id, a.nombre]))
+      const profesoresPorId = new Map((teachersData ?? []).map((t) => [t.id as string, t.nombre as string]))
+
+      const filas = (ocurrenciasHoy as unknown as FilaOcurrenciaHoy[] | null) ?? []
+      const idsOcurrencias = filas.map((f) => f.id)
+      const { data: asistenciasData } =
+        idsOcurrencias.length > 0
+          ? await supabase
+              .from("attendance_records")
+              .select("clase_id")
+              .in("clase_id", idsOcurrencias)
+              .eq("anulado", false)
+          : { data: [] as { clase_id: string | null }[] }
+
+      const asistenciasPorOcurrencia = new Map<string, number>()
+      for (const a of asistenciasData ?? []) {
+        if (!a.clase_id) continue
+        asistenciasPorOcurrencia.set(a.clase_id, (asistenciasPorOcurrencia.get(a.clase_id) ?? 0) + 1)
+      }
+
+      const clasesCompletas: ClaseHoyCompleta[] = filas
+        .filter((f) => {
+          const academiaId = f.class_series?.academia_id ?? null
+          if (filtroSede === TODAS_LAS_SEDES) return true
+          if (filtroSede === SIN_SEDE) return !academiaId
+          return academiaId === filtroSede
+        })
+        .map((f) => {
+          const horaInicio = f.hora.slice(0, 5)
+          const horaFin = sumarMinutos(f.hora, f.class_series?.duracion_min ?? 60)
+          return {
+            id: f.id,
+            titulo: f.class_series?.titulo ?? "Clase",
+            nivel: f.class_series?.nivel ?? null,
+            horaInicio,
+            horaFin,
+            lugar: f.class_series?.lugar ?? null,
+            academiaNombre: f.class_series?.academia_id
+              ? (academiasPorId.get(f.class_series.academia_id) ?? null)
+              : null,
+            profesor:
+              (f.class_series?.profesor_ids ?? [])
+                .map((id) => profesoresPorId.get(id))
+                .filter(Boolean)
+                .join(", ") || null,
+            inscritos: f.alumno_ids.length,
+            cupoMaximo: f.class_series?.cupo_maximo ?? null,
+            asistencias: asistenciasPorOcurrencia.get(f.id) ?? 0,
+            estado: estadoDeClase(f.estado, horaInicio, horaFin),
+          }
+        })
+
+      setClasesHoy(clasesCompletas)
       setCargando(false)
     }
 
     cargar()
-  }, [])
+  }, [filtroSede, periodo])
 
-  const coincideSede = useMemo(() => {
-    return (academiaId: string | null) => {
-      if (filtroSede === TODAS_LAS_SEDES) return true
-      if (filtroSede === SIN_SEDE) return !academiaId
-      return academiaId === filtroSede
-    }
-  }, [filtroSede])
+  const margenPct = useMemo(() => {
+    if (!kpis || kpis.ingresos <= 0) return null
+    return ((kpis.ingresos - kpis.gastos) / kpis.ingresos) * 100
+  }, [kpis])
 
-  const alumnosActivos = useMemo(
-    () => alumnos.filter((a) => coincideSede(a.academia_id)).length,
-    [alumnos, coincideSede],
-  )
+  const tendencia = (actual: number, previo: number): number | null => {
+    if (previo === 0) return null
+    return ((actual - previo) / previo) * 100
+  }
 
-  const ingresosMes = useMemo(() => {
-    const dePagos = pagosMes.filter((p) => coincideSede(p.academia_id)).reduce((acc, p) => acc + p.monto, 0)
-    const deGigs = gigsMes.filter((g) => coincideSede(g.academia_id)).reduce((acc, g) => acc + g.monto, 0)
-    return dePagos + deGigs
-  }, [pagosMes, gigsMes, coincideSede])
+  if (cargando || !kpis) {
+    return <DashboardSkeleton />
+  }
 
-  const gastosMes = useMemo(
-    () => gastos.filter((g) => coincideSede(g.academia_id)).reduce((acc, g) => acc + g.monto, 0),
-    [gastos, coincideSede],
-  )
-
-  const pagosPorVerificar = useMemo(
-    () => pagosPendientesRaw.filter((p) => coincideSede(p.academia_id)).length,
-    [pagosPendientesRaw, coincideSede],
-  )
-
-  const sinRenovar = useMemo(() => {
-    const filtrados = pagosRetencion.filter((p) => coincideSede(p.academia_id))
-    const paraRetencion = filtrados.map((p) => ({
-      alumno_id: p.alumno_id,
-      fecha_vencimiento: p.fecha_vencimiento,
-      students: { nombre: p.nombre, contacto: p.contacto },
-    }))
-    return calcularAlumnosSinRenovar(paraRetencion, fechaHoy()).length
-  }, [pagosRetencion, coincideSede])
-
-  const clasesHoyFiltradas = useMemo(
-    () => clasesHoy.filter((c) => coincideSede(c.academia_id)),
-    [clasesHoy, coincideSede],
-  )
-
-  const proximosContratosFiltrados = useMemo(
-    () => proximosContratos.filter((g) => coincideSede(g.academia_id)),
-    [proximosContratos, coincideSede],
-  )
-
-  if (cargando) return <p className="text-sm text-text-muted">Cargando...</p>
-
-  const gananciaNeta = ingresosMes - gastosMes
+  const ganancia = kpis.ingresos - kpis.gastos
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold tracking-tight text-text">Inicio</h1>
-        {academias.length > 0 && (
-          <Select value={filtroSede} onValueChange={setFiltroSede}>
+        <div className="flex flex-wrap gap-2">
+          <Select value={periodo} onValueChange={(v) => setPeriodo(v as Periodo)}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={TODAS_LAS_SEDES}>Todas las sedes</SelectItem>
-              <SelectItem value={SIN_SEDE}>Sin sede</SelectItem>
-              {academias.map((academia) => (
-                <SelectItem key={academia.id} value={academia.id}>
-                  {academia.nombre}
+              {PERIODOS.map((p) => (
+                <SelectItem key={p.value} value={p.value}>
+                  {p.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        )}
+          {academias.length > 0 && (
+            <Select value={filtroSede} onValueChange={setFiltroSede}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TODAS_LAS_SEDES}>Todas las sedes</SelectItem>
+                <SelectItem value={SIN_SEDE}>Sin sede</SelectItem>
+                {academias.map((academia) => (
+                  <SelectItem key={academia.id} value={academia.id}>
+                    {academia.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
       </div>
-
-      {filtroSede !== TODAS_LAS_SEDES && (
-        <p className="text-xs text-text-muted">
-          Los gastos y contratos registrados antes de asignarles sede cuentan como "Sin sede".
-          "Próximos eventos" no se puede filtrar todavía: esa tabla no tiene dato de sede.
-        </p>
-      )}
 
       <AdminAssistantWidget />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-success">
-          <CardContent className="py-4">
-            <p className="mb-1 text-xs uppercase tracking-wider text-text-muted">
-              Ingresos (mes)
-            </p>
-            <p className="text-2xl font-bold text-success">{formatearMoneda(ingresosMes)}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-error">
-          <CardContent className="py-4">
-            <p className="mb-1 text-xs uppercase tracking-wider text-text-muted">Gastos (mes)</p>
-            <p className="text-2xl font-bold text-error">{formatearMoneda(gastosMes)}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="py-4">
-            <p className="mb-1 text-xs uppercase tracking-wider text-text-muted">
-              Ganancia neta (mes)
-            </p>
-            <p className={`text-2xl font-bold ${gananciaNeta >= 0 ? "text-success" : "text-error"}`}>
-              {formatearMoneda(gananciaNeta)}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="py-4">
-            <p className="mb-1 text-xs uppercase tracking-wider text-text-muted">
-              Alumnos activos
-            </p>
-            <p className="flex items-center gap-2 text-2xl font-bold text-text">
-              <Users className="size-5 text-brand-light" />
-              {alumnosActivos}
-            </p>
-          </CardContent>
-        </Card>
+        <MetricCard
+          titulo="Ingresos"
+          valor={formatearMoneda(kpis.ingresos)}
+          tendenciaPct={tendencia(kpis.ingresos, kpis.ingresos_prev)}
+          bienSiSube
+          accentClassName="border-l-success"
+          valorClassName="text-success"
+        />
+        <MetricCard
+          titulo="Gastos"
+          valor={formatearMoneda(kpis.gastos)}
+          tendenciaPct={tendencia(kpis.gastos, kpis.gastos_prev)}
+          bienSiSube={false}
+          accentClassName="border-l-error"
+          valorClassName="text-error"
+        />
+        <MetricCard
+          titulo="Ganancia neta"
+          valor={formatearMoneda(ganancia)}
+          tendenciaPct={tendencia(ganancia, kpis.ingresos_prev - kpis.gastos_prev)}
+          bienSiSube
+          nota={margenPct != null ? `Margen: ${margenPct.toFixed(0)}%` : undefined}
+          valorClassName={ganancia >= 0 ? "text-success" : "text-error"}
+        />
+        <MetricCard
+          titulo="Alumnos activos"
+          valor={String(kpis.alumnos_totales)}
+          nota={kpis.alumnos_nuevos > 0 ? `+${kpis.alumnos_nuevos} este periodo` : undefined}
+          to="/admin/alumnos"
+        />
       </div>
 
-      {pagosPorVerificar > 0 && (
-        <Link
-          to="/admin/pagos"
-          className="flex items-center justify-between gap-3 rounded-control border border-warning/30 bg-warning/10 p-4 transition-colors hover:bg-warning/15"
-        >
-          <div className="flex items-center gap-3">
-            <Clock className="size-5 shrink-0 text-warning" />
-            <div>
-              <p className="font-semibold text-warning">
-                {pagosPorVerificar} comprobante{pagosPorVerificar === 1 ? "" : "s"} por verificar
+      {kpis.pagos_pendientes_alumnos > 0 && (
+        <Link to="/admin/pagos" className="w-fit">
+          <Card className="transition-colors hover:bg-surface-hover">
+            <CardContent className="flex items-center gap-6 py-3">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-text-muted">Pagos pendientes</p>
+                <p className="font-semibold text-warning">{formatearMoneda(kpis.pagos_pendientes_monto)}</p>
+              </div>
+              <p className="text-sm text-text-muted">
+                {kpis.pagos_pendientes_alumnos} alumno{kpis.pagos_pendientes_alumnos === 1 ? "" : "s"}
               </p>
-              <p className="text-sm text-text-muted">Revísalos en Pagos.</p>
-            </div>
-          </div>
-        </Link>
-      )}
-
-      {sinRenovar > 0 && (
-        <Link
-          to="/admin/retencion"
-          className="flex items-center gap-3 rounded-control border border-error/30 bg-error/10 p-4 transition-colors hover:bg-error/15"
-        >
-          <AlertTriangle className="size-5 shrink-0 text-error" />
-          <div>
-            <p className="font-semibold text-error">
-              {sinRenovar} alumno{sinRenovar === 1 ? "" : "s"} sin renovar
-            </p>
-            <p className="text-sm text-text-muted">Revisa el seguimiento en Retención.</p>
-          </div>
+            </CardContent>
+          </Card>
         </Link>
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card>
-          <CardContent className="py-4">
-            <h2 className="mb-4 font-semibold text-text">Clases de hoy</h2>
-            {clasesHoyFiltradas.length === 0 ? (
-              <p className="text-sm text-text-muted">No hay clases agendadas para hoy.</p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {clasesHoyFiltradas.map((c) => (
-                  <div key={c.id} className="rounded-control border border-white/10 p-3">
-                    <p className="font-medium text-text">
-                      {c.hora.slice(0, 5)} · {c.titulo}
-                    </p>
-                    {c.lugar && <p className="text-xs text-text-muted">{c.lugar}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-3 lg:col-span-2">
+          <h2 className="font-semibold text-text">Clases de hoy</h2>
+          {clasesHoy.length === 0 ? (
+            <Card>
+              <CardContent className="py-6 text-center text-sm text-text-muted">
+                No hay clases programadas para hoy.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {clasesHoy.map((clase) => (
+                <ClassCard key={clase.id} clase={clase} />
+              ))}
+            </div>
+          )}
+        </div>
 
-        <Card>
-          <CardContent className="py-4">
-            <h2 className="mb-4 flex items-center gap-2 font-semibold text-text">
-              <PartyPopper className="size-5 text-brand-light" />
-              Próximos eventos
-            </h2>
-            {proximosEventos.length === 0 ? (
-              <p className="text-sm text-text-muted">No hay eventos próximos.</p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {proximosEventos.map((e) => (
-                  <div key={e.id} className="rounded-control border border-white/10 p-3">
-                    <p className="font-medium text-text">{e.titulo}</p>
-                    <p className="text-xs text-text-muted">
-                      {formatearFecha(e.fecha)} · {e.hora.slice(0, 5)}
-                      {e.lugar ? ` · ${e.lugar}` : ""}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <DashboardAlerts alertas={alertas} />
+      </div>
 
-        <Card>
-          <CardContent className="py-4">
-            <h2 className="mb-4 flex items-center gap-2 font-semibold text-text">
-              <Music className="size-5 text-brand-light" />
-              Próximos contratos
-            </h2>
-            {proximosContratosFiltrados.length === 0 ? (
-              <p className="text-sm text-text-muted">No hay contratos próximos.</p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {proximosContratosFiltrados.map((g) => (
-                  <div key={g.id} className="rounded-control border border-white/10 p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-medium text-text">{g.evento}</p>
-                      <Badge variant={g.estado === "confirmado" ? "success" : "warning"}>
-                        {g.estado}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-text-muted">
-                      {formatearFecha(g.fecha)} · {formatearMoneda(g.pago)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <div className="flex flex-col gap-3">
+        <h2 className="flex items-center gap-2 font-semibold text-text">
+          <PartyPopper className="size-5 text-brand-light" />
+          Próximos eventos
+        </h2>
+        {proximosEventos.length === 0 ? (
+          <Card>
+            <CardContent className="py-6 text-center text-sm text-text-muted">
+              No hay eventos próximos.
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {proximosEventos.map((e) => (
+              <Card key={e.id}>
+                <CardContent className="flex flex-col gap-1 py-4">
+                  <p className="font-medium text-text">{e.titulo}</p>
+                  <p className="text-xs text-text-muted">
+                    {formatearFecha(e.fecha)} · {e.hora.slice(0, 5)}
+                  </p>
+                  <p className="text-xs text-text-muted">
+                    {e.cupo_maximo ? `${e.reservas.length}/${e.cupo_maximo} cupos` : `${e.reservas.length} inscritos`}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
