@@ -586,22 +586,30 @@ function ListaClases({ items, cargando, procesando, onToggle, onVerDetalle, vaci
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {items.map((item) => {
         const lleno = item.cupoMaximo ? item.inscritos >= item.cupoMaximo : false
         return (
-          <Card key={item.id}>
-            <CardContent className="flex items-center justify-between gap-3 py-3">
-              <button className="flex-1 text-left" onClick={() => onVerDetalle(item)}>
-                <p className="font-medium text-text">
-                  {formatearFecha(item.fecha)} · {item.hora.slice(0, 5)}
-                </p>
+          <Card key={item.id} className="flex flex-col">
+            <CardContent className="flex flex-1 flex-col gap-2 py-4">
+              <button className="flex flex-1 flex-col gap-1 text-left" onClick={() => onVerDetalle(item)}>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-light">
+                    {formatearFecha(item.fecha)}
+                  </p>
+                  <p className="text-xs text-text-muted">{item.hora.slice(0, 5)}</p>
+                </div>
+                <p className="font-medium text-text">{item.titulo}</p>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {item.nivel && <Badge variant="muted">{item.nivel}</Badge>}
+                  {item.cupoMaximo && (
+                    <Badge variant={lleno ? "muted" : "default"}>
+                      {item.inscritos}/{item.cupoMaximo} cupos
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-xs text-text-muted">
-                  {item.titulo}
-                  {item.nivel ? ` · ${item.nivel}` : ""}
-                  {item.profesor ? ` · ${item.profesor}` : ""}
-                  {item.lugar ? ` · ${item.lugar}` : ""}
-                  {item.cupoMaximo ? ` · ${item.inscritos}/${item.cupoMaximo} cupos` : ""}
+                  {[item.profesor, item.lugar].filter(Boolean).join(" · ")}
                 </p>
               </button>
               <Button
