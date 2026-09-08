@@ -117,18 +117,18 @@ export function InicioPage() {
       <div className="grid grid-cols-2 gap-3">
         <Card>
           <CardContent className="py-4">
-            <p className="text-xs uppercase tracking-wider text-text-muted">Esta semana</p>
-            <p className="text-2xl font-bold text-text">{totalClasesSemana}</p>
-            <p className="text-xs text-text-muted">
-              {totalClasesSemana === 1 ? "clase" : "clases"}
+            <p className="text-sm text-text-muted">Esta semana tienes</p>
+            <p className="text-xl font-bold text-text">
+              {totalClasesSemana} {totalClasesSemana === 1 ? "clase" : "clases"}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="py-4">
-            <p className="text-xs uppercase tracking-wider text-text-muted">Eventos</p>
-            <p className="text-2xl font-bold text-text">{totalEventosSemana}</p>
-            <p className="text-xs text-text-muted">esta semana</p>
+            <p className="text-sm text-text-muted">Esta semana tienes</p>
+            <p className="text-xl font-bold text-text">
+              {totalEventosSemana} {totalEventosSemana === 1 ? "evento" : "eventos"}
+            </p>
           </CardContent>
         </Card>
       </div>
