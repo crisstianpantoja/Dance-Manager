@@ -31,8 +31,8 @@ import { MiProgresoPage } from "@/pages/alumno/MiProgresoPage"
 import { PerfilPage } from "@/pages/alumno/PerfilPage"
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage"
 import { LoginPage } from "@/pages/LoginPage"
-import { CarnetLookupPage } from "@/pages/profesor/CarnetLookupPage"
 import { CalendarioProfesorPage } from "@/pages/profesor/CalendarioProfesorPage"
+import { EvaluarAlumnosPage } from "@/pages/profesor/EvaluarAlumnosPage"
 import { FinanzasProfesorPage } from "@/pages/profesor/FinanzasProfesorPage"
 import { InicioProfesorPage } from "@/pages/profesor/InicioProfesorPage"
 import { MisClasesPage } from "@/pages/profesor/MisClasesPage"
@@ -127,10 +127,9 @@ function App() {
           <Route path="inicio" element={<InicioProfesorPage />} />
           <Route path="calendario" element={<CalendarioProfesorPage />} />
           <Route path="clases" element={<MisClasesPage />} />
-          <Route path="asistencia" element={<AttendancePage />} />
           <Route path="finanzas" element={<FinanzasProfesorPage />} />
           <Route path="carnet" element={<TeacherCarnetPage />} />
-          <Route path="consultar-carnet" element={<CarnetLookupPage />} />
+          <Route path="evaluar" element={<EvaluarAlumnosPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

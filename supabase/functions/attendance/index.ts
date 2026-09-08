@@ -125,9 +125,9 @@ Deno.serve(async (req) => {
     .eq("id", caller.id)
     .single()
 
-  if (!callerProfile || !["admin", "profesor"].includes(callerProfile.rol)) {
+  if (!callerProfile || callerProfile.rol !== "admin") {
     return json(
-      { error: "Solo un admin o profesor puede registrar/anular asistencia." },
+      { error: "Solo un admin puede registrar/anular asistencia." },
       403,
     )
   }
