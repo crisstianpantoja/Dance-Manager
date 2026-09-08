@@ -4,9 +4,10 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useAuth } from "@/context/AuthContext"
 import { fechaHoy } from "@/lib/attendance"
-import { formatearFecha, formatearMoneda } from "@/lib/format"
+import { esClasePrivada, formatearFecha, formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
+import type { NivelAlumno } from "@/types/student"
 
 type Pestana = "proximas" | "realizadas" | "canceladas"
 
@@ -15,6 +16,8 @@ interface Fila {
   hora: string
   titulo: string
   lugar: string | null
+  nivel: NivelAlumno | null
+  cupoMaximo: number | null
   estadoOcurrencia: string
   valorGenerado: number | null
   metodoRegistro: string | null
@@ -27,7 +30,10 @@ interface FilaCruda {
     fecha: string
     hora: string
     estado: string
-    class_series: { titulo: string; lugar: string | null } | { titulo: string; lugar: string | null }[] | null
+    class_series:
+      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null; cupo_maximo: number | null }
+      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null; cupo_maximo: number | null }[]
+      | null
   } | null
 }
 
@@ -51,7 +57,7 @@ export function MisClasesPage() {
       const { data } = await supabase
         .from("class_occurrence_teachers")
         .select(
-          "valor_generado, metodo_registro, class_occurrences(fecha, hora, estado, class_series(titulo, lugar))",
+          "valor_generado, metodo_registro, class_occurrences(fecha, hora, estado, class_series(titulo, lugar, nivel, cupo_maximo))",
         )
         .eq("profesor_id", profile.id)
 
@@ -67,6 +73,8 @@ export function MisClasesPage() {
             estadoOcurrencia: f.class_occurrences!.estado,
             titulo: serie?.titulo ?? "Clase",
             lugar: serie?.lugar ?? null,
+            nivel: serie?.nivel ?? null,
+            cupoMaximo: serie?.cupo_maximo ?? null,
             valorGenerado: f.valor_generado,
             metodoRegistro: f.metodo_registro,
           }
@@ -125,7 +133,14 @@ export function MisClasesPage() {
                   </p>
                   <p className="text-xs text-text-muted">{f.hora.slice(0, 5)}</p>
                 </div>
-                <p className="truncate font-medium text-text">{f.titulo}</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate font-medium text-text">{f.titulo}</p>
+                  {(esClasePrivada(f.cupoMaximo) || f.nivel) && (
+                    <Badge variant="muted" className="shrink-0">
+                      {esClasePrivada(f.cupoMaximo) ? "Privada" : f.nivel}
+                    </Badge>
+                  )}
+                </div>
                 <div className="flex items-center justify-between gap-2">
                   <p className="truncate text-xs text-text-muted">{f.lugar ?? ""}</p>
                   {pestana === "realizadas" && f.valorGenerado != null && (

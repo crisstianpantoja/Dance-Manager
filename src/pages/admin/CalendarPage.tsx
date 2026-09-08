@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { formatearFecha, formatearMoneda } from "@/lib/format"
+import { esClasePrivada, formatearFecha, formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import { confirmarPagoCanceladaExcepcional } from "@/lib/teacherAttendance"
 import { cn } from "@/lib/utils"
@@ -347,6 +347,9 @@ export function CalendarPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
+                    {(esClasePrivada(oc.cupo_maximo) || oc.nivel) && (
+                      <Badge variant="muted">{esClasePrivada(oc.cupo_maximo) ? "Privada" : oc.nivel}</Badge>
+                    )}
                     {oc.estado === "cancelada" ? (
                       <Badge variant="muted">Cancelada</Badge>
                     ) : (

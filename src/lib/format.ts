@@ -1,3 +1,11 @@
+/** Convención del negocio: una clase con cupo para 1 o 2 personas es una
+ * sesión privada (ver flyer de precios); con más cupo (o sin límite) es
+ * una clase grupal, donde sí aplica mostrar el nivel (Básica/Intermedia/
+ * Avanzada). */
+export function esClasePrivada(cupoMaximo: number | null): boolean {
+  return cupoMaximo != null && cupoMaximo <= 2
+}
+
 const formateadorMoneda = new Intl.NumberFormat("es-CO", {
   style: "currency",
   currency: "COP",

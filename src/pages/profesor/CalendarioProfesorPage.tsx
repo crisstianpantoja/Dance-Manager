@@ -12,7 +12,7 @@ import {
   NOMBRES_MES,
   primerDiaDelMesActual,
 } from "@/lib/calendarGrid"
-import { formatearFechaLarga } from "@/lib/format"
+import { esClasePrivada, formatearFechaLarga } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 import type { NivelAlumno } from "@/types/student"
@@ -24,6 +24,7 @@ interface OcurrenciaProfesor {
   titulo: string
   lugar: string | null
   nivel: NivelAlumno | null
+  cupoMaximo: number | null
   estado: string
 }
 
@@ -34,8 +35,8 @@ interface FilaCruda {
     hora: string
     estado: string
     class_series:
-      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null }
-      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null }[]
+      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null; cupo_maximo: number | null }
+      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null; cupo_maximo: number | null }[]
       | null
   } | null
 }
@@ -69,7 +70,7 @@ export function CalendarioProfesorPage() {
 
       const { data } = await supabase
         .from("class_occurrence_teachers")
-        .select("class_occurrences(id, fecha, hora, estado, class_series(titulo, lugar, nivel))")
+        .select("class_occurrences(id, fecha, hora, estado, class_series(titulo, lugar, nivel, cupo_maximo))")
         .eq("profesor_id", profile.id)
 
       const filas = ((data as unknown as FilaCruda[]) ?? [])
@@ -86,6 +87,7 @@ export function CalendarioProfesorPage() {
             titulo: serie?.titulo ?? "Clase",
             lugar: serie?.lugar ?? null,
             nivel: serie?.nivel ?? null,
+            cupoMaximo: serie?.cupo_maximo ?? null,
           }
         })
         .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora))
@@ -216,9 +218,9 @@ export function CalendarioProfesorPage() {
                     >
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-sm font-medium">{oc.titulo}</p>
-                        {oc.nivel && (
+                        {(esClasePrivada(oc.cupoMaximo) || oc.nivel) && (
                           <span className="shrink-0 rounded-full bg-black/15 px-2 py-0.5 text-[10px] font-medium">
-                            {oc.nivel}
+                            {esClasePrivada(oc.cupoMaximo) ? "Privada" : oc.nivel}
                           </span>
                         )}
                       </div>

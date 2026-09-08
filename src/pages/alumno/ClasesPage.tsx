@@ -25,7 +25,7 @@ import {
   semanaSiguiente,
 } from "@/lib/calendarGrid"
 import { fechaHoy } from "@/lib/attendance"
-import { formatearFecha, formatearFechaLarga } from "@/lib/format"
+import { esClasePrivada, formatearFecha, formatearFechaLarga } from "@/lib/format"
 import { gestionarReserva } from "@/lib/studentPortal"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
@@ -448,9 +448,9 @@ export function ClasesPage() {
                           >
                             <div className="flex items-center justify-between gap-2">
                               <p className="text-sm font-medium">{item.titulo}</p>
-                              {item.nivel && (
+                              {(esClasePrivada(item.cupoMaximo) || item.nivel) && (
                                 <span className="shrink-0 rounded-full bg-black/15 px-2 py-0.5 text-[10px] font-medium">
-                                  {item.nivel}
+                                  {esClasePrivada(item.cupoMaximo) ? "Privada" : item.nivel}
                                 </span>
                               )}
                             </div>
@@ -518,8 +518,12 @@ export function ClasesPage() {
                 {itemSeleccionado.lugar && (
                   <p className="text-text-muted">Sede: {itemSeleccionado.lugar}</p>
                 )}
-                {itemSeleccionado.nivel && (
-                  <p className="text-text-muted">Nivel: {itemSeleccionado.nivel}</p>
+                {esClasePrivada(itemSeleccionado.cupoMaximo) ? (
+                  <p className="text-text-muted">Tipo: Privada</p>
+                ) : (
+                  itemSeleccionado.nivel && (
+                    <p className="text-text-muted">Nivel: {itemSeleccionado.nivel}</p>
+                  )
                 )}
                 {itemSeleccionado.cupoMaximo && (
                   <p className="text-text-muted">
@@ -601,7 +605,9 @@ function ListaClases({ items, cargando, procesando, onToggle, onVerDetalle, vaci
                 </div>
                 <p className="font-medium text-text">{item.titulo}</p>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  {item.nivel && <Badge variant="muted">{item.nivel}</Badge>}
+                  {(esClasePrivada(item.cupoMaximo) || item.nivel) && (
+                    <Badge variant="muted">{esClasePrivada(item.cupoMaximo) ? "Privada" : item.nivel}</Badge>
+                  )}
                   {item.cupoMaximo && (
                     <Badge variant={lleno ? "muted" : "default"}>
                       {item.inscritos}/{item.cupoMaximo} cupos
