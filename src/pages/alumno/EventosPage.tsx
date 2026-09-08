@@ -110,7 +110,7 @@ export function EventosPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {eventosFuturos.map((evento) => {
               const inscrito = profile?.id ? evento.reservas.includes(profile.id) : false
               const lleno = evento.cupo_maximo ? evento.reservas.length >= evento.cupo_maximo : false

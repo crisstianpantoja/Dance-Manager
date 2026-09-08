@@ -355,7 +355,7 @@ export function ClasesPage() {
           ) : vista === "semana" ? (
             <WeekGrid dias={celdas} itemsPorFecha={itemsPorFecha} onItemClick={setItemSeleccionado} />
           ) : (
-            <>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr] lg:items-start">
               <div className="overflow-hidden rounded-control border border-white/10">
                 <div className="grid grid-cols-7 border-b border-white/10 bg-surface">
                   {DIAS_CORTOS.map((dia) => (
@@ -446,7 +446,14 @@ export function ClasesPage() {
                               claseDeItem(item),
                             )}
                           >
-                            <p className="text-sm font-medium">{item.titulo}</p>
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-sm font-medium">{item.titulo}</p>
+                              {item.nivel && (
+                                <span className="shrink-0 rounded-full bg-black/15 px-2 py-0.5 text-[10px] font-medium">
+                                  {item.nivel}
+                                </span>
+                              )}
+                            </div>
                             <p className="text-xs opacity-80">
                               {item.profesor ?? ""}
                               {item.profesor && item.lugar ? " · " : ""}
@@ -461,7 +468,7 @@ export function ClasesPage() {
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
         </div>
       )}
