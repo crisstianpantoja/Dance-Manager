@@ -18,4 +18,5 @@ export interface AgendaItem {
   cupoMaximo: number | null
   inscritos: number
   inscrito: boolean
+  alumnoIds: string[]
 }

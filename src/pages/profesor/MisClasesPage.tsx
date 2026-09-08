@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useAuth } from "@/context/AuthContext"
 import { fechaHoy } from "@/lib/attendance"
+import { cargarAlumnosConPlanPrivado, esOcurrenciaPrivada } from "@/lib/clasePrivada"
 import { etiquetaClase, formatearFecha, formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
@@ -17,7 +18,7 @@ interface Fila {
   titulo: string
   lugar: string | null
   nivel: NivelAlumno | null
-  cupoMaximo: number | null
+  alumnoIds: string[]
   estadoOcurrencia: string
   valorGenerado: number | null
   metodoRegistro: string | null
@@ -30,9 +31,10 @@ interface FilaCruda {
     fecha: string
     hora: string
     estado: string
+    alumno_ids: string[]
     class_series:
-      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null; cupo_maximo: number | null }
-      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null; cupo_maximo: number | null }[]
+      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null }
+      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null }[]
       | null
   } | null
 }
@@ -47,6 +49,7 @@ export function MisClasesPage() {
   const { profile } = useAuth()
   const [pestana, setPestana] = useState<Pestana>("proximas")
   const [filas, setFilas] = useState<Fila[]>([])
+  const [alumnosPrivados, setAlumnosPrivados] = useState<Set<string>>(new Set())
   const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
@@ -57,7 +60,7 @@ export function MisClasesPage() {
       const { data } = await supabase
         .from("class_occurrence_teachers")
         .select(
-          "valor_generado, metodo_registro, class_occurrences(fecha, hora, estado, class_series(titulo, lugar, nivel, cupo_maximo))",
+          "valor_generado, metodo_registro, class_occurrences(fecha, hora, estado, alumno_ids, class_series(titulo, lugar, nivel))",
         )
         .eq("profesor_id", profile.id)
 
@@ -74,13 +77,14 @@ export function MisClasesPage() {
             titulo: serie?.titulo ?? "Clase",
             lugar: serie?.lugar ?? null,
             nivel: serie?.nivel ?? null,
-            cupoMaximo: serie?.cupo_maximo ?? null,
+            alumnoIds: f.class_occurrences!.alumno_ids,
             valorGenerado: f.valor_generado,
             metodoRegistro: f.metodo_registro,
           }
         })
         .sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora))
 
+      setAlumnosPrivados(await cargarAlumnosConPlanPrivado(normalizadas.flatMap((f) => f.alumnoIds)))
       setFilas(normalizadas)
       setCargando(false)
     }
@@ -125,7 +129,7 @@ export function MisClasesPage() {
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {visibles.map((f, i) => {
-            const etiqueta = etiquetaClase(f.nivel, f.cupoMaximo)
+            const etiqueta = etiquetaClase(f.nivel, esOcurrenciaPrivada(f.alumnoIds, alumnosPrivados))
             return (
             <Card key={i}>
               <CardContent className="flex flex-col gap-2 py-4">

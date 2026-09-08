@@ -1,23 +1,17 @@
 import type { NivelAlumno } from "@/types/student"
 
-/** Convención del negocio: una clase con cupo para 1 o 2 personas es una
- * sesión privada (ver flyer de precios); con más cupo (o sin límite) es
- * una clase grupal, donde sí aplica mostrar el nivel (Básica/Intermedia/
- * Avanzada). */
-export function esClasePrivada(cupoMaximo: number | null): boolean {
-  return cupoMaximo != null && cupoMaximo <= 2
-}
-
 export type VarianteEtiquetaClase = "default" | "success" | "warning" | "error"
 
-/** Etiqueta + color para una clase: "Privada" (morado) si el cupo es de 1-2
- * personas, o el nivel con un color por dificultad (verde/amarillo/rojo)
- * si es una clase grupal. Devuelve null si no hay nada que mostrar. */
+/** Etiqueta + color para una clase: "Privada" (morado) si algún alumno
+ * inscrito tiene un plan pagado de modalidad "paquete_privado" (ver
+ * lib/clasePrivada.ts), o el nivel con un color por dificultad
+ * (verde/amarillo/rojo) si es una clase grupal. Devuelve null si no hay
+ * nada que mostrar. */
 export function etiquetaClase(
   nivel: NivelAlumno | null,
-  cupoMaximo: number | null,
+  esPrivada: boolean,
 ): { texto: string; variant: VarianteEtiquetaClase } | null {
-  if (esClasePrivada(cupoMaximo)) return { texto: "Privada", variant: "default" }
+  if (esPrivada) return { texto: "Privada", variant: "default" }
   if (nivel === "Básica") return { texto: "Básica", variant: "success" }
   if (nivel === "Intermedia") return { texto: "Intermedia", variant: "warning" }
   if (nivel === "Avanzada") return { texto: "Avanzada", variant: "error" }

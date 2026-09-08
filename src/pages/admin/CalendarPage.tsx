@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { cargarAlumnosConPlanPrivado, esOcurrenciaPrivada } from "@/lib/clasePrivada"
 import { etiquetaClase, formatearFecha, formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import { confirmarPagoCanceladaExcepcional } from "@/lib/teacherAttendance"
@@ -102,6 +103,7 @@ export function CalendarPage() {
     return new Date(hoy.getFullYear(), hoy.getMonth(), 1)
   })
   const [ocurrencias, setOcurrencias] = useState<OcurrenciaConProfesores[]>([])
+  const [alumnosPrivados, setAlumnosPrivados] = useState<Set<string>>(new Set())
   const [cargando, setCargando] = useState(true)
   const [procesando, setProcesando] = useState<string | null>(null)
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null)
@@ -128,6 +130,7 @@ export function CalendarPage() {
       .limit(500)
 
     const filas = (data as unknown as FilaOcurrencia[] | null) ?? []
+    setAlumnosPrivados(await cargarAlumnosConPlanPrivado(filas.flatMap((f) => f.alumno_ids)))
     setOcurrencias(
       filas.map((f) => ({
         id: f.id,
@@ -328,7 +331,7 @@ export function CalendarPage() {
 
           <div className="flex flex-col gap-2">
             {ocurrenciasDelDia.map((oc) => {
-              const etiqueta = etiquetaClase(oc.nivel, oc.cupo_maximo)
+              const etiqueta = etiquetaClase(oc.nivel, esOcurrenciaPrivada(oc.alumno_ids, alumnosPrivados))
               return (
               <div
                 key={oc.id}

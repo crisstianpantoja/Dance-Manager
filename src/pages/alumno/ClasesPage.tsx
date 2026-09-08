@@ -25,6 +25,7 @@ import {
   semanaSiguiente,
 } from "@/lib/calendarGrid"
 import { fechaHoy } from "@/lib/attendance"
+import { cargarAlumnosConPlanPrivado, esOcurrenciaPrivada } from "@/lib/clasePrivada"
 import { etiquetaClase, formatearFecha, formatearFechaLarga } from "@/lib/format"
 import { gestionarReserva } from "@/lib/studentPortal"
 import { supabase } from "@/lib/supabase"
@@ -81,6 +82,7 @@ export function ClasesPage() {
   const [fechaBase, setFechaBase] = useState(() => primerDiaDelMesActual())
   const [diaSeleccionado, setDiaSeleccionado] = useState(() => fechaHoy())
   const [itemsCalendario, setItemsCalendario] = useState<AgendaItem[]>([])
+  const [alumnosPrivados, setAlumnosPrivados] = useState<Set<string>>(new Set())
   const [cargandoCalendario, setCargandoCalendario] = useState(true)
   const [itemSeleccionado, setItemSeleccionado] = useState<AgendaItem | null>(null)
 
@@ -163,6 +165,7 @@ export function ClasesPage() {
       cupoMaximo: f.class_series?.cupo_maximo ?? null,
       inscritos: f.alumno_ids.length,
       inscrito: f.alumno_ids.includes(alumnoId),
+      alumnoIds: f.alumno_ids,
     }))
 
     const eventos = (eventosData ?? []) as {
@@ -188,9 +191,15 @@ export function ClasesPage() {
       cupoMaximo: e.cupo_maximo,
       inscritos: e.reservas.length,
       inscrito: e.reservas.includes(alumnoId),
+      alumnoIds: [],
     }))
 
     return [...itemsClases, ...itemsEventos]
+  }
+
+  async function actualizarAlumnosPrivados(items: AgendaItem[]) {
+    const idsNuevos = await cargarAlumnosConPlanPrivado(items.flatMap((i) => i.alumnoIds))
+    setAlumnosPrivados((actual) => new Set([...actual, ...idsNuevos]))
   }
 
   useEffect(() => {
@@ -200,6 +209,7 @@ export function ClasesPage() {
       const hasta = celdas[celdas.length - 1]?.fecha ?? aFechaISO(fechaBase)
       const items = await cargarItems(desde, hasta)
       setItemsCalendario(items)
+      actualizarAlumnosPrivados(items)
       setCargandoCalendario(false)
     }
     if (profile?.id) cargar()
@@ -213,7 +223,9 @@ export function ClasesPage() {
       const en60Dias = new Date()
       en60Dias.setDate(en60Dias.getDate() + 60)
       const items = await cargarItems(hoy, aFechaISO(en60Dias))
-      setProximas(items.filter((i) => i.tipo === "clase" && i.estado === "programada"))
+      const programadas = items.filter((i) => i.tipo === "clase" && i.estado === "programada")
+      setProximas(programadas)
+      actualizarAlumnosPrivados(programadas)
       setCargandoProximas(false)
     }
     if (profile?.id) cargar()
@@ -236,13 +248,18 @@ export function ClasesPage() {
     setItemSeleccionado(null)
     const desde = celdas[0]?.fecha ?? aFechaISO(fechaBase)
     const hasta = celdas[celdas.length - 1]?.fecha ?? aFechaISO(fechaBase)
-    cargarItems(desde, hasta).then(setItemsCalendario)
+    cargarItems(desde, hasta).then((items) => {
+      setItemsCalendario(items)
+      actualizarAlumnosPrivados(items)
+    })
     const hoy = fechaHoy()
     const en60Dias = new Date()
     en60Dias.setDate(en60Dias.getDate() + 60)
-    cargarItems(hoy, aFechaISO(en60Dias)).then((items) =>
-      setProximas(items.filter((i) => i.tipo === "clase" && i.estado === "programada")),
-    )
+    cargarItems(hoy, aFechaISO(en60Dias)).then((items) => {
+      const programadas = items.filter((i) => i.tipo === "clase" && i.estado === "programada")
+      setProximas(programadas)
+      actualizarAlumnosPrivados(programadas)
+    })
   }
 
   async function toggleInscripcion(item: AgendaItem) {
@@ -420,7 +437,10 @@ export function ClasesPage() {
                       .slice()
                       .sort((a, b) => a.hora.localeCompare(b.hora))
                       .map((item, indice, lista) => {
-                        const etiqueta = etiquetaClase(item.nivel, item.cupoMaximo)
+                        const etiqueta = etiquetaClase(
+                          item.nivel,
+                          esOcurrenciaPrivada(item.alumnoIds, alumnosPrivados),
+                        )
                         return (
                           <button
                             key={item.id}
@@ -484,6 +504,7 @@ export function ClasesPage() {
           onToggle={toggleInscripcion}
           onVerDetalle={setItemSeleccionado}
           vacioTexto="No tienes clases programadas próximamente."
+          alumnosPrivados={alumnosPrivados}
         />
       )}
 
@@ -495,6 +516,7 @@ export function ClasesPage() {
           onToggle={toggleInscripcion}
           onVerDetalle={setItemSeleccionado}
           vacioTexto="Aún no estás inscrito en ninguna clase próxima."
+          alumnosPrivados={alumnosPrivados}
         />
       )}
 
@@ -522,7 +544,10 @@ export function ClasesPage() {
                   <p className="text-text-muted">Sede: {itemSeleccionado.lugar}</p>
                 )}
                 {(() => {
-                  const etiqueta = etiquetaClase(itemSeleccionado.nivel, itemSeleccionado.cupoMaximo)
+                  const etiqueta = etiquetaClase(
+                    itemSeleccionado.nivel,
+                    esOcurrenciaPrivada(itemSeleccionado.alumnoIds, alumnosPrivados),
+                  )
                   return (
                     etiqueta && (
                       <p className="flex items-center gap-2 text-text-muted">
@@ -582,9 +607,18 @@ interface ListaClasesProps {
   onToggle: (item: AgendaItem) => void
   onVerDetalle: (item: AgendaItem) => void
   vacioTexto: string
+  alumnosPrivados: Set<string>
 }
 
-function ListaClases({ items, cargando, procesando, onToggle, onVerDetalle, vacioTexto }: ListaClasesProps) {
+function ListaClases({
+  items,
+  cargando,
+  procesando,
+  onToggle,
+  onVerDetalle,
+  vacioTexto,
+  alumnosPrivados,
+}: ListaClasesProps) {
   if (cargando) return <p className="text-sm text-text-muted">Cargando...</p>
 
   if (items.length === 0) {
@@ -599,7 +633,7 @@ function ListaClases({ items, cargando, procesando, onToggle, onVerDetalle, vaci
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {items.map((item) => {
         const lleno = item.cupoMaximo ? item.inscritos >= item.cupoMaximo : false
-        const etiqueta = etiquetaClase(item.nivel, item.cupoMaximo)
+        const etiqueta = etiquetaClase(item.nivel, esOcurrenciaPrivada(item.alumnoIds, alumnosPrivados))
         return (
           <Card key={item.id} className="flex flex-col">
             <CardContent className="flex flex-1 flex-col gap-2 py-4">

@@ -13,6 +13,7 @@ import {
   NOMBRES_MES,
   primerDiaDelMesActual,
 } from "@/lib/calendarGrid"
+import { cargarAlumnosConPlanPrivado, esOcurrenciaPrivada } from "@/lib/clasePrivada"
 import { etiquetaClase, formatearFechaLarga } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
@@ -25,7 +26,7 @@ interface OcurrenciaProfesor {
   titulo: string
   lugar: string | null
   nivel: NivelAlumno | null
-  cupoMaximo: number | null
+  alumnoIds: string[]
   estado: string
 }
 
@@ -35,9 +36,10 @@ interface FilaCruda {
     fecha: string
     hora: string
     estado: string
+    alumno_ids: string[]
     class_series:
-      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null; cupo_maximo: number | null }
-      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null; cupo_maximo: number | null }[]
+      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null }
+      | { titulo: string; lugar: string | null; nivel: NivelAlumno | null }[]
       | null
   } | null
 }
@@ -47,6 +49,7 @@ export function CalendarioProfesorPage() {
   const [fechaBase, setFechaBase] = useState(() => primerDiaDelMesActual())
   const [diaSeleccionado, setDiaSeleccionado] = useState(() => fechaHoy())
   const [ocurrencias, setOcurrencias] = useState<OcurrenciaProfesor[]>([])
+  const [alumnosPrivados, setAlumnosPrivados] = useState<Set<string>>(new Set())
   const [cargando, setCargando] = useState(true)
 
   const celdas = useMemo(
@@ -71,7 +74,7 @@ export function CalendarioProfesorPage() {
 
       const { data } = await supabase
         .from("class_occurrence_teachers")
-        .select("class_occurrences(id, fecha, hora, estado, class_series(titulo, lugar, nivel, cupo_maximo))")
+        .select("class_occurrences(id, fecha, hora, estado, alumno_ids, class_series(titulo, lugar, nivel))")
         .eq("profesor_id", profile.id)
 
       const filas = ((data as unknown as FilaCruda[]) ?? [])
@@ -88,11 +91,12 @@ export function CalendarioProfesorPage() {
             titulo: serie?.titulo ?? "Clase",
             lugar: serie?.lugar ?? null,
             nivel: serie?.nivel ?? null,
-            cupoMaximo: serie?.cupo_maximo ?? null,
+            alumnoIds: f.class_occurrences!.alumno_ids,
           }
         })
         .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora))
 
+      setAlumnosPrivados(await cargarAlumnosConPlanPrivado(filas.flatMap((f) => f.alumnoIds)))
       setOcurrencias(filas)
       setCargando(false)
     }
@@ -196,7 +200,7 @@ export function CalendarioProfesorPage() {
             ) : (
               <div className="flex flex-col">
                 {itemsDia.map((oc, indice) => {
-                  const etiqueta = etiquetaClase(oc.nivel, oc.cupoMaximo)
+                  const etiqueta = etiquetaClase(oc.nivel, esOcurrenciaPrivada(oc.alumnoIds, alumnosPrivados))
                   return (
                     <div key={oc.id} className="flex gap-3">
                       <span className="w-11 shrink-0 pt-2.5 text-right text-xs font-semibold text-text">
