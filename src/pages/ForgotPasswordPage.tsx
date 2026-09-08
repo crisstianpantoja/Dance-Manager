@@ -5,10 +5,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { documentoToEmail, supabase } from "@/lib/supabase"
+import {
+  CODIGO_ACADEMIA_PRINCIPAL,
+  documentoToEmail,
+  obtenerCodigoAcademiaGuardado,
+  supabase,
+} from "@/lib/supabase"
 
 export function ForgotPasswordPage() {
-  const [codigoAcademia, setCodigoAcademia] = useState("")
+  const [codigoGuardado] = useState(() => obtenerCodigoAcademiaGuardado())
+  const [codigoAcademia, setCodigoAcademia] = useState(codigoGuardado)
+  const [mostrarCodigo, setMostrarCodigo] = useState(
+    codigoGuardado !== CODIGO_ACADEMIA_PRINCIPAL,
+  )
   const [documento, setDocumento] = useState("")
   const [enviado, setEnviado] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,16 +59,26 @@ export function ForgotPasswordPage() {
               </p>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="codigoAcademia">Código de academia</Label>
-                  <Input
-                    id="codigoAcademia"
-                    placeholder="Código de tu academia"
-                    value={codigoAcademia}
-                    onChange={(e) => setCodigoAcademia(e.target.value)}
-                    required
-                  />
-                </div>
+                {mostrarCodigo ? (
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="codigoAcademia">Código de academia</Label>
+                    <Input
+                      id="codigoAcademia"
+                      placeholder="Código de tu academia"
+                      value={codigoAcademia}
+                      onChange={(e) => setCodigoAcademia(e.target.value)}
+                      required
+                    />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setMostrarCodigo(true)}
+                    className="self-start text-xs text-text-muted underline-offset-2 transition-colors hover:text-brand-light hover:underline"
+                  >
+                    ¿Tu academia no es esta? Cambiar código de academia
+                  </button>
+                )}
 
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="documento">Documento</Label>

@@ -35,3 +35,27 @@ export function documentoToEmail(documento: string, codigoAcademia: string) {
 
   return `${doc}@${codigo}.${AUTH_EMAIL_DOMAIN}`
 }
+
+const CODIGO_ACADEMIA_STORAGE_KEY = "dm_codigo_academia"
+
+/**
+ * El alumno/profesor promedio no sabe (ni debería tener que saber) el
+ * código de su academia: se recuerda por dispositivo una vez que se usó
+ * con éxito, y mientras tanto se asume la organización principal (el
+ * negocio original, que es la inmensa mayoría de las cuentas hoy).
+ */
+export function obtenerCodigoAcademiaGuardado(): string {
+  try {
+    return localStorage.getItem(CODIGO_ACADEMIA_STORAGE_KEY) ?? CODIGO_ACADEMIA_PRINCIPAL
+  } catch {
+    return CODIGO_ACADEMIA_PRINCIPAL
+  }
+}
+
+export function guardarCodigoAcademia(codigoAcademia: string) {
+  try {
+    localStorage.setItem(CODIGO_ACADEMIA_STORAGE_KEY, codigoAcademia.trim().toLowerCase())
+  } catch {
+    // localStorage puede no estar disponible (navegación privada, etc.); no es crítico.
+  }
+}

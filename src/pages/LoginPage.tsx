@@ -7,6 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/context/AuthContext"
 import { AJUSTES_POR_DEFECTO } from "@/lib/settings"
+import {
+  CODIGO_ACADEMIA_PRINCIPAL,
+  guardarCodigoAcademia,
+  obtenerCodigoAcademiaGuardado,
+} from "@/lib/supabase"
 
 export function LoginPage() {
   const { session, loading, signIn } = useAuth()
@@ -15,7 +20,14 @@ export function LoginPage() {
   // es hasta autenticar (eso llega con el subdominio por academia).
   const ajustes = AJUSTES_POR_DEFECTO
   const location = useLocation()
-  const [codigoAcademia, setCodigoAcademia] = useState("")
+  const [codigoGuardado] = useState(() => obtenerCodigoAcademiaGuardado())
+  const [codigoAcademia, setCodigoAcademia] = useState(codigoGuardado)
+  // El código solo importa para alguien de una academia distinta a la
+  // principal: se mantiene oculto salvo que este dispositivo ya haya
+  // iniciado sesión antes con uno distinto, o la persona pida cambiarlo.
+  const [mostrarCodigo, setMostrarCodigo] = useState(
+    codigoGuardado !== CODIGO_ACADEMIA_PRINCIPAL,
+  )
   const [documento, setDocumento] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -33,7 +45,11 @@ export function LoginPage() {
 
     const { error } = await signIn(documento, password, codigoAcademia)
 
-    if (error) setError(error)
+    if (error) {
+      setError(error)
+    } else {
+      guardarCodigoAcademia(codigoAcademia)
+    }
     setEnviando(false)
   }
 
@@ -50,27 +66,35 @@ export function LoginPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-text">{ajustes.nombre_app}</h1>
-            <p className="text-sm text-text-muted">
-              Ingresa con el código de tu academia, tu documento y contraseña
-            </p>
+            <p className="text-sm text-text-muted">Ingresa con tu documento y contraseña</p>
           </div>
         </div>
 
         <Card>
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="codigoAcademia">Código de academia</Label>
-                <Input
-                  id="codigoAcademia"
-                  name="codigoAcademia"
-                  autoComplete="organization"
-                  placeholder="Código de tu academia"
-                  value={codigoAcademia}
-                  onChange={(e) => setCodigoAcademia(e.target.value)}
-                  required
-                />
-              </div>
+              {mostrarCodigo ? (
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="codigoAcademia">Código de academia</Label>
+                  <Input
+                    id="codigoAcademia"
+                    name="codigoAcademia"
+                    autoComplete="organization"
+                    placeholder="Código de tu academia"
+                    value={codigoAcademia}
+                    onChange={(e) => setCodigoAcademia(e.target.value)}
+                    required
+                  />
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setMostrarCodigo(true)}
+                  className="self-start text-xs text-text-muted underline-offset-2 transition-colors hover:text-brand-light hover:underline"
+                >
+                  ¿Tu academia no es esta? Cambiar código de academia
+                </button>
+              )}
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="documento">Documento</Label>
