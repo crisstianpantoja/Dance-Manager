@@ -2,6 +2,7 @@ import { AlertTriangle, Clock, Music, PartyPopper, Users } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 
+import { AdminAssistantWidget } from "@/components/admin/AdminAssistantWidget"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -289,6 +290,8 @@ export function DashboardPage() {
           "Próximos eventos" no se puede filtrar todavía: esa tabla no tiene dato de sede.
         </p>
       )}
+
+      <AdminAssistantWidget />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card className="border-l-4 border-l-success">
