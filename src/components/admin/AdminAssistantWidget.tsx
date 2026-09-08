@@ -20,7 +20,22 @@ const SUGERENCIAS = [
 
 async function preguntarAsistente(pregunta: string): Promise<string> {
   const { data, error } = await supabase.functions.invoke("admin-assistant", { body: { pregunta } })
-  if (error) throw new Error(error.message)
+  if (error) {
+    // El cliente de Supabase da un mensaje genérico ("Edge Function
+    // returned a non-2xx status code"); el motivo real viene en el
+    // cuerpo de la respuesta que dejó en error.context.
+    const contexto = (error as { context?: Response }).context
+    let mensajeReal: string | null = null
+    if (contexto) {
+      try {
+        const cuerpo = await contexto.clone().json()
+        if (cuerpo?.error) mensajeReal = cuerpo.error
+      } catch {
+        /* si el cuerpo no es JSON, se usa el mensaje genérico de abajo */
+      }
+    }
+    throw new Error(mensajeReal ?? error.message)
+  }
   if (data?.error) throw new Error(data.error)
   return data.respuesta as string
 }
