@@ -1,6 +1,5 @@
-import { CalendarDays, PartyPopper, Ticket, Wallet } from "lucide-react"
+import { Ticket } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
-import { Link } from "react-router-dom"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { useAuth } from "@/context/AuthContext"
@@ -15,12 +14,6 @@ interface ClaseHoy {
   lugar: string | null
   profesor: string | null
 }
-
-const ACCESOS = [
-  { to: "/alumno/clases", icono: CalendarDays, titulo: "Clases" },
-  { to: "/alumno/eventos", icono: PartyPopper, titulo: "Eventos" },
-  { to: "/alumno/carnet", icono: Wallet, titulo: "Carnet" },
-]
 
 export function InicioPage() {
   const { profile } = useAuth()
@@ -167,19 +160,6 @@ export function InicioPage() {
             </Card>
           ))
         )}
-      </div>
-
-      <div className="grid grid-cols-3 gap-3">
-        {ACCESOS.map(({ to, icono: Icono, titulo }) => (
-          <Link key={to} to={to}>
-            <Card className="transition-colors hover:bg-surface-hover">
-              <CardContent className="flex flex-col items-center gap-2 py-5">
-                <Icono className="size-6 text-brand-light" />
-                <p className="text-sm font-medium text-text">{titulo}</p>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
       </div>
     </div>
   )
