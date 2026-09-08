@@ -115,29 +115,37 @@ export function MisClasesPage() {
           </CardContent>
         </Card>
       ) : (
-        visibles.map((f, i) => (
-          <Card key={i}>
-            <CardContent className="flex items-center justify-between py-3">
-              <div>
-                <p className="font-medium text-text">
-                  {formatearFecha(f.fecha)} · {f.hora.slice(0, 5)}
-                </p>
-                <p className="text-xs text-text-muted">
-                  {f.titulo}
-                  {f.lugar ? ` · ${f.lugar}` : ""}
-                </p>
-              </div>
-              {pestana === "realizadas" && f.valorGenerado != null && (
-                <Badge variant="success">{formatearMoneda(f.valorGenerado)}</Badge>
-              )}
-              {pestana === "canceladas" && (
-                <Badge variant={f.metodoRegistro === "cancelacion_pagada" ? "success" : "muted"}>
-                  {f.metodoRegistro === "cancelacion_pagada" ? "Pagada" : "Sin pago"}
-                </Badge>
-              )}
-            </CardContent>
-          </Card>
-        ))
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {visibles.map((f, i) => (
+            <Card key={i}>
+              <CardContent className="flex flex-col gap-2 py-4">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-light">
+                    {formatearFecha(f.fecha)}
+                  </p>
+                  <p className="text-xs text-text-muted">{f.hora.slice(0, 5)}</p>
+                </div>
+                <p className="truncate font-medium text-text">{f.titulo}</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate text-xs text-text-muted">{f.lugar ?? ""}</p>
+                  {pestana === "realizadas" && f.valorGenerado != null && (
+                    <Badge variant="success" className="shrink-0">
+                      {formatearMoneda(f.valorGenerado)}
+                    </Badge>
+                  )}
+                  {pestana === "canceladas" && (
+                    <Badge
+                      variant={f.metodoRegistro === "cancelacion_pagada" ? "success" : "muted"}
+                      className="shrink-0"
+                    >
+                      {f.metodoRegistro === "cancelacion_pagada" ? "Pagada" : "Sin pago"}
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   )

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { useAuth } from "@/context/AuthContext"
 import { fechaHoy } from "@/lib/attendance"
 import { formatearFecha } from "@/lib/format"
@@ -75,29 +76,33 @@ export function CalendarioProfesorPage() {
       {cargando ? (
         <p className="text-sm text-text-muted">Cargando...</p>
       ) : Object.keys(porFecha).length === 0 ? (
-        <p className="text-sm text-text-muted">No tienes clases próximas asignadas.</p>
+        <Card>
+          <CardContent className="py-6 text-center text-sm text-text-muted">
+            No tienes clases próximas asignadas.
+          </CardContent>
+        </Card>
       ) : (
         <div className="flex flex-col gap-6">
           {Object.entries(porFecha).map(([fecha, filas]) => (
             <div key={fecha} className="flex flex-col gap-2">
               <p className="text-sm font-semibold text-text-muted">{formatearFecha(fecha)}</p>
-              <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {filas.map((oc, i) => (
-                  <div
-                    key={i}
-                    className={
-                      "flex items-center justify-between rounded-control border border-white/10 bg-surface px-4 py-3 " +
-                      (oc.estado === "cancelada" ? "opacity-50" : "")
-                    }
-                  >
-                    <div>
-                      <p className="font-medium text-text">
-                        {oc.hora.slice(0, 5)} · {oc.titulo}
-                      </p>
-                      {oc.lugar && <p className="text-xs text-text-muted">{oc.lugar}</p>}
-                    </div>
-                    {oc.estado === "cancelada" && <Badge variant="muted">Cancelada</Badge>}
-                  </div>
+                  <Card key={i} className={oc.estado === "cancelada" ? "opacity-50" : ""}>
+                    <CardContent className="flex items-center justify-between gap-2 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-text">
+                          {oc.hora.slice(0, 5)} · {oc.titulo}
+                        </p>
+                        {oc.lugar && <p className="text-xs text-text-muted">{oc.lugar}</p>}
+                      </div>
+                      {oc.estado === "cancelada" && (
+                        <Badge variant="muted" className="shrink-0">
+                          Cancelada
+                        </Badge>
+                      )}
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             </div>
