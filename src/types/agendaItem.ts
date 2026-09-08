@@ -1,3 +1,5 @@
+import type { NivelAlumno } from "@/types/student"
+
 /**
  * Un elemento del calendario del alumno (módulo "Clases"): una clase o
  * un evento, normalizados a la misma forma para poder mostrarlos juntos
@@ -11,6 +13,7 @@ export interface AgendaItem {
   titulo: string
   profesor: string | null
   lugar: string | null
+  nivel: NivelAlumno | null
   estado: "programada" | "cancelada" | null
   cupoMaximo: number | null
   inscritos: number

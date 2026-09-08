@@ -155,6 +155,7 @@ export function ClassSeriesPage() {
                   <p className="font-medium text-text">{serie.titulo}</p>
                   <p className="text-xs text-text-muted">
                     {serie.categoria ?? "Sin categoría"}
+                    {serie.nivel ? ` · ${serie.nivel}` : ""}
                     {serie.lugar ? ` · ${serie.lugar}` : ""}
                     {serie.profesor_ids.length > 0
                       ? ` · ${serie.profesor_ids

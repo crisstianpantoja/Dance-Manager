@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useAuth } from "@/context/AuthContext"
 import type { ThemeId } from "@/lib/carnet"
 import { formatearFechaObjeto } from "@/lib/format"
+import { obtenerAjustes } from "@/lib/settings"
 import { supabase } from "@/lib/supabase"
 import type { Student } from "@/types/student"
 
@@ -30,6 +31,7 @@ export function CarnetPage() {
   const { profile } = useAuth()
   const [alumno, setAlumno] = useState<Student | null>(null)
   const [nombreAcademia, setNombreAcademia] = useState<string | null>(null)
+  const [logoAcademia, setLogoAcademia] = useState<string | null>(null)
   const [cargando, setCargando] = useState(true)
   const [walletAbierto, setWalletAbierto] = useState(false)
 
@@ -55,11 +57,16 @@ export function CarnetPage() {
         setNombreAcademia(academia?.nombre ?? null)
       }
 
+      if (profile.organization_id) {
+        const ajustes = await obtenerAjustes(profile.organization_id)
+        setLogoAcademia(ajustes.logo_url)
+      }
+
       setCargando(false)
     }
 
     cargar()
-  }, [profile?.id])
+  }, [profile?.id, profile?.organization_id])
 
   async function handleCambiarTema(id: ThemeId) {
     if (!alumno || !puedeCambiarTema(alumno)) return
@@ -94,7 +101,7 @@ export function CarnetPage() {
 
       <Card>
         <CardContent className="flex flex-col items-center gap-4 py-6">
-          <DigitalCard alumno={alumno} />
+          <DigitalCard alumno={alumno} logoAcademia={logoAcademia} />
           <ThemePicker
             value={alumno.tema_carnet}
             onChange={handleCambiarTema}
@@ -107,7 +114,7 @@ export function CarnetPage() {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <CarnetDownloadButton alumno={alumno} />
+            <CarnetDownloadButton alumno={alumno} logoAcademia={logoAcademia} />
             <GoogleWalletButton />
             <Button variant="outline" size="sm" onClick={() => setWalletAbierto(true)}>
               <Wallet className="size-4" />

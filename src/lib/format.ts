@@ -22,3 +22,13 @@ export function formatearFecha(valor: string | null) {
 export function formatearFechaObjeto(fecha: Date) {
   return formateadorFecha.format(fecha)
 }
+
+const formateadorFechaLarga = new Intl.DateTimeFormat("es-CO", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+})
+
+export function formatearFechaLarga(valor: string) {
+  return formateadorFechaLarga.format(new Date(`${valor}T00:00:00`))
+}

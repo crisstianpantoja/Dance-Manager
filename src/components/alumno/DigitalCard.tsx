@@ -8,6 +8,7 @@ import type { Student } from "@/types/student"
 interface DigitalCardProps {
   alumno: Student
   qrRef?: RefObject<HTMLCanvasElement | null>
+  logoAcademia?: string | null
 }
 
 const TIPO_LABEL: Record<Student["tipo"], string> = {
@@ -16,7 +17,7 @@ const TIPO_LABEL: Record<Student["tipo"], string> = {
   ambas: "Academia + privada",
 }
 
-export function DigitalCard({ alumno, qrRef }: DigitalCardProps) {
+export function DigitalCard({ alumno, qrRef, logoAcademia }: DigitalCardProps) {
   const tema = temaDeCarnet(alumno.tema_carnet)
 
   return (
@@ -31,10 +32,18 @@ export function DigitalCard({ alumno, qrRef }: DigitalCardProps) {
         }}
       />
 
-      <p className="relative font-heading text-lg font-black italic tracking-tight">
-        <span className="text-white">Dance</span>
-        <span style={{ color: tema.hex }}>M</span>
-      </p>
+      <div className="relative flex items-center justify-center gap-2.5">
+        {logoAcademia && (
+          <>
+            <img src={logoAcademia} alt="" className="h-6 w-auto max-w-20 object-contain" />
+            <span className="h-4 w-px bg-white/25" />
+          </>
+        )}
+        <p className="font-heading text-lg font-black italic tracking-tight">
+          <span className="text-white">Dance</span>
+          <span style={{ color: tema.hex }}>M</span>
+        </p>
+      </div>
       <p className="relative text-[10px] font-medium tracking-[0.3em] text-white/80">
         CARNET DIGITAL
       </p>

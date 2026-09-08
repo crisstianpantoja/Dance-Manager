@@ -52,6 +52,7 @@ export interface CarnetDatos {
   nivel: string
   tipo: string
   fotoUrl?: string | null
+  logoAcademiaUrl?: string | null
   qrCanvas: HTMLCanvasElement
 }
 
@@ -210,7 +211,10 @@ export async function dibujarCarnet(
   escala = ESCALA_CARNET,
 ): Promise<HTMLCanvasElement> {
   await esperarTipografias()
-  const foto = await cargarImagen(datos.fotoUrl)
+  const [foto, logoAcademia] = await Promise.all([
+    cargarImagen(datos.fotoUrl),
+    cargarImagen(datos.logoAcademiaUrl),
+  ])
 
   const medidor = document.createElement("canvas").getContext("2d")
   if (!medidor) throw new Error("El navegador no permite generar la imagen del carnet")
@@ -272,12 +276,36 @@ export async function dibujarCarnet(
   ctx.font = `900 italic 34px ${FUENTE}`
   const anchoDance = ctx.measureText("Dance").width
   const anchoM = ctx.measureText("M").width
-  const inicio = centro - (anchoDance + anchoM) / 2
+  const anchoMarca = anchoDance + anchoM
+  let logoAlto = 0
+  let logoAncho = 0
+  if (logoAcademia) {
+    logoAlto = 24
+    logoAncho = Math.min(80, (logoAcademia.width / logoAcademia.height) * logoAlto)
+  }
+  const separador = logoAcademia ? 10 : 0
+  const anchoTotal = logoAncho + separador + anchoMarca
+  let cursorX = centro - anchoTotal / 2
+
+  if (logoAcademia) {
+    ctx.shadowBlur = 0
+    ctx.drawImage(logoAcademia, cursorX, y + 28 - logoAlto, logoAncho, logoAlto)
+    cursorX += logoAncho + separador
+    ctx.strokeStyle = "rgba(255,255,255,0.25)"
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(cursorX - separador / 2, y + 6)
+    ctx.lineTo(cursorX - separador / 2, y + 30)
+    ctx.stroke()
+    ctx.shadowColor = rgba(theme, 0.8)
+    ctx.shadowBlur = 15
+  }
+
   ctx.textAlign = "left"
   ctx.fillStyle = "#FFFFFF"
-  ctx.fillText("Dance", inicio, y + 28)
+  ctx.fillText("Dance", cursorX, y + 28)
   ctx.fillStyle = theme.hex
-  ctx.fillText("M", inicio + anchoDance, y + 28)
+  ctx.fillText("M", cursorX + anchoDance, y + 28)
   ctx.textAlign = "center"
   ctx.restore()
   y += 40 + 4

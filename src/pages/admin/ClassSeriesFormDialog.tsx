@@ -22,9 +22,11 @@ import { generarOcurrencias } from "@/lib/occurrences"
 import { supabase } from "@/lib/supabase"
 import type { Academy } from "@/types/academy"
 import { DIAS_SEMANA, type ClassSeries } from "@/types/classSeries"
+import type { NivelAlumno } from "@/types/student"
 import type { Teacher } from "@/types/teacher"
 
 const SIN_ACADEMIA = "sin-academia"
+const SIN_NIVEL = "sin-nivel"
 
 interface ClassSeriesFormDialogProps {
   open: boolean
@@ -49,6 +51,7 @@ export function ClassSeriesFormDialog({
 }: ClassSeriesFormDialogProps) {
   const [titulo, setTitulo] = useState("")
   const [categoria, setCategoria] = useState("")
+  const [nivel, setNivel] = useState(SIN_NIVEL)
   const [academiaId, setAcademiaId] = useState(SIN_ACADEMIA)
   const [diaSemana, setDiaSemana] = useState("1")
   const [hora, setHora] = useState("18:00")
@@ -67,6 +70,7 @@ export function ClassSeriesFormDialog({
 
     setTitulo(serie?.titulo ?? "")
     setCategoria(serie?.categoria ?? "")
+    setNivel(serie?.nivel ?? SIN_NIVEL)
     setAcademiaId(serie?.academia_id ?? SIN_ACADEMIA)
     setDiaSemana(serie?.dia_semana?.toString() ?? "1")
     setHora(serie?.hora?.slice(0, 5) ?? "18:00")
@@ -113,6 +117,7 @@ export function ClassSeriesFormDialog({
     const datos = {
       titulo,
       categoria: categoria || null,
+      nivel: nivel === SIN_NIVEL ? null : (nivel as NivelAlumno),
       academia_id: academiaId === SIN_ACADEMIA ? null : academiaId,
       dia_semana: Number(diaSemana),
       hora,
@@ -194,6 +199,21 @@ export function ClassSeriesFormDialog({
                 value={categoria}
                 onChange={(e) => setCategoria(e.target.value)}
               />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label>Nivel</Label>
+              <Select value={nivel} onValueChange={setNivel}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={SIN_NIVEL}>Sin nivel</SelectItem>
+                  <SelectItem value="Básica">Básica</SelectItem>
+                  <SelectItem value="Intermedia">Intermedia</SelectItem>
+                  <SelectItem value="Avanzada">Avanzada</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex flex-col gap-2">

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 
 import { MonthNavHeader } from "@/components/calendar/MonthNavHeader"
-import { WeekGrid } from "@/components/calendar/WeekGrid"
+import { claseDeItem, WeekGrid } from "@/components/calendar/WeekGrid"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -25,11 +25,12 @@ import {
   semanaSiguiente,
 } from "@/lib/calendarGrid"
 import { fechaHoy } from "@/lib/attendance"
-import { formatearFecha } from "@/lib/format"
+import { formatearFecha, formatearFechaLarga } from "@/lib/format"
 import { gestionarReserva } from "@/lib/studentPortal"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 import type { AgendaItem } from "@/types/agendaItem"
+import type { NivelAlumno } from "@/types/student"
 
 type SubTab = "calendario" | "proximas" | "misclases"
 type VistaCalendario = "mes" | "semana"
@@ -44,6 +45,7 @@ interface FilaOcurrencia {
   class_series: {
     titulo: string
     categoria: string | null
+    nivel: NivelAlumno | null
     lugar: string | null
     cupo_maximo: number | null
     profesor_ids: string[]
@@ -55,6 +57,19 @@ function nombresProfesores(ids: string[], profesoresPorId: Map<string, string>):
   return nombres.length > 0 ? nombres.join(", ") : null
 }
 
+function colorPuntoDia(items: AgendaItem[]): string | null {
+  if (items.length === 0) return null
+  if (items.some((item) => item.tipo === "clase" && item.estado !== "cancelada")) return "bg-brand"
+  if (items.some((item) => item.tipo === "evento")) return "bg-warning"
+  return "bg-white/30"
+}
+
+function puntoDeItem(item: AgendaItem): string {
+  if (item.estado === "cancelada") return "bg-white/30"
+  if (item.tipo === "evento") return "bg-warning"
+  return "bg-brand"
+}
+
 export function ClasesPage() {
   const { profile } = useAuth()
   const [academiaId, setAcademiaId] = useState<string | null>(null)
@@ -64,6 +79,7 @@ export function ClasesPage() {
   // ===== Calendario (mes/semana) =====
   const [vista, setVista] = useState<VistaCalendario>("mes")
   const [fechaBase, setFechaBase] = useState(() => primerDiaDelMesActual())
+  const [diaSeleccionado, setDiaSeleccionado] = useState(() => fechaHoy())
   const [itemsCalendario, setItemsCalendario] = useState<AgendaItem[]>([])
   const [cargandoCalendario, setCargandoCalendario] = useState(true)
   const [itemSeleccionado, setItemSeleccionado] = useState<AgendaItem | null>(null)
@@ -72,6 +88,17 @@ export function ClasesPage() {
     () => (vista === "mes" ? construirGrillaMensual(fechaBase.getFullYear(), fechaBase.getMonth()) : construirSemana(fechaBase)),
     [vista, fechaBase],
   )
+
+  useEffect(() => {
+    if (vista !== "mes") return
+    const desde = celdas[0]?.fecha
+    const hasta = celdas[celdas.length - 1]?.fecha
+    if (!desde || !hasta) return
+    if (diaSeleccionado >= desde && diaSeleccionado <= hasta) return
+    const hoy = fechaHoy()
+    setDiaSeleccionado(hoy >= desde && hoy <= hasta ? hoy : (celdas.find((c) => c.enMes)?.fecha ?? desde))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [celdas, vista])
 
   // ===== Próximas / Mis clases =====
   const [proximas, setProximas] = useState<AgendaItem[]>([])
@@ -106,7 +133,7 @@ export function ClasesPage() {
       academiaId
         ? supabase
             .from("class_occurrences")
-            .select("*, class_series(titulo, categoria, lugar, cupo_maximo, profesor_ids)")
+            .select("*, class_series(titulo, categoria, nivel, lugar, cupo_maximo, profesor_ids)")
             .eq("academia_id", academiaId)
             .gte("fecha", desde)
             .lte("fecha", hasta)
@@ -131,6 +158,7 @@ export function ClasesPage() {
       titulo: f.class_series?.titulo ?? "Clase",
       profesor: nombresProfesores(f.class_series?.profesor_ids ?? [], profesoresPorId),
       lugar: f.class_series?.lugar ?? null,
+      nivel: f.class_series?.nivel ?? null,
       estado: f.estado,
       cupoMaximo: f.class_series?.cupo_maximo ?? null,
       inscritos: f.alumno_ids.length,
@@ -155,6 +183,7 @@ export function ClasesPage() {
       titulo: e.titulo,
       profesor: e.profesores,
       lugar: e.lugar,
+      nivel: null,
       estado: null,
       cupoMaximo: e.cupo_maximo,
       inscritos: e.reservas.length,
@@ -326,71 +355,113 @@ export function ClasesPage() {
           ) : vista === "semana" ? (
             <WeekGrid dias={celdas} itemsPorFecha={itemsPorFecha} onItemClick={setItemSeleccionado} />
           ) : (
-            <div className="overflow-hidden rounded-control border border-white/10">
-              <div className="grid grid-cols-7 border-b border-white/10 bg-surface">
-                {DIAS_CORTOS.map((dia) => (
-                  <div
-                    key={dia}
-                    className="py-2 text-center text-[10px] font-semibold uppercase tracking-wider text-text-muted sm:text-xs"
-                  >
-                    {dia}
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-7">
-                {celdas.map((celda) => {
-                  const items = (itemsPorFecha.get(celda.fecha) ?? []).slice(0, 2)
-                  const restantes = (itemsPorFecha.get(celda.fecha)?.length ?? 0) - items.length
-                  return (
-                    <button
-                      key={celda.fecha}
-                      type="button"
-                      onClick={() => {
-                        const todos = itemsPorFecha.get(celda.fecha) ?? []
-                        if (todos.length > 0) setItemSeleccionado(todos[0])
-                      }}
-                      className={cn(
-                        "flex min-h-20 flex-col gap-1 border-b border-r border-white/5 p-1 text-left transition-colors last:border-r-0 sm:min-h-24 sm:p-1.5",
-                        celda.enMes ? "bg-background" : "bg-surface/40",
-                      )}
+            <>
+              <div className="overflow-hidden rounded-control border border-white/10">
+                <div className="grid grid-cols-7 border-b border-white/10 bg-surface">
+                  {DIAS_CORTOS.map((dia) => (
+                    <div
+                      key={dia}
+                      className="py-2 text-center text-[10px] font-semibold uppercase tracking-wider text-text-muted sm:text-xs"
                     >
-                      <span
+                      {dia}
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7">
+                  {celdas.map((celda) => {
+                    const seleccionado = celda.fecha === diaSeleccionado
+                    const punto = colorPuntoDia(itemsPorFecha.get(celda.fecha) ?? [])
+                    return (
+                      <button
+                        key={celda.fecha}
+                        type="button"
+                        onClick={() => setDiaSeleccionado(celda.fecha)}
                         className={cn(
-                          "flex size-5 items-center justify-center rounded-full text-[11px] font-medium sm:size-6",
-                          celda.esHoy
-                            ? "bg-brand text-white"
-                            : celda.enMes
-                              ? "text-text"
-                              : "text-text-muted/50",
+                          "flex flex-col items-center gap-1 border-b border-r border-white/5 py-2.5 transition-colors last:border-r-0",
+                          celda.enMes ? "bg-background" : "bg-surface/40",
+                          seleccionado && "bg-brand/5",
                         )}
                       >
-                        {celda.dia}
-                      </span>
-                      <div className="flex flex-col gap-0.5">
-                        {items.map((item) => (
-                          <span
-                            key={item.id}
+                        <span
+                          className={cn(
+                            "flex size-7 items-center justify-center rounded-full text-xs font-medium transition-colors",
+                            seleccionado
+                              ? "bg-brand text-white"
+                              : celda.esHoy
+                                ? "border border-brand text-brand-light"
+                                : celda.enMes
+                                  ? "text-text"
+                                  : "text-text-muted/50",
+                          )}
+                        >
+                          {celda.dia}
+                        </span>
+                        <span className={cn("size-1.5 rounded-full", punto ?? "bg-transparent")} />
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <p className="text-sm font-semibold capitalize text-text-muted">
+                  Clases del {formatearFechaLarga(diaSeleccionado)}
+                </p>
+
+                {(itemsPorFecha.get(diaSeleccionado) ?? []).length === 0 ? (
+                  <Card>
+                    <CardContent className="py-4 text-center text-sm text-text-muted">
+                      No hay nada programado este día.
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="flex flex-col">
+                    {(itemsPorFecha.get(diaSeleccionado) ?? [])
+                      .slice()
+                      .sort((a, b) => a.hora.localeCompare(b.hora))
+                      .map((item, indice, lista) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setItemSeleccionado(item)}
+                          className="flex gap-3 text-left"
+                        >
+                          <span className="w-11 shrink-0 pt-2.5 text-right text-xs font-semibold text-text">
+                            {item.hora.slice(0, 5)}
+                          </span>
+                          <div className="flex flex-col items-center">
+                            <span
+                              className={cn(
+                                "mt-3 size-2.5 shrink-0 rounded-full",
+                                puntoDeItem(item),
+                              )}
+                            />
+                            {indice < lista.length - 1 && (
+                              <span className="w-px flex-1 bg-white/10" />
+                            )}
+                          </div>
+                          <div
                             className={cn(
-                              "truncate rounded px-1 py-0.5 text-[9px] font-medium sm:text-[10px]",
-                              item.estado === "cancelada"
-                                ? "bg-white/5 text-text-muted line-through"
-                                : item.tipo === "evento"
-                                  ? "bg-warning/15 text-warning"
-                                  : "bg-brand/15 text-brand-light",
+                              "mb-3 flex-1 rounded-control border px-3 py-2",
+                              claseDeItem(item),
                             )}
                           >
-                            {item.hora.slice(0, 5)} {item.titulo}
-                          </span>
-                        ))}
-                        {restantes > 0 && (
-                          <span className="px-1 text-[9px] text-text-muted">+{restantes} más</span>
-                        )}
-                      </div>
-                    </button>
-                  )
-                })}
+                            <p className="text-sm font-medium">{item.titulo}</p>
+                            <p className="text-xs opacity-80">
+                              {item.profesor ?? ""}
+                              {item.profesor && item.lugar ? " · " : ""}
+                              {item.lugar ?? ""}
+                            </p>
+                            {item.estado === "cancelada" && (
+                              <p className="text-xs font-semibold">Cancelada</p>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                  </div>
+                )}
               </div>
-            </div>
+            </>
           )}
         </div>
       )}
@@ -439,6 +510,9 @@ export function ClasesPage() {
                 )}
                 {itemSeleccionado.lugar && (
                   <p className="text-text-muted">Sede: {itemSeleccionado.lugar}</p>
+                )}
+                {itemSeleccionado.nivel && (
+                  <p className="text-text-muted">Nivel: {itemSeleccionado.nivel}</p>
                 )}
                 {itemSeleccionado.cupoMaximo && (
                   <p className="text-text-muted">
@@ -517,6 +591,7 @@ function ListaClases({ items, cargando, procesando, onToggle, onVerDetalle, vaci
                 </p>
                 <p className="text-xs text-text-muted">
                   {item.titulo}
+                  {item.nivel ? ` · ${item.nivel}` : ""}
                   {item.profesor ? ` · ${item.profesor}` : ""}
                   {item.lugar ? ` · ${item.lugar}` : ""}
                   {item.cupoMaximo ? ` · ${item.inscritos}/${item.cupoMaximo} cupos` : ""}

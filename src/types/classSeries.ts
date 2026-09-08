@@ -1,3 +1,5 @@
+import type { NivelAlumno } from "@/types/student"
+
 export const DIAS_SEMANA = [
   "Domingo",
   "Lunes",
@@ -13,6 +15,7 @@ export interface ClassSeries {
   academia_id: string | null
   titulo: string
   categoria: string | null
+  nivel: NivelAlumno | null
   dia_semana: number
   hora: string
   duracion_min: number
@@ -38,6 +41,7 @@ export interface ClassOccurrence {
 export interface OcurrenciaConSerie extends ClassOccurrence {
   titulo: string
   categoria: string | null
+  nivel: NivelAlumno | null
   cupo_maximo: number | null
   lugar: string | null
 }

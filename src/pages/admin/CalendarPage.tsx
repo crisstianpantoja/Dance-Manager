@@ -14,6 +14,7 @@ import { supabase } from "@/lib/supabase"
 import { confirmarPagoCanceladaExcepcional } from "@/lib/teacherAttendance"
 import { cn } from "@/lib/utils"
 import type { OcurrenciaConSerie } from "@/types/classSeries"
+import type { NivelAlumno } from "@/types/student"
 
 const NOMBRES_MES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -45,6 +46,7 @@ interface FilaOcurrencia {
   class_series: {
     titulo: string
     categoria: string | null
+    nivel: NivelAlumno | null
     cupo_maximo: number | null
     lugar: string | null
   } | null
@@ -117,7 +119,7 @@ export function CalendarPage() {
     const { data } = await supabase
       .from("class_occurrences")
       .select(
-        "*, class_series(titulo, categoria, cupo_maximo, lugar), class_occurrence_teachers(profesor_id, estado_asistencia, valor_previsto, metodo_registro, teachers(nombre))",
+        "*, class_series(titulo, categoria, nivel, cupo_maximo, lugar), class_occurrence_teachers(profesor_id, estado_asistencia, valor_previsto, metodo_registro, teachers(nombre))",
       )
       .gte("fecha", desde)
       .lte("fecha", hasta)
@@ -137,6 +139,7 @@ export function CalendarPage() {
         estado: f.estado,
         titulo: f.class_series?.titulo ?? "Clase",
         categoria: f.class_series?.categoria ?? null,
+        nivel: f.class_series?.nivel ?? null,
         cupo_maximo: f.class_series?.cupo_maximo ?? null,
         lugar: f.class_series?.lugar ?? null,
         profesores: (f.class_occurrence_teachers ?? []).map((cot) => {

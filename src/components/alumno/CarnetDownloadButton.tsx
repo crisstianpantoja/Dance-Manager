@@ -14,6 +14,7 @@ import type { Student } from "@/types/student"
 
 interface CarnetDownloadButtonProps {
   alumno: Student
+  logoAcademia?: string | null
 }
 
 const QR_LADO = 110
@@ -24,7 +25,7 @@ const TIPO_LABEL: Record<Student["tipo"], string> = {
   ambas: "Academia + privada",
 }
 
-export function CarnetDownloadButton({ alumno }: CarnetDownloadButtonProps) {
+export function CarnetDownloadButton({ alumno, logoAcademia }: CarnetDownloadButtonProps) {
   const qrRef = useRef<HTMLCanvasElement>(null)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -42,6 +43,7 @@ export function CarnetDownloadButton({ alumno }: CarnetDownloadButtonProps) {
           nivel: alumno.nivel,
           tipo: TIPO_LABEL[alumno.tipo],
           fotoUrl: alumno.foto,
+          logoAcademiaUrl: logoAcademia,
           qrCanvas: qrRef.current,
         },
         tema,

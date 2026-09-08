@@ -8,7 +8,7 @@ interface WeekGridProps {
   onItemClick: (item: AgendaItem) => void
 }
 
-function claseDeItem(item: AgendaItem) {
+export function claseDeItem(item: AgendaItem) {
   if (item.estado === "cancelada") {
     return "border-white/10 bg-white/5 text-text-muted line-through"
   }
