@@ -1,9 +1,9 @@
-// Edge Function: el alumno reporta un pago (sube comprobante) y queda en
-// estado "pendiente" hasta que el admin lo verifica. "payments" es una de
-// las tablas con RLS admin-only de la sección 5, así que el propio alumno
-// no puede insertar ahí desde el cliente: esta función lo hace con la
-// service role, verificando que el alumno solo reporte pagos para sí
-// mismo.
+// Edge Function: el alumno reporta un pago y queda en estado "pendiente"
+// hasta que el admin lo verifica en persona (ya no se sube comprobante
+// desde el portal del alumno). "payments" es una de las tablas con RLS
+// admin-only de la sección 5, así que el propio alumno no puede insertar
+// ahí desde el cliente: esta función lo hace con la service role,
+// verificando que el alumno solo reporte pagos para sí mismo.
 // Deploy: supabase functions deploy report-payment
 
 import { createClient } from "jsr:@supabase/supabase-js@2"
@@ -58,10 +58,10 @@ Deno.serve(async (req) => {
 
   const organizationId = callerProfile.organization_id
 
-  const { plan_id, comprobante_url, metodo } = await req.json()
+  const { plan_id, metodo } = await req.json()
 
-  if (!plan_id || !comprobante_url) {
-    return json({ error: "Falta el plan o el comprobante." }, 400)
+  if (!plan_id) {
+    return json({ error: "Falta el plan." }, 400)
   }
 
   const { data: plan } = await admin
@@ -89,7 +89,6 @@ Deno.serve(async (req) => {
       fecha_vencimiento: plan.dias_vigencia ? sumarDias(hoy, plan.dias_vigencia) : null,
       monto: plan.precio,
       estado: "pendiente",
-      comprobante_url,
       metodo: metodo ?? null,
       organization_id: organizationId,
     })

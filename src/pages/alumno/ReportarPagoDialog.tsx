@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react"
+import { useEffect, useMemo, useState, type FormEvent } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -12,41 +12,36 @@ import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
 import { formatearMoneda } from "@/lib/format"
 import { reportarPago } from "@/lib/studentPortal"
-import { subirComprobante } from "@/lib/storage"
 import type { Plan } from "@/types/plan"
 
 interface ReportarPagoDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  alumnoId: string
   planes: Plan[]
   onReportado: () => void
 }
 
-export function ReportarPagoDialog({
-  open,
-  onOpenChange,
-  alumnoId,
-  planes,
-  onReportado,
-}: ReportarPagoDialogProps) {
+export function ReportarPagoDialog({ open, onOpenChange, planes, onReportado }: ReportarPagoDialogProps) {
   const [planId, setPlanId] = useState("")
   const [metodo, setMetodo] = useState("transferencia")
-  const [archivo, setArchivo] = useState<File | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const planesPrivados = useMemo(() => planes.filter((p) => p.modalidad === "paquete_privado"), [planes])
+  const planesAcademia = useMemo(() => planes.filter((p) => p.modalidad !== "paquete_privado"), [planes])
 
   useEffect(() => {
     if (open) {
       setPlanId("")
       setMetodo("transferencia")
-      setArchivo(null)
       setError(null)
     }
   }, [open])
@@ -59,16 +54,11 @@ export function ReportarPagoDialog({
       setError("Selecciona el plan que vas a pagar.")
       return
     }
-    if (!archivo) {
-      setError("Adjunta el comprobante de pago.")
-      return
-    }
 
     setEnviando(true)
 
     try {
-      const ruta = await subirComprobante(archivo, alumnoId)
-      await reportarPago(planId, ruta, metodo)
+      await reportarPago(planId, metodo)
       onReportado()
       onOpenChange(false)
     } catch (err) {
@@ -93,11 +83,26 @@ export function ReportarPagoDialog({
                 <SelectValue placeholder="Selecciona un plan" />
               </SelectTrigger>
               <SelectContent>
-                {planes.map((plan) => (
-                  <SelectItem key={plan.id} value={plan.id}>
-                    {plan.nombre} · {formatearMoneda(plan.precio)}
-                  </SelectItem>
-                ))}
+                {planesAcademia.length > 0 && (
+                  <SelectGroup>
+                    <SelectLabel>Academia / mensualidad</SelectLabel>
+                    {planesAcademia.map((plan) => (
+                      <SelectItem key={plan.id} value={plan.id}>
+                        {plan.nombre} · {formatearMoneda(plan.precio)}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                )}
+                {planesPrivados.length > 0 && (
+                  <SelectGroup>
+                    <SelectLabel>Clases privadas</SelectLabel>
+                    {planesPrivados.map((plan) => (
+                      <SelectItem key={plan.id} value={plan.id}>
+                        {plan.nombre} · {formatearMoneda(plan.precio)}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -114,17 +119,6 @@ export function ReportarPagoDialog({
                 <SelectItem value="tarjeta">Tarjeta</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="comprobante">Comprobante</Label>
-            <input
-              id="comprobante"
-              type="file"
-              accept="image/*,application/pdf"
-              onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
-              className="text-sm text-text-muted file:mr-3 file:rounded-control file:border-0 file:bg-surface-hover file:px-3 file:py-1.5 file:text-sm file:text-text"
-            />
           </div>
 
           <p className="text-xs text-text-muted">

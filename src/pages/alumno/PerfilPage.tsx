@@ -264,7 +264,6 @@ export function PerfilPage() {
       <ReportarPagoDialog
         open={dialogoAbierto}
         onOpenChange={setDialogoAbierto}
-        alumnoId={alumno.id}
         planes={planesActivos}
         onReportado={cargarDatos}
       />

@@ -6,6 +6,16 @@ import { cn } from "@/lib/utils"
 
 const Select = SelectPrimitive.Root
 const SelectValue = SelectPrimitive.Value
+const SelectGroup = SelectPrimitive.Group
+
+function SelectLabel({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.Label>) {
+  return (
+    <SelectPrimitive.Label
+      className={cn("px-2 py-1.5 text-xs font-semibold text-text-muted", className)}
+      {...props}
+    />
+  )
+}
 
 function SelectTrigger({
   className,
@@ -83,4 +93,4 @@ function SelectItem({
   )
 }
 
-export { Select, SelectValue, SelectTrigger, SelectContent, SelectItem }
+export { Select, SelectValue, SelectTrigger, SelectContent, SelectItem, SelectGroup, SelectLabel }
