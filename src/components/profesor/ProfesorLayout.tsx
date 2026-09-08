@@ -11,7 +11,6 @@ const TABS = [
   { to: "/profesor/clases", label: "Mis clases" },
   { to: "/profesor/finanzas", label: "Finanzas" },
   { to: "/profesor/carnet", label: "Carnet" },
-  { to: "/profesor/evaluar", label: "Evaluar" },
 ]
 
 export function ProfesorLayout() {
