@@ -48,6 +48,16 @@ Deno.serve(async (req) => {
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
+  const { data: callerProfile } = await admin
+    .from("profiles")
+    .select("organization_id")
+    .eq("id", caller.id)
+    .single()
+
+  if (!callerProfile) return json({ error: "No autorizado." }, 401)
+
+  const organizationId = callerProfile.organization_id
+
   const { plan_id, comprobante_url, metodo } = await req.json()
 
   if (!plan_id || !comprobante_url) {
@@ -59,6 +69,7 @@ Deno.serve(async (req) => {
     .select("*")
     .eq("id", plan_id)
     .eq("activo", true)
+    .eq("organization_id", organizationId)
     .single()
 
   if (!plan) return json({ error: "El plan no existe o ya no está disponible." }, 404)
@@ -80,6 +91,7 @@ Deno.serve(async (req) => {
       estado: "pendiente",
       comprobante_url,
       metodo: metodo ?? null,
+      organization_id: organizationId,
     })
     .select()
     .single()
