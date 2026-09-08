@@ -2,11 +2,17 @@ import { PartyPopper } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 
+import { AcademyHealth } from "@/components/admin/AcademyHealth"
 import { AdminAssistantWidget } from "@/components/admin/AdminAssistantWidget"
 import { ClassCard, type ClaseHoyCompleta, type EstadoClaseHoy } from "@/components/admin/ClassCard"
+import { ClassesPerformance } from "@/components/admin/ClassesPerformance"
 import { DashboardAlerts } from "@/components/admin/DashboardAlerts"
 import { DashboardSkeleton } from "@/components/admin/DashboardSkeleton"
+import { FinancialChart } from "@/components/admin/FinancialChart"
 import { MetricCard } from "@/components/admin/MetricCard"
+import { RetentionOverview } from "@/components/admin/RetentionOverview"
+import { StudentsOverview } from "@/components/admin/StudentsOverview"
+import { TeacherFinanceOverview } from "@/components/admin/TeacherFinanceOverview"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Select,
@@ -17,8 +23,24 @@ import {
 } from "@/components/ui/select"
 import { fechaHoy } from "@/lib/attendance"
 import { PERIODOS, rangoDePeriodo, type Periodo } from "@/lib/dashboardPeriod"
-import { cargarDashboardAlertas, cargarDashboardKpis } from "@/lib/dashboardSummary"
-import type { AlertaDashboard, DashboardKpis } from "@/lib/dashboardSummary"
+import {
+  cargarDashboardAlertas,
+  cargarDashboardKpis,
+  cargarEvolucionAlumnos,
+  cargarFinanzasProfesoresResumen,
+  cargarRendimientoClases,
+  cargarSaludAcademia,
+  cargarTendenciaFinanciera,
+} from "@/lib/dashboardSummary"
+import type {
+  AlertaDashboard,
+  DashboardKpis,
+  FinanzasProfesorResumen,
+  PuntoEvolucionAlumnos,
+  PuntoTendenciaFinanciera,
+  RendimientoClase,
+  SaludAcademia,
+} from "@/lib/dashboardSummary"
 import { formatearFecha, formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import type { Academy } from "@/types/academy"
@@ -80,6 +102,11 @@ export function DashboardPage() {
   const [alertas, setAlertas] = useState<AlertaDashboard[]>([])
   const [clasesHoy, setClasesHoy] = useState<ClaseHoyCompleta[]>([])
   const [proximosEventos, setProximosEventos] = useState<EventoDM[]>([])
+  const [salud, setSalud] = useState<SaludAcademia | null>(null)
+  const [tendenciaFinanciera, setTendenciaFinanciera] = useState<PuntoTendenciaFinanciera[]>([])
+  const [evolucionAlumnos, setEvolucionAlumnos] = useState<PuntoEvolucionAlumnos[]>([])
+  const [rendimientoClases, setRendimientoClases] = useState<RendimientoClase[]>([])
+  const [finanzasProfesores, setFinanzasProfesores] = useState<FinanzasProfesorResumen[]>([])
 
   useEffect(() => {
     async function cargar() {
@@ -88,10 +115,17 @@ export function DashboardPage() {
       const { desde, hasta } = rangoDePeriodo(periodo)
       const academiaIdRpc = academiaIdParaRpc(filtroSede)
 
+      const ahora = new Date()
+
       const [
         { data: academiasData },
         kpisData,
         alertasData,
+        saludData,
+        tendenciaData,
+        evolucionData,
+        rendimientoData,
+        finanzasData,
         { data: teachersData },
         { data: ocurrenciasHoy },
         { data: eventos },
@@ -99,6 +133,11 @@ export function DashboardPage() {
         supabase.from("academies").select("*").order("nombre"),
         cargarDashboardKpis(academiaIdRpc, desde, hasta),
         cargarDashboardAlertas(academiaIdRpc),
+        cargarSaludAcademia(academiaIdRpc, desde, hasta),
+        cargarTendenciaFinanciera(academiaIdRpc, 6),
+        cargarEvolucionAlumnos(academiaIdRpc, 6),
+        cargarRendimientoClases(academiaIdRpc, desde, hasta),
+        cargarFinanzasProfesoresResumen(academiaIdRpc, ahora.getFullYear(), ahora.getMonth() + 1),
         supabase.from("teachers").select("id, nombre"),
         supabase
           .from("class_occurrences")
@@ -120,6 +159,11 @@ export function DashboardPage() {
       setAcademias(listaAcademias)
       setKpis(kpisData)
       setAlertas(alertasData)
+      setSalud(saludData)
+      setTendenciaFinanciera(tendenciaData)
+      setEvolucionAlumnos(evolucionData)
+      setRendimientoClases(rendimientoData)
+      setFinanzasProfesores(finanzasData)
       setProximosEventos((eventos as EventoDM[]) ?? [])
 
       const academiasPorId = new Map(listaAcademias.map((a) => [a.id, a.nombre]))
@@ -190,6 +234,18 @@ export function DashboardPage() {
     if (previo === 0) return null
     return ((actual - previo) / previo) * 100
   }
+
+  const alertaSalud = useMemo(() => {
+    const conTasa = rendimientoClases
+      .filter((c) => c.inscritos > 0)
+      .map((c) => ({ titulo: c.titulo, tasa: Math.round((c.asistencias / c.inscritos) * 100) }))
+      .sort((a, b) => a.tasa - b.tasa)
+    const peor = conTasa[0]
+    if (peor && peor.tasa < 50) {
+      return `Atención: la asistencia de ${peor.titulo} está en ${peor.tasa}%.`
+    }
+    return null
+  }, [rendimientoClases])
 
   if (cargando || !kpis) {
     return <DashboardSkeleton />
@@ -302,7 +358,28 @@ export function DashboardPage() {
           )}
         </div>
 
-        <DashboardAlerts alertas={alertas} />
+        <div className="flex flex-col gap-6">
+          <DashboardAlerts alertas={alertas} />
+          {salud && <AcademyHealth salud={salud} alertaTexto={alertaSalud} />}
+        </div>
+      </div>
+
+      {tendenciaFinanciera.length > 0 && <FinancialChart datos={tendenciaFinanciera} />}
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <StudentsOverview
+          totales={kpis.alumnos_totales}
+          nuevos={kpis.alumnos_nuevos}
+          planesPorVencer={alertas.find((a) => a.tipo === "planes_por_vencer")?.conteo ?? 0}
+          pagosVencidos={alertas.find((a) => a.tipo === "sin_renovar")?.conteo ?? 0}
+          evolucion={evolucionAlumnos}
+        />
+        {salud && <RetentionOverview salud={salud} />}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <ClassesPerformance clases={rendimientoClases} />
+        <TeacherFinanceOverview finanzas={finanzasProfesores} />
       </div>
 
       <div className="flex flex-col gap-3">
