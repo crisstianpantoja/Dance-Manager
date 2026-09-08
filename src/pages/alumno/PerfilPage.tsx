@@ -1,12 +1,6 @@
 import { LogOut, Pencil } from "lucide-react"
 import { useEffect, useState } from "react"
 
-import { AppleWalletPreviewButton } from "@/components/alumno/AppleWalletPreviewButton"
-import { CarnetDownloadButton } from "@/components/alumno/CarnetDownloadButton"
-import { CompetencyRadar } from "@/components/alumno/CompetencyRadar"
-import { DigitalCard } from "@/components/alumno/DigitalCard"
-import { GoogleWalletButton } from "@/components/alumno/GoogleWalletButton"
-import { ThemePicker } from "@/components/alumno/ThemePicker"
 import { EditProfileDialog } from "@/pages/alumno/EditProfileDialog"
 import { ReportarPagoDialog } from "@/pages/alumno/ReportarPagoDialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -15,12 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useAuth } from "@/context/AuthContext"
 import { fechaHoy } from "@/lib/attendance"
-import type { ThemeId } from "@/lib/carnet"
-import { listarEvaluaciones } from "@/lib/evaluations"
-import { formatearFecha, formatearFechaObjeto } from "@/lib/format"
+import { formatearFecha } from "@/lib/format"
 import { aceptarTerminos } from "@/lib/studentPortal"
 import { supabase } from "@/lib/supabase"
-import type { StudentEvaluation } from "@/types/evaluation"
 import type { Payment } from "@/types/payment"
 import type { Plan } from "@/types/plan"
 import type { Student } from "@/types/student"
@@ -36,25 +27,12 @@ const TIPO_LABEL: Record<Student["tipo"], string> = {
   ambas: "Academia + privada",
 }
 
-function proximoCambioTemaDe(alumno: Student): Date | null {
-  if (!alumno.tema_carnet_actualizado_en) return null
-  const fecha = new Date(alumno.tema_carnet_actualizado_en)
-  fecha.setMonth(fecha.getMonth() + 12)
-  return fecha
-}
-
-function puedeCambiarTema(alumno: Student): boolean {
-  const proximo = proximoCambioTemaDe(alumno)
-  return !proximo || proximo <= new Date()
-}
-
 export function PerfilPage() {
   const { profile, signOut } = useAuth()
   const [alumno, setAlumno] = useState<Student | null>(null)
   const [academiaNombre, setAcademiaNombre] = useState<string | null>(null)
   const [pagos, setPagos] = useState<Payment[]>([])
   const [planesActivos, setPlanesActivos] = useState<Plan[]>([])
-  const [evaluaciones, setEvaluaciones] = useState<StudentEvaluation[]>([])
   const [cargando, setCargando] = useState(true)
   const [aceptando, setAceptando] = useState(false)
   const [dialogoAbierto, setDialogoAbierto] = useState(false)
@@ -64,22 +42,19 @@ export function PerfilPage() {
     if (!profile?.id) return
     if (!silencioso) setCargando(true)
 
-    const [{ data: alumnoData }, { data: pagosData }, { data: planesData }, evaluacionesData] =
-      await Promise.all([
-        supabase.from("students").select("*").eq("id", profile.id).single(),
-        supabase
-          .from("payments")
-          .select("*")
-          .eq("alumno_id", profile.id)
-          .order("fecha", { ascending: false }),
-        supabase.from("plans").select("*").eq("activo", true).order("nombre"),
-        listarEvaluaciones(profile.id).catch(() => [] as StudentEvaluation[]),
-      ])
+    const [{ data: alumnoData }, { data: pagosData }, { data: planesData }] = await Promise.all([
+      supabase.from("students").select("*").eq("id", profile.id).single(),
+      supabase
+        .from("payments")
+        .select("*")
+        .eq("alumno_id", profile.id)
+        .order("fecha", { ascending: false }),
+      supabase.from("plans").select("*").eq("activo", true).order("nombre"),
+    ])
 
     setAlumno((alumnoData as Student) ?? null)
     setPagos((pagosData as Payment[]) ?? [])
     setPlanesActivos((planesData as Plan[]) ?? [])
-    setEvaluaciones(evaluacionesData)
 
     if (alumnoData?.academia_id) {
       const { data: academia } = await supabase
@@ -131,26 +106,6 @@ export function PerfilPage() {
     }
   }
 
-  async function handleCambiarTema(id: ThemeId) {
-    if (!alumno || !puedeCambiarTema(alumno)) return
-    const anterior = { tema_carnet: alumno.tema_carnet, actualizado: alumno.tema_carnet_actualizado_en }
-    const ahora = new Date().toISOString()
-    setAlumno({ ...alumno, tema_carnet: id, tema_carnet_actualizado_en: ahora })
-
-    const { error } = await supabase
-      .from("students")
-      .update({ tema_carnet: id, tema_carnet_actualizado_en: ahora })
-      .eq("id", alumno.id)
-
-    if (error) {
-      setAlumno((actual) =>
-        actual
-          ? { ...actual, tema_carnet: anterior.tema_carnet, tema_carnet_actualizado_en: anterior.actualizado }
-          : actual,
-      )
-    }
-  }
-
   if (cargando || !alumno) {
     return <p className="text-sm text-text-muted">Cargando...</p>
   }
@@ -159,11 +114,6 @@ export function PerfilPage() {
   const planesVigentes = pagos.filter(
     (pago) => pago.estado === "pagado" && (!pago.fecha_vencimiento || pago.fecha_vencimiento >= hoy),
   )
-  const ultimaEvaluacion = evaluaciones[0] ?? null
-  const notasEvaluaciones = evaluaciones.filter((evaluacion) => evaluacion.nota?.trim())
-
-  const proximoCambioTema = proximoCambioTemaDe(alumno)
-  const temaBloqueado = !puedeCambiarTema(alumno)
 
   return (
     <div className="flex flex-col gap-6">
@@ -239,67 +189,6 @@ export function PerfilPage() {
           </Card>
         </div>
       )}
-
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-semibold text-text-muted">Mi carnet</p>
-        <Card>
-          <CardContent className="flex flex-col items-center gap-4 py-6">
-            <DigitalCard alumno={alumno} />
-            <ThemePicker
-              value={alumno.tema_carnet}
-              onChange={handleCambiarTema}
-              disabled={temaBloqueado}
-            />
-            <p className="text-xs text-text-muted">
-              {temaBloqueado && proximoCambioTema
-                ? `Podrás cambiar el color del carnet a partir del ${formatearFechaObjeto(proximoCambioTema)}.`
-                : "Puedes elegir el color del carnet una vez cada 12 meses."}
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <CarnetDownloadButton alumno={alumno} />
-              <GoogleWalletButton />
-              <AppleWalletPreviewButton alumno={alumno} />
-            </div>
-            <p className="text-center text-[11px] text-text-muted">
-              La vista previa de Apple Wallet es solo una imagen de referencia; todavía no se
-              puede guardar como pase real de Apple.
-            </p>
-            <p className="text-xs text-text-muted">
-              Muestra este código en la puerta para registrar tu asistencia.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-semibold text-text-muted">Mis competencias</p>
-        <Card>
-          <CardContent className="flex flex-col gap-4 py-4">
-            {ultimaEvaluacion ? (
-              <>
-                <CompetencyRadar evaluacion={ultimaEvaluacion} />
-                {notasEvaluaciones.length > 0 && (
-                  <div className="flex flex-col gap-3 border-t border-white/10 pt-4">
-                    <p className="text-sm font-medium text-text">Notas del profesor</p>
-                    {notasEvaluaciones.map((evaluacion) => (
-                      <div key={evaluacion.id} className="flex flex-col gap-1">
-                        <p className="text-xs text-text-muted">
-                          {formatearFecha(evaluacion.fecha)}
-                        </p>
-                        <p className="text-sm text-text">{evaluacion.nota}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className="py-2 text-center text-sm text-text-muted">
-                Aún no tienes evaluaciones registradas.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
 
       {!alumno.acepto_terminos && (
         <Card>

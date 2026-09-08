@@ -33,6 +33,8 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
   const [lugar, setLugar] = useState("")
   const [descripcion, setDescripcion] = useState("")
   const [cupoMaximo, setCupoMaximo] = useState("")
+  const [precio, setPrecio] = useState("")
+  const [profesores, setProfesores] = useState("")
   const [imagenUrl, setImagenUrl] = useState<string | null>(null)
   const [archivoImagen, setArchivoImagen] = useState<File | null>(null)
   const [guardando, setGuardando] = useState(false)
@@ -46,6 +48,8 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
     setLugar(evento?.lugar ?? "")
     setDescripcion(evento?.descripcion ?? "")
     setCupoMaximo(evento?.cupo_maximo?.toString() ?? "")
+    setPrecio(evento?.precio?.toString() ?? "")
+    setProfesores(evento?.profesores ?? "")
     setImagenUrl(evento?.imagen_url ?? null)
     setArchivoImagen(null)
     setError(null)
@@ -70,6 +74,8 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
         lugar: lugar || null,
         descripcion: descripcion || null,
         cupo_maximo: cupoMaximo ? Number(cupoMaximo) : null,
+        precio: precio ? Number(precio) : null,
+        profesores: profesores || null,
         imagen_url: urlImagen,
       }
 
@@ -155,6 +161,27 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
                 onChange={(e) => setCupoMaximo(e.target.value)}
               />
             </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="precio">Precio (COP)</Label>
+              <Input
+                id="precio"
+                type="number"
+                min="0"
+                placeholder="Gratis"
+                value={precio}
+                onChange={(e) => setPrecio(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="profesores">Profesores o artistas</Label>
+            <Input
+              id="profesores"
+              placeholder="Cristian, Sara..."
+              value={profesores}
+              onChange={(e) => setProfesores(e.target.value)}
+            />
           </div>
 
           <div className="flex flex-col gap-2">

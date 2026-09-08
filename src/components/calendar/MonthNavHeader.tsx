@@ -1,49 +1,37 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { NOMBRES_MES } from "@/lib/calendarGrid"
 
 interface MonthNavHeaderProps {
-  mesVisible: Date
-  onCambiarMes: (mes: Date) => void
+  etiqueta: string
+  onAnterior: () => void
+  onSiguiente: () => void
+  onHoy: () => void
 }
 
-export function MonthNavHeader({ mesVisible, onCambiarMes }: MonthNavHeaderProps) {
-  function irAMesAnterior() {
-    onCambiarMes(new Date(mesVisible.getFullYear(), mesVisible.getMonth() - 1, 1))
-  }
-
-  function irAMesSiguiente() {
-    onCambiarMes(new Date(mesVisible.getFullYear(), mesVisible.getMonth() + 1, 1))
-  }
-
-  function irAHoy() {
-    const hoy = new Date()
-    onCambiarMes(new Date(hoy.getFullYear(), hoy.getMonth(), 1))
-  }
-
+/** Encabezado de navegación de un calendario (mes o semana) — el
+ * llamador decide qué significa "anterior/siguiente/hoy". */
+export function MonthNavHeader({ etiqueta, onAnterior, onSiguiente, onHoy }: MonthNavHeaderProps) {
   return (
     <div className="flex items-center gap-2">
-      <Button variant="outline" size="sm" onClick={irAHoy}>
+      <Button variant="outline" size="sm" onClick={onHoy}>
         Hoy
       </Button>
       <div className="flex items-center rounded-control border border-white/15">
         <button
           type="button"
-          onClick={irAMesAnterior}
+          onClick={onAnterior}
           className="p-2 text-text-muted transition-colors hover:text-text"
-          title="Mes anterior"
+          title="Anterior"
         >
           <ChevronLeft className="size-4" />
         </button>
-        <p className="min-w-36 text-center text-sm font-medium text-text">
-          {NOMBRES_MES[mesVisible.getMonth()]} {mesVisible.getFullYear()}
-        </p>
+        <p className="min-w-36 text-center text-sm font-medium text-text">{etiqueta}</p>
         <button
           type="button"
-          onClick={irAMesSiguiente}
+          onClick={onSiguiente}
           className="p-2 text-text-muted transition-colors hover:text-text"
-          title="Mes siguiente"
+          title="Siguiente"
         >
           <ChevronRight className="size-4" />
         </button>

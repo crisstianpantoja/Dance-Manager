@@ -21,10 +21,14 @@ import { RetentionPage } from "@/pages/admin/RetentionPage"
 import { SettingsPage } from "@/pages/admin/SettingsPage"
 import { StudentsPage } from "@/pages/admin/StudentsPage"
 import { TeachersPage } from "@/pages/admin/TeachersPage"
-import { CalendarioPage } from "@/pages/alumno/CalendarioPage"
+import { CarnetPage } from "@/pages/alumno/CarnetPage"
+import { ClasesPage } from "@/pages/alumno/ClasesPage"
+import { EvaluacionesPage } from "@/pages/alumno/EvaluacionesPage"
+import { EventosPage } from "@/pages/alumno/EventosPage"
 import { HistoricoPage } from "@/pages/alumno/HistoricoPage"
+import { InicioPage } from "@/pages/alumno/InicioPage"
+import { MiProgresoPage } from "@/pages/alumno/MiProgresoPage"
 import { PerfilPage } from "@/pages/alumno/PerfilPage"
-import { ReservasPage } from "@/pages/alumno/ReservasPage"
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage"
 import { LoginPage } from "@/pages/LoginPage"
 import { CarnetLookupPage } from "@/pages/profesor/CarnetLookupPage"
@@ -43,7 +47,7 @@ function InicioSegunRol() {
   }
 
   if (profile?.rol === "alumno") {
-    return <Navigate to="/alumno/perfil" replace />
+    return <Navigate to="/alumno/inicio" replace />
   }
 
   return <Navigate to="/profesor/inicio" replace />
@@ -100,11 +104,15 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="perfil" replace />} />
+          <Route index element={<Navigate to="inicio" replace />} />
+          <Route path="inicio" element={<InicioPage />} />
+          <Route path="clases" element={<ClasesPage />} />
+          <Route path="eventos" element={<EventosPage />} />
+          <Route path="carnet" element={<CarnetPage />} />
+          <Route path="progreso" element={<MiProgresoPage />} />
+          <Route path="progreso/evaluaciones" element={<EvaluacionesPage />} />
+          <Route path="progreso/historico" element={<HistoricoPage />} />
           <Route path="perfil" element={<PerfilPage />} />
-          <Route path="calendario" element={<CalendarioPage />} />
-          <Route path="reservas" element={<ReservasPage />} />
-          <Route path="historico" element={<HistoricoPage />} />
         </Route>
 
         <Route
