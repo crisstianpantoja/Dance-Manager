@@ -4,8 +4,9 @@ import { Link } from "react-router-dom"
 
 import { AcademyHealth } from "@/components/admin/AcademyHealth"
 import { AdminAssistantWidget } from "@/components/admin/AdminAssistantWidget"
-import { ClassCard, type ClaseHoyCompleta, type EstadoClaseHoy } from "@/components/admin/ClassCard"
+import type { ClaseHoyCompleta, EstadoClaseHoy } from "@/components/admin/ClassCard"
 import { ClassesPerformance } from "@/components/admin/ClassesPerformance"
+import { ClassesToday } from "@/components/admin/ClassesToday"
 import { DashboardAlerts } from "@/components/admin/DashboardAlerts"
 import { DashboardSkeleton } from "@/components/admin/DashboardSkeleton"
 import { FinancialChart } from "@/components/admin/FinancialChart"
@@ -341,21 +342,8 @@ export function DashboardPage() {
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="flex flex-col gap-3 lg:col-span-2">
-          <h2 className="font-semibold text-text">Clases de hoy</h2>
-          {clasesHoy.length === 0 ? (
-            <Card>
-              <CardContent className="py-6 text-center text-sm text-text-muted">
-                No hay clases programadas para hoy.
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {clasesHoy.map((clase) => (
-                <ClassCard key={clase.id} clase={clase} />
-              ))}
-            </div>
-          )}
+        <div className="lg:col-span-2">
+          <ClassesToday clases={clasesHoy} />
         </div>
 
         <div className="flex flex-col gap-6">
