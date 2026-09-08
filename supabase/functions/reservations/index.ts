@@ -95,13 +95,11 @@ Deno.serve(async (req) => {
   }
 
   if (accion === "reservar_evento" || accion === "cancelar_evento") {
-    // NOTA: "events" todavía no tiene organization_id (es parte de la
-    // siguiente tanda de migraciones); se actualizará este filtro cuando
-    // esa columna exista.
     const { data: evento } = await admin
       .from("events")
       .select("id, reservas, cupo_maximo")
       .eq("id", id)
+      .eq("organization_id", organizationId)
       .single()
 
     if (!evento) return json({ error: "Evento no encontrado." }, 404)
