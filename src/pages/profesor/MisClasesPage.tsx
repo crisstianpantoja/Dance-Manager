@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useAuth } from "@/context/AuthContext"
 import { fechaHoy } from "@/lib/attendance"
-import { esClasePrivada, formatearFecha, formatearMoneda } from "@/lib/format"
+import { etiquetaClase, formatearFecha, formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 import type { NivelAlumno } from "@/types/student"
@@ -124,7 +124,9 @@ export function MisClasesPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {visibles.map((f, i) => (
+          {visibles.map((f, i) => {
+            const etiqueta = etiquetaClase(f.nivel, f.cupoMaximo)
+            return (
             <Card key={i}>
               <CardContent className="flex flex-col gap-2 py-4">
                 <div className="flex items-center justify-between gap-2">
@@ -135,9 +137,9 @@ export function MisClasesPage() {
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <p className="truncate font-medium text-text">{f.titulo}</p>
-                  {(esClasePrivada(f.cupoMaximo) || f.nivel) && (
-                    <Badge variant="muted" className="shrink-0">
-                      {esClasePrivada(f.cupoMaximo) ? "Privada" : f.nivel}
+                  {etiqueta && (
+                    <Badge variant={etiqueta.variant} className="shrink-0">
+                      {etiqueta.texto}
                     </Badge>
                   )}
                 </div>
@@ -159,7 +161,8 @@ export function MisClasesPage() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { esClasePrivada, formatearFecha, formatearMoneda } from "@/lib/format"
+import { etiquetaClase, formatearFecha, formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import { confirmarPagoCanceladaExcepcional } from "@/lib/teacherAttendance"
 import { cn } from "@/lib/utils"
@@ -327,7 +327,9 @@ export function CalendarPage() {
           </DialogHeader>
 
           <div className="flex flex-col gap-2">
-            {ocurrenciasDelDia.map((oc) => (
+            {ocurrenciasDelDia.map((oc) => {
+              const etiqueta = etiquetaClase(oc.nivel, oc.cupo_maximo)
+              return (
               <div
                 key={oc.id}
                 className={cn(
@@ -347,9 +349,7 @@ export function CalendarPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {(esClasePrivada(oc.cupo_maximo) || oc.nivel) && (
-                      <Badge variant="muted">{esClasePrivada(oc.cupo_maximo) ? "Privada" : oc.nivel}</Badge>
-                    )}
+                    {etiqueta && <Badge variant={etiqueta.variant}>{etiqueta.texto}</Badge>}
                     {oc.estado === "cancelada" ? (
                       <Badge variant="muted">Cancelada</Badge>
                     ) : (
@@ -393,7 +393,8 @@ export function CalendarPage() {
                   </div>
                 )}
               </div>
-            ))}
+              )
+            })}
           </div>
         </DialogContent>
       </Dialog>

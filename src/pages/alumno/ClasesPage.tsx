@@ -25,7 +25,7 @@ import {
   semanaSiguiente,
 } from "@/lib/calendarGrid"
 import { fechaHoy } from "@/lib/attendance"
-import { esClasePrivada, formatearFecha, formatearFechaLarga } from "@/lib/format"
+import { etiquetaClase, formatearFecha, formatearFechaLarga } from "@/lib/format"
 import { gestionarReserva } from "@/lib/studentPortal"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
@@ -419,52 +419,55 @@ export function ClasesPage() {
                     {(itemsPorFecha.get(diaSeleccionado) ?? [])
                       .slice()
                       .sort((a, b) => a.hora.localeCompare(b.hora))
-                      .map((item, indice, lista) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => setItemSeleccionado(item)}
-                          className="flex gap-3 text-left"
-                        >
-                          <span className="w-11 shrink-0 pt-2.5 text-right text-xs font-semibold text-text">
-                            {item.hora.slice(0, 5)}
-                          </span>
-                          <div className="flex flex-col items-center">
-                            <span
-                              className={cn(
-                                "mt-3 size-2.5 shrink-0 rounded-full",
-                                puntoDeItem(item),
-                              )}
-                            />
-                            {indice < lista.length - 1 && (
-                              <span className="w-px flex-1 bg-white/10" />
-                            )}
-                          </div>
-                          <div
-                            className={cn(
-                              "mb-3 flex-1 rounded-control border px-3 py-2",
-                              claseDeItem(item),
-                            )}
+                      .map((item, indice, lista) => {
+                        const etiqueta = etiquetaClase(item.nivel, item.cupoMaximo)
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setItemSeleccionado(item)}
+                            className="flex gap-3 text-left"
                           >
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="text-sm font-medium">{item.titulo}</p>
-                              {(esClasePrivada(item.cupoMaximo) || item.nivel) && (
-                                <span className="shrink-0 rounded-full bg-black/15 px-2 py-0.5 text-[10px] font-medium">
-                                  {esClasePrivada(item.cupoMaximo) ? "Privada" : item.nivel}
-                                </span>
+                            <span className="w-11 shrink-0 pt-2.5 text-right text-xs font-semibold text-text">
+                              {item.hora.slice(0, 5)}
+                            </span>
+                            <div className="flex flex-col items-center">
+                              <span
+                                className={cn(
+                                  "mt-3 size-2.5 shrink-0 rounded-full",
+                                  puntoDeItem(item),
+                                )}
+                              />
+                              {indice < lista.length - 1 && (
+                                <span className="w-px flex-1 bg-white/10" />
                               )}
                             </div>
-                            <p className="text-xs opacity-80">
-                              {item.profesor ?? ""}
-                              {item.profesor && item.lugar ? " · " : ""}
-                              {item.lugar ?? ""}
-                            </p>
-                            {item.estado === "cancelada" && (
-                              <p className="text-xs font-semibold">Cancelada</p>
-                            )}
-                          </div>
-                        </button>
-                      ))}
+                            <div
+                              className={cn(
+                                "mb-3 flex-1 rounded-control border px-3 py-2",
+                                claseDeItem(item),
+                              )}
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-sm font-medium">{item.titulo}</p>
+                                {etiqueta && (
+                                  <Badge variant={etiqueta.variant} className="shrink-0 px-2 py-0 text-[10px]">
+                                    {etiqueta.texto}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs opacity-80">
+                                {item.profesor ?? ""}
+                                {item.profesor && item.lugar ? " · " : ""}
+                                {item.lugar ?? ""}
+                              </p>
+                              {item.estado === "cancelada" && (
+                                <p className="text-xs font-semibold">Cancelada</p>
+                              )}
+                            </div>
+                          </button>
+                        )
+                      })}
                   </div>
                 )}
               </div>
@@ -518,13 +521,16 @@ export function ClasesPage() {
                 {itemSeleccionado.lugar && (
                   <p className="text-text-muted">Sede: {itemSeleccionado.lugar}</p>
                 )}
-                {esClasePrivada(itemSeleccionado.cupoMaximo) ? (
-                  <p className="text-text-muted">Tipo: Privada</p>
-                ) : (
-                  itemSeleccionado.nivel && (
-                    <p className="text-text-muted">Nivel: {itemSeleccionado.nivel}</p>
+                {(() => {
+                  const etiqueta = etiquetaClase(itemSeleccionado.nivel, itemSeleccionado.cupoMaximo)
+                  return (
+                    etiqueta && (
+                      <p className="flex items-center gap-2 text-text-muted">
+                        Tipo: <Badge variant={etiqueta.variant}>{etiqueta.texto}</Badge>
+                      </p>
+                    )
                   )
-                )}
+                })()}
                 {itemSeleccionado.cupoMaximo && (
                   <p className="text-text-muted">
                     Cupos: {itemSeleccionado.inscritos}/{itemSeleccionado.cupoMaximo}
@@ -593,6 +599,7 @@ function ListaClases({ items, cargando, procesando, onToggle, onVerDetalle, vaci
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {items.map((item) => {
         const lleno = item.cupoMaximo ? item.inscritos >= item.cupoMaximo : false
+        const etiqueta = etiquetaClase(item.nivel, item.cupoMaximo)
         return (
           <Card key={item.id} className="flex flex-col">
             <CardContent className="flex flex-1 flex-col gap-2 py-4">
@@ -605,9 +612,7 @@ function ListaClases({ items, cargando, procesando, onToggle, onVerDetalle, vaci
                 </div>
                 <p className="font-medium text-text">{item.titulo}</p>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  {(esClasePrivada(item.cupoMaximo) || item.nivel) && (
-                    <Badge variant="muted">{esClasePrivada(item.cupoMaximo) ? "Privada" : item.nivel}</Badge>
-                  )}
+                  {etiqueta && <Badge variant={etiqueta.variant}>{etiqueta.texto}</Badge>}
                   {item.cupoMaximo && (
                     <Badge variant={lleno ? "muted" : "default"}>
                       {item.inscritos}/{item.cupoMaximo} cupos

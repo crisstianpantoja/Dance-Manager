@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 
 import { MonthNavHeader } from "@/components/calendar/MonthNavHeader"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { useAuth } from "@/context/AuthContext"
 import { fechaHoy } from "@/lib/attendance"
@@ -12,7 +13,7 @@ import {
   NOMBRES_MES,
   primerDiaDelMesActual,
 } from "@/lib/calendarGrid"
-import { esClasePrivada, formatearFechaLarga } from "@/lib/format"
+import { etiquetaClase, formatearFechaLarga } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 import type { NivelAlumno } from "@/types/student"
@@ -194,41 +195,44 @@ export function CalendarioProfesorPage() {
               </Card>
             ) : (
               <div className="flex flex-col">
-                {itemsDia.map((oc, indice) => (
-                  <div key={oc.id} className="flex gap-3">
-                    <span className="w-11 shrink-0 pt-2.5 text-right text-xs font-semibold text-text">
-                      {oc.hora.slice(0, 5)}
-                    </span>
-                    <div className="flex flex-col items-center">
-                      <span
-                        className={cn(
-                          "mt-3 size-2.5 shrink-0 rounded-full",
-                          oc.estado === "cancelada" ? "bg-white/30" : "bg-brand",
-                        )}
-                      />
-                      {indice < itemsDia.length - 1 && <span className="w-px flex-1 bg-white/10" />}
-                    </div>
-                    <div
-                      className={cn(
-                        "mb-3 flex-1 rounded-control border px-3 py-2",
-                        oc.estado === "cancelada"
-                          ? "border-white/10 bg-surface/50 text-text-muted opacity-60"
-                          : "border-brand/30 bg-brand/10 text-text",
-                      )}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-medium">{oc.titulo}</p>
-                        {(esClasePrivada(oc.cupoMaximo) || oc.nivel) && (
-                          <span className="shrink-0 rounded-full bg-black/15 px-2 py-0.5 text-[10px] font-medium">
-                            {esClasePrivada(oc.cupoMaximo) ? "Privada" : oc.nivel}
-                          </span>
-                        )}
+                {itemsDia.map((oc, indice) => {
+                  const etiqueta = etiquetaClase(oc.nivel, oc.cupoMaximo)
+                  return (
+                    <div key={oc.id} className="flex gap-3">
+                      <span className="w-11 shrink-0 pt-2.5 text-right text-xs font-semibold text-text">
+                        {oc.hora.slice(0, 5)}
+                      </span>
+                      <div className="flex flex-col items-center">
+                        <span
+                          className={cn(
+                            "mt-3 size-2.5 shrink-0 rounded-full",
+                            oc.estado === "cancelada" ? "bg-white/30" : "bg-brand",
+                          )}
+                        />
+                        {indice < itemsDia.length - 1 && <span className="w-px flex-1 bg-white/10" />}
                       </div>
-                      {oc.lugar && <p className="text-xs opacity-80">{oc.lugar}</p>}
-                      {oc.estado === "cancelada" && <p className="text-xs font-semibold">Cancelada</p>}
+                      <div
+                        className={cn(
+                          "mb-3 flex-1 rounded-control border px-3 py-2",
+                          oc.estado === "cancelada"
+                            ? "border-white/10 bg-surface/50 text-text-muted opacity-60"
+                            : "border-brand/30 bg-brand/10 text-text",
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-medium">{oc.titulo}</p>
+                          {etiqueta && (
+                            <Badge variant={etiqueta.variant} className="shrink-0 px-2 py-0 text-[10px]">
+                              {etiqueta.texto}
+                            </Badge>
+                          )}
+                        </div>
+                        {oc.lugar && <p className="text-xs opacity-80">{oc.lugar}</p>}
+                        {oc.estado === "cancelada" && <p className="text-xs font-semibold">Cancelada</p>}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>
