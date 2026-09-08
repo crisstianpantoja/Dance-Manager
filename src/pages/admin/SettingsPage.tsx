@@ -4,10 +4,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useAuth } from "@/context/AuthContext"
 import { actualizarAjustes, obtenerAjustes } from "@/lib/settings"
 import { subirFoto } from "@/lib/storage"
 
 export function SettingsPage() {
+  const { profile } = useAuth()
+  const organizationId = profile?.organization_id
   const [nombreApp, setNombreApp] = useState("")
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [archivoLogo, setArchivoLogo] = useState<File | null>(null)
@@ -16,20 +19,20 @@ export function SettingsPage() {
   const [error, setError] = useState<string | null>(null)
   const [exito, setExito] = useState(false)
 
-  async function cargar() {
-    setCargando(true)
-    const ajustes = await obtenerAjustes()
-    setNombreApp(ajustes.nombre_app)
-    setLogoUrl(ajustes.logo_url)
-    setCargando(false)
-  }
-
   useEffect(() => {
-    cargar()
-  }, [])
+    if (!organizationId) return
+
+    setCargando(true)
+    obtenerAjustes(organizationId).then((ajustes) => {
+      setNombreApp(ajustes.nombre_app)
+      setLogoUrl(ajustes.logo_url)
+      setCargando(false)
+    })
+  }, [organizationId])
 
   async function handleSubmit(evento: FormEvent) {
     evento.preventDefault()
+    if (!organizationId) return
     setError(null)
     setExito(false)
     setGuardando(true)
@@ -41,7 +44,7 @@ export function SettingsPage() {
         urlLogo = await subirFoto(archivoLogo, "marca")
       }
 
-      await actualizarAjustes({ nombre_app: nombreApp, logo_url: urlLogo })
+      await actualizarAjustes(organizationId, { nombre_app: nombreApp, logo_url: urlLogo })
       setLogoUrl(urlLogo)
       setArchivoLogo(null)
       setExito(true)
@@ -83,7 +86,7 @@ export function SettingsPage() {
                   className="text-sm text-text-muted file:mr-3 file:rounded-control file:border-0 file:bg-surface-hover file:px-3 file:py-1.5 file:text-sm file:text-text"
                 />
                 <p className="text-xs text-text-muted">
-                  Aparece en el login y en el menú. Déjalo vacío para usar el diseño por defecto.
+                  Aparece en el menú de tu academia. Déjalo vacío para usar el diseño por defecto.
                 </p>
               </div>
             </div>

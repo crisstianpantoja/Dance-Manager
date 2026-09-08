@@ -6,12 +6,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/context/AuthContext"
-import { useAppSettings } from "@/hooks/useAppSettings"
+import { AJUSTES_POR_DEFECTO } from "@/lib/settings"
 
 export function LoginPage() {
   const { session, loading, signIn } = useAuth()
-  const ajustes = useAppSettings()
+  // Marca genérica, no la de una academia específica: todas comparten
+  // hoy la misma URL de login, así que no hay forma de saber de quién
+  // es hasta autenticar (eso llega con el subdominio por academia).
+  const ajustes = AJUSTES_POR_DEFECTO
   const location = useLocation()
+  const [codigoAcademia, setCodigoAcademia] = useState("")
   const [documento, setDocumento] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -27,7 +31,7 @@ export function LoginPage() {
     setError(null)
     setEnviando(true)
 
-    const { error } = await signIn(documento, password)
+    const { error } = await signIn(documento, password, codigoAcademia)
 
     if (error) setError(error)
     setEnviando(false)
@@ -46,13 +50,28 @@ export function LoginPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-text">{ajustes.nombre_app}</h1>
-            <p className="text-sm text-text-muted">Ingresa con tu documento y contraseña</p>
+            <p className="text-sm text-text-muted">
+              Ingresa con el código de tu academia, tu documento y contraseña
+            </p>
           </div>
         </div>
 
         <Card>
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="codigoAcademia">Código de academia</Label>
+                <Input
+                  id="codigoAcademia"
+                  name="codigoAcademia"
+                  autoComplete="organization"
+                  placeholder="Código de tu academia"
+                  value={codigoAcademia}
+                  onChange={(e) => setCodigoAcademia(e.target.value)}
+                  required
+                />
+              </div>
+
               <div className="flex flex-col gap-2">
                 <Label htmlFor="documento">Documento</Label>
                 <Input

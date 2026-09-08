@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { documentoToEmail, supabase } from "@/lib/supabase"
 
 export function ForgotPasswordPage() {
+  const [codigoAcademia, setCodigoAcademia] = useState("")
   const [documento, setDocumento] = useState("")
   const [enviado, setEnviado] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -19,7 +20,7 @@ export function ForgotPasswordPage() {
     setEnviando(true)
 
     const { error } = await supabase.auth.resetPasswordForEmail(
-      documentoToEmail(documento),
+      documentoToEmail(documento, codigoAcademia),
       { redirectTo: `${window.location.origin}/actualizar-password` },
     )
 
@@ -49,6 +50,17 @@ export function ForgotPasswordPage() {
               </p>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="codigoAcademia">Código de academia</Label>
+                  <Input
+                    id="codigoAcademia"
+                    placeholder="Código de tu academia"
+                    value={codigoAcademia}
+                    onChange={(e) => setCodigoAcademia(e.target.value)}
+                    required
+                  />
+                </div>
+
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="documento">Documento</Label>
                   <Input

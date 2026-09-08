@@ -9,6 +9,27 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!
 const AUTH_EMAIL_DOMAIN = "dance.local"
 
+// La organización "principal" (el negocio original, antes de que
+// existieran organizaciones) ya tiene sus usuarios en Supabase Auth
+// como "documento@dance.local", sin prefijo: se mantiene así para no
+// migrar ninguna cuenta existente. Toda organización nueva sí usa
+// "documento@<codigo>.dance.local", evitando choques cuando dos
+// academias tienen alumnos con el mismo número de documento. Mismo
+// esquema que src/lib/supabase.ts (los edge functions se despliegan
+// aparte y no pueden importar del frontend).
+const CODIGO_ACADEMIA_PRINCIPAL = "principal"
+
+function documentoToEmail(documento: string, codigoAcademia: string) {
+  const doc = documento.trim()
+  const codigo = codigoAcademia.trim().toLowerCase()
+
+  if (codigo === CODIGO_ACADEMIA_PRINCIPAL) {
+    return `${doc}@${AUTH_EMAIL_DOMAIN}`
+  }
+
+  return `${doc}@${codigo}.${AUTH_EMAIL_DOMAIN}`
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -68,10 +89,18 @@ Deno.serve(async (req) => {
 
   const organizationId = callerProfile.organization_id
 
+  const { data: organizacion } = await admin
+    .from("organizations")
+    .select("codigo")
+    .eq("id", organizationId)
+    .single()
+
+  if (!organizacion) return json({ error: "No se pudo resolver la organización." }, 400)
+
   const payload: CreatePayload | DeletePayload = await req.json()
 
   if (payload.action === "create") {
-    const email = `${payload.documento.trim()}@${AUTH_EMAIL_DOMAIN}`
+    const email = documentoToEmail(payload.documento, organizacion.codigo)
 
     const { data: nuevoUsuario, error: errorAuth } = await admin.auth.admin.createUser({
       email,

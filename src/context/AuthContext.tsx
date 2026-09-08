@@ -15,7 +15,11 @@ interface AuthContextValue {
   profile: Profile | null
   /** true mientras se resuelve la sesión y el perfil (evita pintar el portal vacío). */
   loading: boolean
-  signIn: (documento: string, password: string) => Promise<{ error: string | null }>
+  signIn: (
+    documento: string,
+    password: string,
+    codigoAcademia: string,
+  ) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
 }
 
@@ -24,7 +28,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 async function fetchProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, documento, nombre, rol")
+    .select("id, documento, nombre, rol, organization_id")
     .eq("id", userId)
     .single()
 
@@ -81,14 +85,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  async function signIn(documento: string, password: string) {
+  async function signIn(documento: string, password: string, codigoAcademia: string) {
     const { error } = await supabase.auth.signInWithPassword({
-      email: documentoToEmail(documento),
+      email: documentoToEmail(documento, codigoAcademia),
       password,
     })
 
     if (error) {
-      return { error: "Documento o contraseña incorrectos." }
+      return { error: "Código de academia, documento o contraseña incorrectos." }
     }
 
     return { error: null }

@@ -47,7 +47,7 @@ const NAV_ITEMS = [
 export function AdminLayout() {
   const { profile, signOut } = useAuth()
   const [menuAbierto, setMenuAbierto] = useState(false)
-  const ajustes = useAppSettings()
+  const ajustes = useAppSettings(profile?.organization_id)
   const pagosPendientes = usePagosPendientes()
 
   return (

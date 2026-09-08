@@ -17,7 +17,7 @@ const TABS = [
 
 export function ProfesorLayout() {
   const { profile, signOut } = useAuth()
-  const ajustes = useAppSettings()
+  const ajustes = useAppSettings(profile?.organization_id)
 
   return (
     <div className="min-h-dvh">

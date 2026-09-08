@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { subirFoto } from "@/lib/storage"
-import { documentoToEmail, supabase } from "@/lib/supabase"
+import { supabase } from "@/lib/supabase"
 import type { Student } from "@/types/student"
 
 interface EditProfileDialogProps {
@@ -98,8 +98,17 @@ export function EditProfileDialog({
 
     setCambiandoContrasena(true)
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user?.email) {
+        setErrorContrasena("No se pudo verificar tu sesión.")
+        return
+      }
+
       const { error: authError } = await supabase.auth.signInWithPassword({
-        email: documentoToEmail(alumno.documento),
+        email: user.email,
         password: contrasenaActual,
       })
       if (authError) {

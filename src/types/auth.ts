@@ -5,4 +5,5 @@ export interface Profile {
   documento: string
   nombre: string
   rol: Rol
+  organization_id: string
 }
