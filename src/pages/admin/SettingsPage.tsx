@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/context/AuthContext"
-import { actualizarAjustes, obtenerAjustes } from "@/lib/settings"
+import { actualizarAjustes, obtenerAjustes, COLOR_PRIMARIO_POR_DEFECTO } from "@/lib/settings"
 import { subirFoto } from "@/lib/storage"
 
 export function SettingsPage() {
@@ -14,6 +14,7 @@ export function SettingsPage() {
   const [nombreApp, setNombreApp] = useState("")
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [archivoLogo, setArchivoLogo] = useState<File | null>(null)
+  const [colorPrimario, setColorPrimario] = useState(COLOR_PRIMARIO_POR_DEFECTO)
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -26,6 +27,7 @@ export function SettingsPage() {
     obtenerAjustes(organizationId).then((ajustes) => {
       setNombreApp(ajustes.nombre_app)
       setLogoUrl(ajustes.logo_url)
+      setColorPrimario(ajustes.color_primario)
       setCargando(false)
     })
   }, [organizationId])
@@ -44,7 +46,11 @@ export function SettingsPage() {
         urlLogo = await subirFoto(archivoLogo, "marca")
       }
 
-      await actualizarAjustes(organizationId, { nombre_app: nombreApp, logo_url: urlLogo })
+      await actualizarAjustes(organizationId, {
+        nombre_app: nombreApp,
+        logo_url: urlLogo,
+        color_primario: colorPrimario,
+      })
       setLogoUrl(urlLogo)
       setArchivoLogo(null)
       setExito(true)
@@ -99,6 +105,29 @@ export function SettingsPage() {
                 onChange={(e) => setNombreApp(e.target.value)}
                 required
               />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="colorPrimario">Color de marca</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  id="colorPrimario"
+                  type="color"
+                  value={colorPrimario}
+                  onChange={(e) => setColorPrimario(e.target.value.toUpperCase())}
+                  className="h-11 w-14 cursor-pointer rounded-control border border-white/15 bg-surface"
+                />
+                <Input
+                  value={colorPrimario}
+                  onChange={(e) => setColorPrimario(e.target.value.toUpperCase())}
+                  className="max-w-32 font-mono uppercase"
+                  maxLength={7}
+                />
+              </div>
+              <p className="text-xs text-text-muted">
+                Se usa en los botones y acentos del menú de tu academia. Dance Manager sigue
+                mostrando su propia marca en la pantalla de inicio de sesión.
+              </p>
             </div>
 
             {error && (

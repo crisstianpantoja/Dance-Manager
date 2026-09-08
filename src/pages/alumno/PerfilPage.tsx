@@ -1,6 +1,7 @@
 import { LogOut, Pencil } from "lucide-react"
 import { useEffect, useState } from "react"
 
+import { AppleWalletPreviewButton } from "@/components/alumno/AppleWalletPreviewButton"
 import { CarnetDownloadButton } from "@/components/alumno/CarnetDownloadButton"
 import { CompetencyRadar } from "@/components/alumno/CompetencyRadar"
 import { DigitalCard } from "@/components/alumno/DigitalCard"
@@ -257,7 +258,12 @@ export function PerfilPage() {
             <div className="flex flex-wrap items-center justify-center gap-2">
               <CarnetDownloadButton alumno={alumno} />
               <GoogleWalletButton />
+              <AppleWalletPreviewButton alumno={alumno} />
             </div>
+            <p className="text-center text-[11px] text-text-muted">
+              La vista previa de Apple Wallet es solo una imagen de referencia; todavía no se
+              puede guardar como pase real de Apple.
+            </p>
             <p className="text-xs text-text-muted">
               Muestra este código en la puerta para registrar tu asistencia.
             </p>

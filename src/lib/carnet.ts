@@ -392,6 +392,123 @@ export async function dibujarCarnet(
   return canvas
 }
 
+export interface CarnetAppleDatos {
+  nombre: string
+  documento: string
+  nivel: string
+  tipo: string
+  qrCanvas: HTMLCanvasElement
+}
+
+const APPLE_ANCHO = 340
+const APPLE_ALTO = 216
+const APPLE_PAD = 20
+const APPLE_RADIO = 16
+
+/**
+ * Vista previa visual de cómo se vería el carnet como pase de Apple
+ * Wallet — NO es un pase real de PassKit. Un .pkpass instalable
+ * requiere firmarlo con un certificado emitido por Apple (cuenta de
+ * Apple Developer Program, con costo anual), algo que no se puede
+ * simular ni generar sin esa cuenta. Esto es solo una imagen con la
+ * distribución típica de un pase (logo, campo principal, campos
+ * secundarios, código de barras) para usar en demos comerciales
+ * mientras se decide si vale la pena esa integración real.
+ */
+export async function dibujarCarnetAppleWallet(
+  datos: CarnetAppleDatos,
+  theme: CarnetTheme,
+  escala = ESCALA_CARNET,
+): Promise<HTMLCanvasElement> {
+  await esperarTipografias()
+
+  const canvas = document.createElement("canvas")
+  canvas.width = Math.round(APPLE_ANCHO * escala)
+  canvas.height = Math.round(APPLE_ALTO * escala)
+  const ctx = canvas.getContext("2d")
+  if (!ctx) throw new Error("El navegador no permite generar la imagen del carnet")
+  ctx.scale(escala, escala)
+  ctx.textBaseline = "alphabetic"
+
+  ctx.save()
+  rectRedondeado(ctx, 0, 0, APPLE_ANCHO, APPLE_ALTO, APPLE_RADIO)
+  ctx.clip()
+  ctx.fillStyle = "#111114"
+  ctx.fillRect(0, 0, APPLE_ANCHO, APPLE_ALTO)
+  ctx.fillStyle = theme.hex
+  ctx.fillRect(0, 0, APPLE_ANCHO, 5)
+  ctx.restore()
+
+  ctx.strokeStyle = "rgba(255,255,255,0.12)"
+  ctx.lineWidth = 1
+  rectRedondeado(ctx, 0.5, 0.5, APPLE_ANCHO - 1, APPLE_ALTO - 1, APPLE_RADIO)
+  ctx.stroke()
+
+  let y = APPLE_PAD + 8
+
+  // Encabezado: logo circular + etiqueta del tipo de pase.
+  ctx.save()
+  ctx.beginPath()
+  ctx.arc(APPLE_PAD + 11, y, 11, 0, Math.PI * 2)
+  ctx.fillStyle = theme.hex
+  ctx.fill()
+  ctx.fillStyle = "#FFFFFF"
+  ctx.font = `900 11px ${FUENTE}`
+  ctx.textAlign = "center"
+  ctx.fillText("M", APPLE_PAD + 11, y + 4)
+  ctx.restore()
+
+  ctx.textAlign = "right"
+  ctx.fillStyle = "rgba(255,255,255,0.5)"
+  ctx.font = `700 9px ${FUENTE}`
+  ctx.fillText("CARNET DIGITAL", APPLE_ANCHO - APPLE_PAD, y + 4)
+  y += 11 + 22
+
+  // Campo principal: nombre del alumno.
+  ctx.textAlign = "left"
+  ctx.fillStyle = "rgba(255,255,255,0.5)"
+  ctx.font = `700 9px ${FUENTE}`
+  ctx.fillText("NOMBRE", APPLE_PAD, y)
+  y += 18
+  ctx.fillStyle = "#FFFFFF"
+  ctx.font = `800 20px ${FUENTE}`
+  const nombreCorto =
+    datos.nombre.length > 26 ? `${datos.nombre.slice(0, 25).trim()}…` : datos.nombre
+  ctx.fillText(nombreCorto.toUpperCase(), APPLE_PAD, y)
+  y += 14 + 18
+
+  // Campos secundarios: nivel y tipo, lado a lado.
+  const colAncho = (APPLE_ANCHO - APPLE_PAD * 2) / 2
+  ctx.fillStyle = "rgba(255,255,255,0.5)"
+  ctx.font = `700 9px ${FUENTE}`
+  ctx.fillText("NIVEL", APPLE_PAD, y)
+  ctx.fillText("TIPO", APPLE_PAD + colAncho, y)
+  y += 15
+  ctx.fillStyle = "#FFFFFF"
+  ctx.font = `700 13px ${FUENTE}`
+  ctx.fillText(datos.nivel.toUpperCase(), APPLE_PAD, y)
+  ctx.fillText(datos.tipo.toUpperCase(), APPLE_PAD + colAncho, y)
+
+  // Código de barras (QR) centrado en la franja inferior, como en un pase real.
+  const qrLado = 56
+  const qrX = APPLE_ANCHO - APPLE_PAD - qrLado
+  const qrY = APPLE_ALTO - APPLE_PAD - qrLado + 6
+  ctx.save()
+  ctx.fillStyle = "#FFFFFF"
+  rectRedondeado(ctx, qrX - 6, qrY - 6, qrLado + 12, qrLado + 12, 8)
+  ctx.fill()
+  ctx.imageSmoothingEnabled = false
+  ctx.drawImage(datos.qrCanvas, qrX, qrY, qrLado, qrLado)
+  ctx.restore()
+
+  ctx.textAlign = "left"
+  ctx.fillStyle = "rgba(255,255,255,0.4)"
+  ctx.font = `600 9px ${FUENTE}`
+  ctx.fillText(datos.documento, APPLE_PAD, APPLE_ALTO - APPLE_PAD + 2)
+
+  return canvas
+}
+
 export type ResultadoGuardado = "compartido" | "descargado" | "cancelado"
 
 export function nombreArchivoCarnet(nombre: string): string {
@@ -402,6 +519,10 @@ export function nombreArchivoCarnet(nombre: string): string {
     .replace(/^-+|-+$/g, "")
     .toLowerCase()
   return `carnet-${limpio || "alumno"}.png`
+}
+
+export function nombreArchivoCarnetAppleWallet(nombre: string): string {
+  return nombreArchivoCarnet(nombre).replace("carnet-", "carnet-apple-wallet-")
 }
 
 export async function guardarCarnet(

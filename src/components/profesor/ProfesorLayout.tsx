@@ -63,6 +63,8 @@ export function ProfesorLayout() {
       <main className="mx-auto max-w-4xl px-4 py-6 animate-fade-in">
         <Outlet />
       </main>
+
+      <p className="pb-6 text-center text-[11px] text-text-muted/70">Hecho con Dance Manager</p>
     </div>
   )
 }

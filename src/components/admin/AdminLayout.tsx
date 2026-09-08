@@ -98,6 +98,10 @@ export function AdminLayout() {
             </NavLink>
           ))}
         </nav>
+
+        <p className="px-6 py-4 text-center text-[11px] text-text-muted/70">
+          Hecho con Dance Manager
+        </p>
       </aside>
 
       {/* Contenido */}
@@ -180,6 +184,9 @@ export function AdminLayout() {
             <LogOut className="size-5" />
             Cerrar sesión
           </button>
+          <p className="mt-4 text-center text-[11px] text-text-muted/70">
+            Hecho con Dance Manager
+          </p>
         </div>
       )}
     </div>
