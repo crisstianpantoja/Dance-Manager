@@ -5,4 +5,5 @@ export interface Expense {
   fecha: string
   categoria: string | null
   notas: string | null
+  academia_id: string | null
 }

@@ -10,27 +10,45 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
+import type { Academy } from "@/types/academy"
 import type { Expense } from "@/types/expense"
 
 interface ExpenseFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   gasto: Expense | null
+  academias: Academy[]
   onSaved: () => void
 }
+
+const SIN_ACADEMIA = "sin-academia"
 
 function hoyISO() {
   return new Date().toISOString().slice(0, 10)
 }
 
-export function ExpenseFormDialog({ open, onOpenChange, gasto, onSaved }: ExpenseFormDialogProps) {
+export function ExpenseFormDialog({
+  open,
+  onOpenChange,
+  gasto,
+  academias,
+  onSaved,
+}: ExpenseFormDialogProps) {
   const [concepto, setConcepto] = useState("")
   const [monto, setMonto] = useState("")
   const [fecha, setFecha] = useState(hoyISO())
   const [categoria, setCategoria] = useState("")
   const [notas, setNotas] = useState("")
+  const [academiaId, setAcademiaId] = useState<string>(SIN_ACADEMIA)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,6 +59,7 @@ export function ExpenseFormDialog({ open, onOpenChange, gasto, onSaved }: Expens
     setFecha(gasto?.fecha ?? hoyISO())
     setCategoria(gasto?.categoria ?? "")
     setNotas(gasto?.notas ?? "")
+    setAcademiaId(gasto?.academia_id ?? SIN_ACADEMIA)
     setError(null)
   }, [open, gasto])
 
@@ -55,6 +74,7 @@ export function ExpenseFormDialog({ open, onOpenChange, gasto, onSaved }: Expens
       fecha,
       categoria: categoria || null,
       notas: notas || null,
+      academia_id: academiaId === SIN_ACADEMIA ? null : academiaId,
     }
 
     try {
@@ -123,6 +143,22 @@ export function ExpenseFormDialog({ open, onOpenChange, gasto, onSaved }: Expens
                 value={categoria}
                 onChange={(e) => setCategoria(e.target.value)}
               />
+            </div>
+            <div className="col-span-2 flex flex-col gap-2">
+              <Label>Sede</Label>
+              <Select value={academiaId} onValueChange={setAcademiaId}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={SIN_ACADEMIA}>Sin sede</SelectItem>
+                  {academias.map((academia) => (
+                    <SelectItem key={academia.id} value={academia.id}>
+                      {academia.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

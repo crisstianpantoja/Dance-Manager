@@ -61,7 +61,7 @@ export function DashboardPage() {
   const [pagosRetencion, setPagosRetencion] = useState<PagoRetencionRaw[]>([])
   const [clasesHoy, setClasesHoy] = useState<ClaseHoy[]>([])
   const [proximosEventos, setProximosEventos] = useState<EventoDM[]>([])
-  const [proximosContratos, setProximosContratos] = useState<(Gig & { academia_id: string | null })[]>([])
+  const [proximosContratos, setProximosContratos] = useState<Gig[]>([])
 
   useEffect(() => {
     async function cargar() {
@@ -200,7 +200,7 @@ export function DashboardPage() {
         }),
       )
       setProximosEventos((eventos as EventoDM[]) ?? [])
-      setProximosContratos((contratos as (Gig & { academia_id: string | null })[]) ?? [])
+      setProximosContratos((contratos as Gig[]) ?? [])
 
       setCargando(false)
     }
@@ -285,9 +285,8 @@ export function DashboardPage() {
 
       {filtroSede !== TODAS_LAS_SEDES && (
         <p className="text-xs text-text-muted">
-          Gastos y contratos todavía no se les puede asignar una sede al crearlos, así que
-          "Gastos", "Ganancia neta" y "Próximos contratos" pueden verse incompletos filtrados por
-          sede. "Próximos eventos" siempre muestra los de toda la organización.
+          Los gastos y contratos registrados antes de asignarles sede cuentan como "Sin sede".
+          "Próximos eventos" no se puede filtrar todavía: esa tabla no tiene dato de sede.
         </p>
       )}
 

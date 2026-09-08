@@ -1,8 +1,15 @@
 import { Pencil, Plus, Trash2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { ExpenseFormDialog } from "@/pages/admin/ExpenseFormDialog"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -13,18 +20,39 @@ import {
 } from "@/components/ui/table"
 import { formatearFecha, formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
+import type { Academy } from "@/types/academy"
 import type { Expense } from "@/types/expense"
+
+const TODAS_LAS_SEDES = "todas"
+const SIN_SEDE = "sin-sede"
 
 export function GastosPage() {
   const [gastos, setGastos] = useState<Expense[]>([])
+  const [academias, setAcademias] = useState<Academy[]>([])
   const [cargando, setCargando] = useState(true)
   const [dialogoAbierto, setDialogoAbierto] = useState(false)
   const [gastoEditando, setGastoEditando] = useState<Expense | null>(null)
+  const [filtroSede, setFiltroSede] = useState<string>(TODAS_LAS_SEDES)
+
+  const academiasPorId = useMemo(
+    () => new Map(academias.map((academia) => [academia.id, academia.nombre])),
+    [academias],
+  )
+
+  const gastosFiltrados = useMemo(() => {
+    if (filtroSede === TODAS_LAS_SEDES) return gastos
+    if (filtroSede === SIN_SEDE) return gastos.filter((g) => !g.academia_id)
+    return gastos.filter((g) => g.academia_id === filtroSede)
+  }, [gastos, filtroSede])
 
   async function cargar() {
     setCargando(true)
-    const { data } = await supabase.from("expenses").select("*").order("fecha", { ascending: false })
-    setGastos((data as Expense[]) ?? [])
+    const [{ data: gastosData }, { data: academiasData }] = await Promise.all([
+      supabase.from("expenses").select("*").order("fecha", { ascending: false }),
+      supabase.from("academies").select("*").order("nombre"),
+    ])
+    setGastos((gastosData as Expense[]) ?? [])
+    setAcademias((academiasData as Academy[]) ?? [])
     setCargando(false)
   }
 
@@ -52,32 +80,53 @@ export function GastosPage() {
     cargar()
   }
 
-  const totalMes = gastos
+  const totalMes = gastosFiltrados
     .filter((g) => g.fecha.slice(0, 7) === new Date().toISOString().slice(0, 7))
     .reduce((acc, g) => acc + Number(g.monto), 0)
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-text">Gastos</h1>
           <p className="text-sm text-text-muted">Este mes: {formatearMoneda(totalMes)}</p>
         </div>
-        <Button onClick={abrirCrear} size="sm">
-          <Plus className="size-4" />
-          Nuevo gasto
-        </Button>
+        <div className="flex items-center gap-2">
+          {academias.length > 0 && (
+            <Select value={filtroSede} onValueChange={setFiltroSede}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TODAS_LAS_SEDES}>Todas las sedes</SelectItem>
+                <SelectItem value={SIN_SEDE}>Sin sede</SelectItem>
+                {academias.map((academia) => (
+                  <SelectItem key={academia.id} value={academia.id}>
+                    {academia.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <Button onClick={abrirCrear} size="sm">
+            <Plus className="size-4" />
+            Nuevo gasto
+          </Button>
+        </div>
       </div>
 
       {cargando ? (
         <p className="text-sm text-text-muted">Cargando...</p>
       ) : gastos.length === 0 ? (
         <p className="text-sm text-text-muted">Aún no hay gastos registrados.</p>
+      ) : gastosFiltrados.length === 0 ? (
+        <p className="py-16 text-center text-sm text-text-muted">No hay gastos en esta sede.</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Concepto</TableHead>
+              <TableHead>Sede</TableHead>
               <TableHead>Categoría</TableHead>
               <TableHead>Fecha</TableHead>
               <TableHead>Monto</TableHead>
@@ -85,9 +134,12 @@ export function GastosPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {gastos.map((gasto) => (
+            {gastosFiltrados.map((gasto) => (
               <TableRow key={gasto.id}>
                 <TableCell className="font-medium text-text">{gasto.concepto}</TableCell>
+                <TableCell className="text-text-muted">
+                  {gasto.academia_id ? (academiasPorId.get(gasto.academia_id) ?? "—") : "—"}
+                </TableCell>
                 <TableCell className="text-text-muted">{gasto.categoria ?? "—"}</TableCell>
                 <TableCell className="text-text-muted">{formatearFecha(gasto.fecha)}</TableCell>
                 <TableCell className="text-error">{formatearMoneda(gasto.monto)}</TableCell>
@@ -111,6 +163,7 @@ export function GastosPage() {
         open={dialogoAbierto}
         onOpenChange={setDialogoAbierto}
         gasto={gastoEditando}
+        academias={academias}
         onSaved={cargar}
       />
     </div>

@@ -16,4 +16,5 @@ export interface Gig {
   acompanado: boolean
   acompanante: string | null
   pago_acompanante: number | null
+  academia_id: string | null
 }

@@ -20,20 +20,24 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
+import type { Academy } from "@/types/academy"
 import type { Gig, GigEstado, GigTipo } from "@/types/gig"
 
 interface GigFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   gig: Gig | null
+  academias: Academy[]
   onSaved: () => void
 }
+
+const SIN_ACADEMIA = "sin-academia"
 
 function hoyISO() {
   return new Date().toISOString().slice(0, 10)
 }
 
-export function GigFormDialog({ open, onOpenChange, gig, onSaved }: GigFormDialogProps) {
+export function GigFormDialog({ open, onOpenChange, gig, academias, onSaved }: GigFormDialogProps) {
   const [tipo, setTipo] = useState<GigTipo>("dj")
   const [evento, setEvento] = useState("")
   const [lugar, setLugar] = useState("")
@@ -47,6 +51,7 @@ export function GigFormDialog({ open, onOpenChange, gig, onSaved }: GigFormDialo
   const [acompanado, setAcompanado] = useState(false)
   const [acompanante, setAcompanante] = useState("")
   const [pagoAcompanante, setPagoAcompanante] = useState("")
+  const [academiaId, setAcademiaId] = useState<string>(SIN_ACADEMIA)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -65,6 +70,7 @@ export function GigFormDialog({ open, onOpenChange, gig, onSaved }: GigFormDialo
     setAcompanado(gig?.acompanado ?? false)
     setAcompanante(gig?.acompanante ?? "")
     setPagoAcompanante(gig?.pago_acompanante?.toString() ?? "")
+    setAcademiaId(gig?.academia_id ?? SIN_ACADEMIA)
     setError(null)
   }, [open, gig])
 
@@ -87,6 +93,7 @@ export function GigFormDialog({ open, onOpenChange, gig, onSaved }: GigFormDialo
       acompanado,
       acompanante: acompanado ? acompanante || null : null,
       pago_acompanante: acompanado && pagoAcompanante ? Number(pagoAcompanante) : null,
+      academia_id: academiaId === SIN_ACADEMIA ? null : academiaId,
     }
 
     try {
@@ -188,6 +195,23 @@ export function GigFormDialog({ open, onOpenChange, gig, onSaved }: GigFormDialo
             <div className="col-span-2 flex flex-col gap-2">
               <Label htmlFor="contacto">Contacto</Label>
               <Input id="contacto" value={contacto} onChange={(e) => setContacto(e.target.value)} />
+            </div>
+
+            <div className="col-span-2 flex flex-col gap-2">
+              <Label>Sede</Label>
+              <Select value={academiaId} onValueChange={setAcademiaId}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={SIN_ACADEMIA}>Sin sede</SelectItem>
+                  {academias.map((academia) => (
+                    <SelectItem key={academia.id} value={academia.id}>
+                      {academia.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
