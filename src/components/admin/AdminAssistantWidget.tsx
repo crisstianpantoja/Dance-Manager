@@ -70,7 +70,7 @@ export function AdminAssistantWidget() {
   return (
     <Card>
       <CardContent className="flex flex-col gap-3 py-4">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 font-semibold text-text">
             <Sparkles className="size-5 text-brand-light" />
             Asistente IA
