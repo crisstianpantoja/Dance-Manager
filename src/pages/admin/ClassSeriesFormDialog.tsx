@@ -197,13 +197,13 @@ export function ClassSeriesFormDialog({
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label>Academia</Label>
+              <Label>Sede</Label>
               <Select value={academiaId} onValueChange={setAcademiaId}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={SIN_ACADEMIA}>Sin academia</SelectItem>
+                  <SelectItem value={SIN_ACADEMIA}>Sin sede</SelectItem>
                   {academias.map((academia) => (
                     <SelectItem key={academia.id} value={academia.id}>
                       {academia.nombre}

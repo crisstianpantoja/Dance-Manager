@@ -77,7 +77,7 @@ export function AcademyFormDialog({
       onSaved()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar la academia.")
+      setError(err instanceof Error ? err.message : "No se pudo guardar la sede.")
     } finally {
       setGuardando(false)
     }
@@ -87,7 +87,7 @@ export function AcademyFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{academia ? "Editar academia" : "Nueva academia"}</DialogTitle>
+          <DialogTitle>{academia ? "Editar sede" : "Nueva sede"}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

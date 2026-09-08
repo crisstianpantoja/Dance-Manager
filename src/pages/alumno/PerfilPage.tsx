@@ -190,7 +190,7 @@ export function PerfilPage() {
           <div className="flex flex-wrap justify-center gap-2">
             <Badge>{alumno.nivel}</Badge>
             <Badge variant="muted">{TIPO_LABEL[alumno.tipo]}</Badge>
-            <Badge variant="muted">{academiaNombre ?? "Sin academia"}</Badge>
+            <Badge variant="muted">{academiaNombre ?? "Sin sede"}</Badge>
           </div>
           <Button variant="outline" size="sm" onClick={() => setEditarAbierto(true)}>
             <Pencil className="size-4" />

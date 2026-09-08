@@ -27,7 +27,7 @@ interface FilaCSV {
   contacto?: string
   tipo?: string
   nivel?: string
-  academia?: string
+  sede?: string
 }
 
 interface ResultadoFila {
@@ -60,7 +60,7 @@ function resolverTipo(valor?: string): TipoAlumno | null {
   return TIPOS.find((t) => normalizar(t) === buscado) ?? null
 }
 
-const PLANTILLA_CSV = `nombre,documento,contacto,tipo,nivel,academia
+const PLANTILLA_CSV = `nombre,documento,contacto,tipo,nivel,sede
 Juan Pérez,1020304050,3001234567,academia,Básica,
 `
 
@@ -124,9 +124,9 @@ export function BulkImportDialog({
 
           const tipo = resolverTipo(fila.tipo) ?? "academia"
           const nivel = resolverNivel(fila.nivel) ?? "Básica"
-          const nombreAcademia = fila.academia?.trim()
-          const academiaId = nombreAcademia
-            ? (academiasPorNombre.get(normalizar(nombreAcademia)) ?? null)
+          const nombreSede = fila.sede?.trim()
+          const academiaId = nombreSede
+            ? (academiasPorNombre.get(normalizar(nombreSede)) ?? null)
             : null
 
           try {
@@ -144,8 +144,8 @@ export function BulkImportDialog({
               nombre,
               estado: "creado",
               detalle:
-                nombreAcademia && !academiaId
-                  ? `Academia "${nombreAcademia}" no encontrada, se dejó sin asignar.`
+                nombreSede && !academiaId
+                  ? `Sede "${nombreSede}" no encontrada, se dejó sin asignar.`
                   : undefined,
             })
           } catch (err) {
@@ -190,8 +190,8 @@ export function BulkImportDialog({
           <div className="flex flex-col gap-4">
             <p className="text-sm text-text-muted">
               Sube un archivo CSV con las columnas <code>nombre, documento, contacto, tipo,
-              nivel, academia</code>. "Tipo" (academia/privada/ambas) y "academia" son
-              opcionales; si los dejas vacíos se usa "academia" y "Básica".
+              nivel, sede</code>. "Tipo" (academia/privada/ambas) y "sede" son
+              opcionales; si los dejas vacíos se usa "academia" para tipo y "Básica" para nivel.
             </p>
 
             <Button

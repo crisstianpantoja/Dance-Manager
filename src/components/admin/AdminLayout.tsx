@@ -32,7 +32,7 @@ const NAV_ITEMS = [
   { to: "/admin/alumnos", label: "Alumnos", icon: Users },
   { to: "/admin/profesores", label: "Profesores", icon: UserCircle },
   { to: "/admin/finanzas-profesores", label: "Finanzas prof.", icon: Receipt },
-  { to: "/admin/academias", label: "Academias", icon: Building2 },
+  { to: "/admin/academias", label: "Sedes", icon: Building2 },
   { to: "/admin/calendario", label: "Calendario", icon: CalendarRange },
   { to: "/admin/clases", label: "Clases", icon: Ticket },
   { to: "/admin/eventos", label: "Eventos", icon: PartyPopper },

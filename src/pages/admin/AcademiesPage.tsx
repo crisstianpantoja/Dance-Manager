@@ -44,14 +44,14 @@ export function AcademiesPage() {
   }
 
   async function eliminarAcademia(academia: Academy) {
-    if (!confirm(`¿Eliminar la academia "${academia.nombre}"?`)) return
+    if (!confirm(`¿Eliminar la sede "${academia.nombre}"?`)) return
 
     setEliminando(academia.id)
     const { error } = await supabase.from("academies").delete().eq("id", academia.id)
     setEliminando(null)
 
     if (error) {
-      alert("No se pudo eliminar la academia.")
+      alert("No se pudo eliminar la sede.")
       return
     }
 
@@ -61,22 +61,22 @@ export function AcademiesPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-text">Academias</h1>
+        <h1 className="text-xl font-bold text-text">Sedes</h1>
         <Button onClick={abrirCrear} size="sm">
           <Plus className="size-4" />
-          Nueva academia
+          Nueva sede
         </Button>
       </div>
 
       {cargando ? (
         <p className="text-sm text-text-muted">Cargando...</p>
       ) : academias.length === 0 ? (
-        <p className="text-sm text-text-muted">Aún no hay academias registradas.</p>
+        <p className="text-sm text-text-muted">Aún no hay sedes registradas.</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Academia</TableHead>
+              <TableHead>Sede</TableHead>
               <TableHead className="w-24 text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>

@@ -213,7 +213,7 @@ export function TeacherFormDialog({
           <div className="flex flex-col gap-2">
             <Label>Sedes donde trabaja</Label>
             {academias.length === 0 ? (
-              <p className="text-sm text-text-muted">Aún no hay academias registradas.</p>
+              <p className="text-sm text-text-muted">Aún no hay sedes registradas.</p>
             ) : (
               <div className="flex flex-col gap-1 rounded-control border border-white/10 p-2">
                 {academias.map((academia) => {

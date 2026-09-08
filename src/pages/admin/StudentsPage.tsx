@@ -210,7 +210,7 @@ export function StudentsPage() {
                     {alumno.nivel}
                   </Badge>
                   <Badge variant="muted">
-                    {alumno.academia_id ? academiasPorId.get(alumno.academia_id) : "Sin academia"}
+                    {alumno.academia_id ? academiasPorId.get(alumno.academia_id) : "Sin sede"}
                   </Badge>
                 </div>
                 <AccionesAlumno
@@ -229,7 +229,7 @@ export function StudentsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Alumno</TableHead>
-              <TableHead>Academia</TableHead>
+              <TableHead>Sede</TableHead>
               <TableHead>Nivel</TableHead>
               <TableHead className="w-32 text-right">Acciones</TableHead>
             </TableRow>
