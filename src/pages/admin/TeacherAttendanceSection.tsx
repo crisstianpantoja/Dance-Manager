@@ -168,7 +168,7 @@ export function TeacherAttendanceSection() {
         </div>
       )}
 
-      <div className="flex flex-col gap-3 rounded-control border border-white/10 bg-surface p-4">
+      <div className="flex flex-col gap-3 rounded-control border border-border bg-surface p-4">
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium text-text">Escanear carnet del profesor (QR)</p>
           <Button variant="outline" size="sm" onClick={() => setCamaraActiva((v) => !v)}>
@@ -209,7 +209,7 @@ export function TeacherAttendanceSection() {
             {candidatas.map((clase) => (
               <div
                 key={clase.occurrenceTeacherId}
-                className="flex items-center justify-between rounded-control border border-white/10 px-3 py-2"
+                className="flex items-center justify-between rounded-control border border-border px-3 py-2"
               >
                 <div>
                   <p className="text-sm font-medium text-text">

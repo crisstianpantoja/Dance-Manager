@@ -1,34 +1,75 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  --color-brand: #9542df;
-  --color-brand-light: #b885f0;
-  --color-brand-dark: #6a2fa3;
+  /* Oscuro (por defecto) — paleta del Manual de Marca Dance Manager 2026 */
+  --color-brand: #5b4ded;
+  --color-brand-light: #a794f9;
+  --color-brand-dark: #2a0cbd;
 
-  --color-background: #0f0d15;
-  --color-surface: #191721;
-  --color-surface-hover: #211e2c;
+  --color-background: #18143d;
+  --color-surface: #211c4e;
+  --color-surface-hover: #2a2460;
 
-  --color-text: #faf9fc;
-  --color-text-muted: #a39eba;
+  --color-text: #fafaff;
+  --color-text-muted: #a79fd6;
 
-  --color-success: #37d9a6;
-  --color-warning: #f5b841;
-  --color-error: #f05576;
+  --color-success: #1cc9a1;
+  --color-warning: #f6a21a;
+  --color-error: #ef476f;
+  --color-info: #3d7bff;
+
+  --color-border-subtle: rgb(255 255 255 / 5%);
+  --color-border: rgb(255 255 255 / 10%);
+  --color-border-strong: rgb(255 255 255 / 18%);
+
+  --color-overlay-subtle: rgb(255 255 255 / 5%);
+  --color-overlay: rgb(255 255 255 / 10%);
+  --color-overlay-strong: rgb(255 255 255 / 30%);
 
   --radius-control: 0.75rem;
 }
 
+/* Claro — mismos tokens, reasignados con la paleta clara del manual */
+:root[data-theme="light"] {
+  --color-brand: #2a0cbd;
+  --color-brand-light: #5b4ded;
+  --color-brand-dark: #18143d;
+
+  --color-background: #ede9ff;
+  --color-surface: #fafaff;
+  --color-surface-hover: #e4defb;
+
+  --color-text: #18143d;
+  --color-text-muted: #6b6690;
+
+  --color-success: #1cc9a1;
+  --color-warning: #f6a21a;
+  --color-error: #ef476f;
+  --color-info: #3d7bff;
+
+  --color-border-subtle: rgb(24 20 61 / 6%);
+  --color-border: rgb(24 20 61 / 12%);
+  --color-border-strong: rgb(24 20 61 / 22%);
+
+  --color-overlay-subtle: rgb(24 20 61 / 4%);
+  --color-overlay: rgb(24 20 61 / 8%);
+  --color-overlay-strong: rgb(24 20 61 / 18%);
+}
+
 @layer base {
   * {
-    @apply border-white/10;
+    @apply border-border;
   }
 
   html {
     color-scheme: dark;
+  }
+
+  html[data-theme="light"] {
+    color-scheme: light;
   }
 
   body {

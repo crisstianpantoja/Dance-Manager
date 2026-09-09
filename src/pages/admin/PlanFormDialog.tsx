@@ -159,7 +159,7 @@ export function PlanFormDialog({ open, onOpenChange, plan, onSaved }: PlanFormDi
             />
           </div>
 
-          <div className="flex items-center justify-between rounded-control border border-white/10 px-4 py-3">
+          <div className="flex items-center justify-between rounded-control border border-border px-4 py-3">
             <Label htmlFor="activo">Plan activo</Label>
             <Switch id="activo" checked={activo} onCheckedChange={setActivo} />
           </div>

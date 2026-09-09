@@ -17,7 +17,7 @@ function etiquetaMes(mes: string): string {
 function TooltipPersonalizado({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number; color: string }[]; label?: string }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-control border border-white/10 bg-surface px-3 py-2 text-xs shadow-xl">
+    <div className="rounded-control border border-border bg-surface px-3 py-2 text-xs shadow-xl">
       <p className="mb-1 font-semibold text-text">{label}</p>
       {payload.map((p) => (
         <p key={p.name} style={{ color: p.color }}>
@@ -58,7 +58,7 @@ export function FinancialChart({ datos }: { datos: PuntoTendenciaFinanciera[] })
           </ResponsiveContainer>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 border-t border-white/10 pt-3 text-center">
+        <div className="grid grid-cols-3 gap-3 border-t border-border pt-3 text-center">
           <div>
             <p className="text-xs text-text-muted">Ingresos</p>
             <p className="font-semibold text-success">{formatearMoneda(totales.ingresos)}</p>

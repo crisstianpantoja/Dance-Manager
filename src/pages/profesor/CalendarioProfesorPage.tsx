@@ -137,8 +137,8 @@ export function CalendarioProfesorPage() {
         <p className="text-sm text-text-muted">Cargando...</p>
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr] lg:items-start">
-          <div className="overflow-hidden rounded-control border border-white/10">
-            <div className="grid grid-cols-7 border-b border-white/10 bg-surface">
+          <div className="overflow-hidden rounded-control border border-border">
+            <div className="grid grid-cols-7 border-b border-border bg-surface">
               {DIAS_CORTOS.map((dia) => (
                 <div
                   key={dia}
@@ -153,14 +153,14 @@ export function CalendarioProfesorPage() {
                 const seleccionado = celda.fecha === diaSeleccionado
                 const items = porFecha.get(celda.fecha) ?? []
                 const punto =
-                  items.length === 0 ? null : items.some((i) => i.estado !== "cancelada") ? "bg-brand" : "bg-white/30"
+                  items.length === 0 ? null : items.some((i) => i.estado !== "cancelada") ? "bg-brand" : "bg-overlay-strong"
                 return (
                   <button
                     key={celda.fecha}
                     type="button"
                     onClick={() => setDiaSeleccionado(celda.fecha)}
                     className={cn(
-                      "flex flex-col items-center gap-1 border-b border-r border-white/5 py-2.5 transition-colors last:border-r-0",
+                      "flex flex-col items-center gap-1 border-b border-r border-border-subtle py-2.5 transition-colors last:border-r-0",
                       celda.enMes ? "bg-background" : "bg-surface/40",
                       seleccionado && "bg-brand/5",
                     )}
@@ -210,16 +210,16 @@ export function CalendarioProfesorPage() {
                         <span
                           className={cn(
                             "mt-3 size-2.5 shrink-0 rounded-full",
-                            oc.estado === "cancelada" ? "bg-white/30" : "bg-brand",
+                            oc.estado === "cancelada" ? "bg-overlay-strong" : "bg-brand",
                           )}
                         />
-                        {indice < itemsDia.length - 1 && <span className="w-px flex-1 bg-white/10" />}
+                        {indice < itemsDia.length - 1 && <span className="w-px flex-1 bg-overlay" />}
                       </div>
                       <div
                         className={cn(
                           "mb-3 flex-1 rounded-control border px-3 py-2",
                           oc.estado === "cancelada"
-                            ? "border-white/10 bg-surface/50 text-text-muted opacity-60"
+                            ? "border-border bg-surface/50 text-text-muted opacity-60"
                             : "border-brand/30 bg-brand/10 text-text",
                         )}
                       >

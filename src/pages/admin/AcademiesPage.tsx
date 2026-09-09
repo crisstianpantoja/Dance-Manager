@@ -95,7 +95,7 @@ export function AcademiesPage() {
                       <span className="font-medium text-text">{academia.nombre}</span>
                       {academia.color && (
                         <span
-                          className="size-3 rounded-full border border-white/20"
+                          className="size-3 rounded-full border border-border-strong"
                           style={{ backgroundColor: academia.color }}
                         />
                       )}

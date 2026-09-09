@@ -107,7 +107,7 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-control border border-white/10 bg-surface-hover">
+            <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-control border border-border bg-surface-hover">
               {vistaPrevia ? (
                 <img src={vistaPrevia} alt="" className="size-full object-cover" />
               ) : (

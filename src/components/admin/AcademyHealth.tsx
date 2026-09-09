@@ -43,7 +43,7 @@ export function AcademyHealth({ salud, alertaTexto }: AcademyHealthProps) {
           </p>
         )}
 
-        <div className="flex flex-col gap-1.5 border-t border-white/10 pt-3">
+        <div className="flex flex-col gap-1.5 border-t border-border pt-3">
           {METRICAS.map((m) => (
             <div key={m.key} className="flex items-center justify-between text-sm">
               <span className="text-text-muted">{m.label}</span>

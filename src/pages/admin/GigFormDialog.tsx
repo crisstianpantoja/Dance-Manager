@@ -215,7 +215,7 @@ export function GigFormDialog({ open, onOpenChange, gig, academias, onSaved }: G
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-control border border-white/10 px-4 py-3">
+          <div className="flex items-center justify-between rounded-control border border-border px-4 py-3">
             <Label htmlFor="acompanado">Con acompañante</Label>
             <Switch id="acompanado" checked={acompanado} onCheckedChange={setAcompanado} />
           </div>

@@ -62,11 +62,11 @@ function colorPuntoDia(items: AgendaItem[]): string | null {
   if (items.length === 0) return null
   if (items.some((item) => item.tipo === "clase" && item.estado !== "cancelada")) return "bg-brand"
   if (items.some((item) => item.tipo === "evento")) return "bg-warning"
-  return "bg-white/30"
+  return "bg-overlay-strong"
 }
 
 function puntoDeItem(item: AgendaItem): string {
-  if (item.estado === "cancelada") return "bg-white/30"
+  if (item.estado === "cancelada") return "bg-overlay-strong"
   if (item.tipo === "evento") return "bg-warning"
   return "bg-brand"
 }
@@ -303,7 +303,7 @@ export function ClasesPage() {
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold text-text">Clases</h1>
 
-      <div className="flex items-center gap-1 rounded-control border border-white/15 p-1">
+      <div className="flex items-center gap-1 rounded-control border border-border-strong p-1">
         {(
           [
             ["calendario", "Calendario"],
@@ -328,7 +328,7 @@ export function ClasesPage() {
       {subTab === "calendario" && (
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center rounded-control border border-white/15 p-0.5">
+            <div className="flex items-center rounded-control border border-border-strong p-0.5">
               <button
                 type="button"
                 onClick={() => setVista("mes")}
@@ -355,7 +355,7 @@ export function ClasesPage() {
               <span className="flex items-center gap-1 text-[11px] text-text-muted">
                 <span className="size-2 rounded-full bg-brand" /> Clase
                 <span className="ml-2 size-2 rounded-full bg-warning" /> Evento
-                <span className="ml-2 size-2 rounded-full bg-white/30" /> Cancelada
+                <span className="ml-2 size-2 rounded-full bg-overlay-strong" /> Cancelada
               </span>
             </div>
           </div>
@@ -373,8 +373,8 @@ export function ClasesPage() {
             <WeekGrid dias={celdas} itemsPorFecha={itemsPorFecha} onItemClick={setItemSeleccionado} />
           ) : (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr] lg:items-start">
-              <div className="overflow-hidden rounded-control border border-white/10">
-                <div className="grid grid-cols-7 border-b border-white/10 bg-surface">
+              <div className="overflow-hidden rounded-control border border-border">
+                <div className="grid grid-cols-7 border-b border-border bg-surface">
                   {DIAS_CORTOS.map((dia) => (
                     <div
                       key={dia}
@@ -394,7 +394,7 @@ export function ClasesPage() {
                         type="button"
                         onClick={() => setDiaSeleccionado(celda.fecha)}
                         className={cn(
-                          "flex flex-col items-center gap-1 border-b border-r border-white/5 py-2.5 transition-colors last:border-r-0",
+                          "flex flex-col items-center gap-1 border-b border-r border-border-subtle py-2.5 transition-colors last:border-r-0",
                           celda.enMes ? "bg-background" : "bg-surface/40",
                           seleccionado && "bg-brand/5",
                         )}
@@ -459,7 +459,7 @@ export function ClasesPage() {
                                 )}
                               />
                               {indice < lista.length - 1 && (
-                                <span className="w-px flex-1 bg-white/10" />
+                                <span className="w-px flex-1 bg-overlay" />
                               )}
                             </div>
                             <div

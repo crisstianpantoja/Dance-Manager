@@ -79,7 +79,7 @@ export function EventosPage() {
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold text-text">Eventos</h1>
 
-      <div className="flex items-center gap-1 rounded-control border border-white/15 p-1">
+      <div className="flex items-center gap-1 rounded-control border border-border-strong p-1">
         {(
           [
             ["explorar", "Explorar"],

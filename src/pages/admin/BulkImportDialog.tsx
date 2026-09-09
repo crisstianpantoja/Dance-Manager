@@ -234,11 +234,11 @@ export function BulkImportDialog({
               {conError > 0 && <span className="text-error">, {conError} con error</span>}
             </p>
 
-            <div className="max-h-64 overflow-y-auto rounded-control border border-white/10">
+            <div className="max-h-64 overflow-y-auto rounded-control border border-border">
               {resultados.map((r) => (
                 <div
                   key={r.fila}
-                  className="flex items-start gap-2 border-b border-white/5 px-3 py-2 text-sm last:border-0"
+                  className="flex items-start gap-2 border-b border-border-subtle px-3 py-2 text-sm last:border-0"
                 >
                   {r.estado === "creado" ? (
                     <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" />

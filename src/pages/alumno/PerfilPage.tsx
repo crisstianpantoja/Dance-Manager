@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 
 import { EditProfileDialog } from "@/pages/alumno/EditProfileDialog"
 import { ReportarPagoDialog } from "@/pages/alumno/ReportarPagoDialog"
+import { ThemeToggle } from "@/components/ThemeToggle"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -119,10 +120,13 @@ export function PerfilPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-text">Mi perfil</h1>
-        <Button variant="ghost" size="sm" onClick={signOut}>
-          <LogOut className="size-4" />
-          Salir
-        </Button>
+        <div className="flex items-center gap-1">
+          <ThemeToggle className="rounded-control p-2 hover:bg-surface-hover" />
+          <Button variant="ghost" size="sm" onClick={signOut}>
+            <LogOut className="size-4" />
+            Salir
+          </Button>
+        </div>
       </div>
 
       <Card className="overflow-hidden">

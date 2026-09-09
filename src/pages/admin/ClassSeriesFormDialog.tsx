@@ -324,7 +324,7 @@ export function ClassSeriesFormDialog({
                 Aún no hay profesores registrados.
               </p>
             ) : (
-              <div className="flex flex-col gap-1 rounded-control border border-white/10 p-2">
+              <div className="flex flex-col gap-1 rounded-control border border-border p-2">
                 {profesores.map((profesor) => {
                   const seleccionado = profesorIds.includes(profesor.id)
                   return (

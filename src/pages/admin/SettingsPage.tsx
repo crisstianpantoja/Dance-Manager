@@ -75,7 +75,7 @@ export function SettingsPage() {
         <CardContent className="py-6">
           <form onSubmit={handleSubmit} className="flex max-w-md flex-col gap-4">
             <div className="flex items-center gap-4">
-              <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-control border border-white/10 bg-surface-hover">
+              <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-control border border-border bg-surface-hover">
                 {vistaPrevia ? (
                   <img src={vistaPrevia} alt="Logo" className="size-full object-contain" />
                 ) : (
@@ -115,7 +115,7 @@ export function SettingsPage() {
                   type="color"
                   value={colorPrimario}
                   onChange={(e) => setColorPrimario(e.target.value.toUpperCase())}
-                  className="h-11 w-14 cursor-pointer rounded-control border border-white/15 bg-surface"
+                  className="h-11 w-14 cursor-pointer rounded-control border border-border-strong bg-surface"
                 />
                 <Input
                   value={colorPrimario}

@@ -21,6 +21,7 @@ import {
 import { useState } from "react"
 import { NavLink, Outlet } from "react-router-dom"
 
+import { ThemeToggle } from "@/components/ThemeToggle"
 import { useAuth } from "@/context/AuthContext"
 import { useAppSettings } from "@/hooks/useAppSettings"
 import { usePagosPendientes } from "@/hooks/usePagosPendientes"
@@ -53,7 +54,7 @@ export function AdminLayout() {
   return (
     <div className="flex min-h-dvh">
       {/* Sidebar de escritorio */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-white/10 bg-gradient-to-b from-surface to-surface/90 md:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-gradient-to-b from-surface to-surface/90 md:flex">
         <div className="flex items-start justify-between p-6">
           <div>
             {ajustes.logo_url ? (
@@ -65,13 +66,16 @@ export function AdminLayout() {
             )}
             <p className="text-xs text-text-muted">{profile?.nombre}</p>
           </div>
-          <button
-            onClick={signOut}
-            title="Cerrar sesión"
-            className="text-text-muted transition-colors hover:text-text"
-          >
-            <LogOut className="size-5" />
-          </button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <button
+              onClick={signOut}
+              title="Cerrar sesión"
+              className="text-text-muted transition-colors hover:text-text"
+            >
+              <LogOut className="size-5" />
+            </button>
+          </div>
         </div>
 
         <nav className="flex-1 space-y-1 px-4">
@@ -112,7 +116,7 @@ export function AdminLayout() {
       </main>
 
       {/* Nav inferior de celular */}
-      <nav className="fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-2xl border border-white/10 bg-surface/95 p-2 shadow-2xl backdrop-blur-xl md:hidden">
+      <nav className="fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-2xl border border-border bg-surface/95 p-2 shadow-2xl backdrop-blur-xl md:hidden">
         {NAV_ITEMS.slice(0, 3).map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
@@ -162,7 +166,7 @@ export function AdminLayout() {
                     "relative flex flex-col items-center justify-center rounded-2xl border p-4 transition-colors",
                     isActive
                       ? "border-brand bg-brand/5 text-brand"
-                      : "border-white/10 bg-background text-text-muted",
+                      : "border-border bg-background text-text-muted",
                   )
                 }
               >
@@ -177,13 +181,16 @@ export function AdminLayout() {
             ))}
           </div>
 
-          <button
-            onClick={signOut}
-            className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-background p-4 font-medium text-text-muted"
-          >
-            <LogOut className="size-5" />
-            Cerrar sesión
-          </button>
+          <div className="mt-8 flex gap-3">
+            <ThemeToggle className="flex flex-1 items-center justify-center rounded-2xl border border-border bg-background p-4 font-medium text-text-muted" />
+            <button
+              onClick={signOut}
+              className="flex flex-[2] items-center justify-center gap-2 rounded-2xl border border-border bg-background p-4 font-medium text-text-muted"
+            >
+              <LogOut className="size-5" />
+              Cerrar sesión
+            </button>
+          </div>
           <p className="mt-4 text-center text-[11px] text-text-muted/70">
             Hecho con Dance Manager
           </p>

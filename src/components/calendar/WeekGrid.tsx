@@ -10,7 +10,7 @@ interface WeekGridProps {
 
 export function claseDeItem(item: AgendaItem) {
   if (item.estado === "cancelada") {
-    return "border-white/10 bg-white/5 text-text-muted line-through"
+    return "border-border bg-overlay-subtle text-text-muted line-through"
   }
   if (item.tipo === "evento") {
     return "border-warning/30 bg-warning/10 text-warning"
@@ -30,7 +30,7 @@ export function WeekGrid({ dias, itemsPorFecha, onItemClick }: WeekGridProps) {
           <div key={dia.fecha} className="flex flex-col gap-2">
             <div
               className={cn(
-                "flex items-center justify-between gap-2 rounded-control border border-white/10 px-2 py-1.5 sm:flex-col sm:items-center sm:gap-0.5",
+                "flex items-center justify-between gap-2 rounded-control border border-border px-2 py-1.5 sm:flex-col sm:items-center sm:gap-0.5",
                 dia.esHoy && "border-brand/40 bg-brand/10",
               )}
             >

@@ -89,7 +89,7 @@ export function AdminAssistantWidget() {
                   key={sugerencia}
                   type="button"
                   onClick={() => enviar(sugerencia)}
-                  className="rounded-full border border-white/15 px-3 py-1 text-xs text-text-muted transition-colors hover:border-brand/40 hover:text-text"
+                  className="rounded-full border border-border-strong px-3 py-1 text-xs text-text-muted transition-colors hover:border-brand/40 hover:text-text"
                 >
                   {sugerencia}
                 </button>
@@ -105,7 +105,7 @@ export function AdminAssistantWidget() {
                 <p className="self-end rounded-control bg-brand/10 px-3 py-1.5 text-sm text-text">
                   {turno.pregunta}
                 </p>
-                <p className="whitespace-pre-line rounded-control border border-white/10 px-3 py-2 text-sm text-text-muted">
+                <p className="whitespace-pre-line rounded-control border border-border px-3 py-2 text-sm text-text-muted">
                   {turno.respuesta}
                 </p>
               </div>

@@ -202,7 +202,7 @@ export function TeacherFormDialog({
             />
           </div>
 
-          <div className="flex items-center justify-between rounded-control border border-white/10 px-3 py-2">
+          <div className="flex items-center justify-between rounded-control border border-border px-3 py-2">
             <div>
               <Label htmlFor="activo">Activo</Label>
               <p className="text-xs text-text-muted">Aparece así en su carnet digital.</p>
@@ -215,7 +215,7 @@ export function TeacherFormDialog({
             {academias.length === 0 ? (
               <p className="text-sm text-text-muted">Aún no hay sedes registradas.</p>
             ) : (
-              <div className="flex flex-col gap-1 rounded-control border border-white/10 p-2">
+              <div className="flex flex-col gap-1 rounded-control border border-border p-2">
                 {academias.map((academia) => {
                   const seleccionada = academiaIds.includes(academia.id)
                   return (

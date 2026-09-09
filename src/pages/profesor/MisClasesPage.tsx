@@ -103,7 +103,7 @@ export function MisClasesPage() {
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold text-text">Mis clases</h1>
 
-      <div className="flex gap-1 self-start rounded-control border border-white/10 bg-surface p-1">
+      <div className="flex gap-1 self-start rounded-control border border-border bg-surface p-1">
         {PESTANAS.map((p) => (
           <button
             key={p.value}

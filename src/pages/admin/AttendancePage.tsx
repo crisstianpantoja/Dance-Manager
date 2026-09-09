@@ -215,7 +215,7 @@ export function AttendancePage() {
         )}
       </div>
 
-      <div className="flex gap-1 self-start rounded-control border border-white/10 bg-surface p-1">
+      <div className="flex gap-1 self-start rounded-control border border-border bg-surface p-1">
         {(["alumnos", "profesores"] as const).map((valor) => (
           <button
             key={valor}
@@ -254,7 +254,7 @@ export function AttendancePage() {
         </p>
       )}
 
-      <div className="flex flex-col gap-3 rounded-control border border-white/10 bg-surface p-4">
+      <div className="flex flex-col gap-3 rounded-control border border-border bg-surface p-4">
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium text-text">Escanear carnet (QR)</p>
           <Button

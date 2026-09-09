@@ -39,7 +39,7 @@ export function EvaluacionesPage() {
             <>
               <CompetencyRadar evaluacion={ultimaEvaluacion} />
               {notasEvaluaciones.length > 0 && (
-                <div className="flex flex-col gap-3 border-t border-white/10 pt-4">
+                <div className="flex flex-col gap-3 border-t border-border pt-4">
                   <p className="text-sm font-medium text-text">Notas del profesor</p>
                   {notasEvaluaciones.map((evaluacion) => (
                     <div key={evaluacion.id} className="flex flex-col gap-1">

@@ -128,7 +128,7 @@ export function AcademyFormDialog({
                 type="color"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
-                className="h-11 w-14 cursor-pointer rounded-control border border-white/15 bg-surface"
+                className="h-11 w-14 cursor-pointer rounded-control border border-border-strong bg-surface"
               />
               <Input value={color} onChange={(e) => setColor(e.target.value)} />
             </div>

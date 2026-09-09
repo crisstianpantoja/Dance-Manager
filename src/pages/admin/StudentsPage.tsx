@@ -180,7 +180,7 @@ export function StudentsPage() {
             </Select>
           )}
 
-          <div className="flex items-center rounded-control border border-white/15 p-0.5">
+          <div className="flex items-center rounded-control border border-border-strong p-0.5">
             <button
               type="button"
               title="Vista de lista"
@@ -220,7 +220,7 @@ export function StudentsPage() {
       {cargando ? (
         <p className="text-sm text-text-muted">Cargando...</p>
       ) : alumnos.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-control border border-dashed border-white/15 py-16 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-control border border-dashed border-border-strong py-16 text-center">
           <p className="text-sm text-text-muted">Aún no hay alumnos registrados.</p>
           <Button onClick={abrirCrear} size="sm" variant="outline">
             <Plus className="size-4" />

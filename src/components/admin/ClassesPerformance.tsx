@@ -78,7 +78,7 @@ export function ClassesPerformance({ clases }: { clases: RendimientoClase[] }) {
         </div>
 
         {mejores.length > 0 && (
-          <div className="flex flex-col gap-1.5 border-t border-white/10 pt-3">
+          <div className="flex flex-col gap-1.5 border-t border-border pt-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">Mayor asistencia</p>
             {mejores.map((c) => (
               <div key={c.serie_id} className="flex items-center justify-between text-sm">
@@ -90,7 +90,7 @@ export function ClassesPerformance({ clases }: { clases: RendimientoClase[] }) {
         )}
 
         {peores.length > 0 && (
-          <div className="flex flex-col gap-1.5 border-t border-white/10 pt-3">
+          <div className="flex flex-col gap-1.5 border-t border-border pt-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">Baja asistencia</p>
             {peores.map((c) => (
               <div key={c.serie_id} className="flex items-center justify-between text-sm">

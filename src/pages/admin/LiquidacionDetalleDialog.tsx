@@ -117,7 +117,7 @@ export function LiquidacionDetalleDialog({
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between rounded-control border border-white/10 px-4 py-3">
+          <div className="flex items-center justify-between rounded-control border border-border px-4 py-3">
             <div>
               <p className="text-xs text-text-muted">Total</p>
               <p className="text-xl font-bold text-text">{formatearMoneda(liquidacion.total_amount)}</p>
@@ -160,7 +160,7 @@ export function LiquidacionDetalleDialog({
           )}
 
           {mostrarPago && liquidacion.estado !== "pagada" && (
-            <form onSubmit={handleMarcarPagada} className="flex flex-col gap-3 border-t border-white/10 pt-4">
+            <form onSubmit={handleMarcarPagada} className="flex flex-col gap-3 border-t border-border pt-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="fechaPago">Fecha de pago</Label>

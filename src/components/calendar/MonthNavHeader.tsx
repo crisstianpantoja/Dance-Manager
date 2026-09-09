@@ -17,7 +17,7 @@ export function MonthNavHeader({ etiqueta, onAnterior, onSiguiente, onHoy }: Mon
       <Button variant="outline" size="sm" onClick={onHoy}>
         Hoy
       </Button>
-      <div className="flex items-center rounded-control border border-white/15">
+      <div className="flex items-center rounded-control border border-border-strong">
         <button
           type="button"
           onClick={onAnterior}

@@ -100,7 +100,7 @@ export function TeacherAgreementDialog({
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-white/10 pt-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-border pt-4">
             <p className="text-sm font-medium text-text">Definir nueva tarifa</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
@@ -148,7 +148,7 @@ export function TeacherAgreementDialog({
             )}
           </form>
 
-          <div className="flex flex-col gap-2 border-t border-white/10 pt-4">
+          <div className="flex flex-col gap-2 border-t border-border pt-4">
             <p className="text-sm font-medium text-text">Histórico</p>
             {cargando ? (
               <p className="text-sm text-text-muted">Cargando...</p>
@@ -158,7 +158,7 @@ export function TeacherAgreementDialog({
               acuerdos.map((a) => (
                 <div
                   key={a.id}
-                  className="flex items-center justify-between rounded-control border border-white/10 px-3 py-2 text-sm"
+                  className="flex items-center justify-between rounded-control border border-border px-3 py-2 text-sm"
                 >
                   <span className="text-text">{formatearMoneda(a.amount_per_class)}</span>
                   <span className="text-text-muted">

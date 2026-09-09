@@ -59,7 +59,7 @@ export function TeacherFinanceOverview({ finanzas }: { finanzas: FinanzasProfeso
             </div>
 
             {pendientes.length > 0 && (
-              <div className="flex flex-col gap-2 border-t border-white/10 pt-3">
+              <div className="flex flex-col gap-2 border-t border-border pt-3">
                 {pendientes.map((f) => (
                   <div key={f.profesor_id} className="flex items-center justify-between text-sm">
                     <div>

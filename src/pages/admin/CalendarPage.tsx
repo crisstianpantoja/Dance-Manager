@@ -225,7 +225,7 @@ export function CalendarPage() {
           <Button variant="outline" size="sm" onClick={irAHoy}>
             Hoy
           </Button>
-          <div className="flex items-center rounded-control border border-white/15">
+          <div className="flex items-center rounded-control border border-border-strong">
             <button
               type="button"
               onClick={irAMesAnterior}
@@ -252,8 +252,8 @@ export function CalendarPage() {
       {cargando ? (
         <p className="text-sm text-text-muted">Cargando...</p>
       ) : (
-        <div className="overflow-hidden rounded-control border border-white/10">
-          <div className="grid grid-cols-7 border-b border-white/10 bg-surface">
+        <div className="overflow-hidden rounded-control border border-border">
+          <div className="grid grid-cols-7 border-b border-border bg-surface">
             {DIAS_CORTOS.map((dia) => (
               <div
                 key={dia}
@@ -276,7 +276,7 @@ export function CalendarPage() {
                   type="button"
                   onClick={() => clasesDelDia.length > 0 && setDiaSeleccionado(celda.fecha)}
                   className={cn(
-                    "flex min-h-24 flex-col gap-1 border-b border-r border-white/5 p-1.5 text-left transition-colors last:border-r-0 sm:min-h-28",
+                    "flex min-h-24 flex-col gap-1 border-b border-r border-border-subtle p-1.5 text-left transition-colors last:border-r-0 sm:min-h-28",
                     celda.enMes ? "bg-background" : "bg-surface/40",
                     clasesDelDia.length > 0 && "cursor-pointer hover:bg-surface-hover",
                   )}
@@ -301,7 +301,7 @@ export function CalendarPage() {
                         className={cn(
                           "truncate rounded px-1.5 py-0.5 text-[10px] font-medium",
                           oc.estado === "cancelada"
-                            ? "bg-white/5 text-text-muted line-through"
+                            ? "bg-overlay-subtle text-text-muted line-through"
                             : "bg-brand/15 text-brand-light",
                         )}
                       >
@@ -336,7 +336,7 @@ export function CalendarPage() {
               <div
                 key={oc.id}
                 className={cn(
-                  "flex flex-col gap-2 rounded-control border border-white/10 bg-surface px-4 py-3",
+                  "flex flex-col gap-2 rounded-control border border-border bg-surface px-4 py-3",
                   oc.estado === "cancelada" && "opacity-90",
                 )}
               >
@@ -372,7 +372,7 @@ export function CalendarPage() {
                 </div>
 
                 {oc.estado === "cancelada" && oc.profesores.length > 0 && (
-                  <div className="flex flex-col gap-1 border-t border-white/10 pt-2">
+                  <div className="flex flex-col gap-1 border-t border-border pt-2">
                     {oc.profesores.map((p) => (
                       <div key={p.profesor_id} className="flex items-center justify-between text-xs">
                         <span className="text-text-muted">

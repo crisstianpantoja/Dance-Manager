@@ -1,6 +1,7 @@
 import { LogOut } from "lucide-react"
 import { NavLink, Outlet } from "react-router-dom"
 
+import { ThemeToggle } from "@/components/ThemeToggle"
 import { useAuth } from "@/context/AuthContext"
 import { useAppSettings } from "@/hooks/useAppSettings"
 import { cn } from "@/lib/utils"
@@ -20,7 +21,7 @@ export function ProfesorLayout() {
   return (
     <div className="flex min-h-dvh">
       {/* Sidebar de escritorio */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-white/10 bg-gradient-to-b from-surface to-surface/90 md:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-gradient-to-b from-surface to-surface/90 md:flex">
         <div className="flex items-start justify-between p-6">
           <div>
             {ajustes.logo_url ? (
@@ -32,13 +33,16 @@ export function ProfesorLayout() {
             )}
             <p className="text-xs text-text-muted">{profile?.nombre}</p>
           </div>
-          <button
-            onClick={signOut}
-            title="Cerrar sesión"
-            className="text-text-muted transition-colors hover:text-text"
-          >
-            <LogOut className="size-5" />
-          </button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <button
+              onClick={signOut}
+              title="Cerrar sesión"
+              className="text-text-muted transition-colors hover:text-text"
+            >
+              <LogOut className="size-5" />
+            </button>
+          </div>
         </div>
 
         <nav className="flex-1 space-y-1 px-4">
@@ -65,7 +69,7 @@ export function ProfesorLayout() {
 
       <div className="flex min-h-dvh flex-1 flex-col">
         {/* Encabezado + pestañas de celular */}
-        <header className="sticky top-0 z-10 border-b border-white/10 bg-background/80 backdrop-blur-xl md:hidden">
+        <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-xl md:hidden">
           <div className="flex items-center justify-between px-4 py-3">
             <div>
               {ajustes.logo_url ? (
@@ -75,13 +79,16 @@ export function ProfesorLayout() {
               )}
               <p className="text-xs text-text-muted">{profile?.nombre}</p>
             </div>
-            <button
-              onClick={signOut}
-              className="flex items-center gap-1.5 rounded-control px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-hover hover:text-text"
-            >
-              <LogOut className="size-4" />
-              Salir
-            </button>
+            <div className="flex items-center gap-1">
+              <ThemeToggle className="rounded-control p-2 hover:bg-surface-hover" />
+              <button
+                onClick={signOut}
+                className="flex items-center gap-1.5 rounded-control px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-hover hover:text-text"
+              >
+                <LogOut className="size-4" />
+                Salir
+              </button>
+            </div>
           </div>
 
           <nav className="flex gap-1 overflow-x-auto px-4 pb-2">
