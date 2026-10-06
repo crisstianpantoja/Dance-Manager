@@ -2,6 +2,7 @@ import { LogOut } from "lucide-react"
 import { NavLink, Outlet } from "react-router-dom"
 
 import { ThemeToggle } from "@/components/ThemeToggle"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/context/AuthContext"
 import { useAppSettings } from "@/hooks/useAppSettings"
 import { cn } from "@/lib/utils"
@@ -22,8 +23,8 @@ export function ProfesorLayout() {
     <div className="flex min-h-dvh">
       {/* Sidebar de escritorio */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-gradient-to-b from-surface to-surface/90 md:flex">
-        <div className="flex items-start justify-between p-6">
-          <div>
+        <div className="p-6">
+          <div className="mb-5">
             {ajustes.logo_url ? (
               <img src={ajustes.logo_url} alt={ajustes.nombre_app} className="h-9 w-auto object-contain" />
             ) : (
@@ -31,17 +32,28 @@ export function ProfesorLayout() {
                 Dance<span className="text-brand">M</span>anager
               </p>
             )}
-            <p className="text-xs text-text-muted">{profile?.nombre}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <button
-              onClick={signOut}
-              title="Cerrar sesión"
-              className="text-text-muted transition-colors hover:text-text"
-            >
-              <LogOut className="size-5" />
-            </button>
+
+          <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface-hover/60 p-3">
+            <Avatar className="size-10 shrink-0">
+              <AvatarFallback className="bg-brand/15 text-sm font-semibold text-brand">
+                {profile?.nombre?.slice(0, 2).toUpperCase() ?? "PR"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-text">{profile?.nombre}</p>
+              <p className="truncate text-xs text-text-muted">Profesor</p>
+            </div>
+            <div className="flex items-center gap-1">
+              <ThemeToggle className="rounded-control p-1.5 hover:bg-surface" />
+              <button
+                onClick={signOut}
+                title="Cerrar sesión"
+                className="rounded-control p-1.5 text-text-muted transition-colors hover:bg-surface hover:text-text"
+              >
+                <LogOut className="size-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -71,13 +83,20 @@ export function ProfesorLayout() {
         {/* Encabezado + pestañas de celular */}
         <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-xl md:hidden">
           <div className="flex items-center justify-between px-4 py-3">
-            <div>
-              {ajustes.logo_url ? (
-                <img src={ajustes.logo_url} alt={ajustes.nombre_app} className="h-7 w-auto object-contain" />
-              ) : (
-                <p className="text-lg font-bold leading-none text-text">{ajustes.nombre_app}</p>
-              )}
-              <p className="text-xs text-text-muted">{profile?.nombre}</p>
+            <div className="flex items-center gap-2.5">
+              <Avatar className="size-8 shrink-0">
+                <AvatarFallback className="bg-brand/15 text-xs font-semibold text-brand">
+                  {profile?.nombre?.slice(0, 2).toUpperCase() ?? "PR"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                {ajustes.logo_url ? (
+                  <img src={ajustes.logo_url} alt={ajustes.nombre_app} className="h-6 w-auto object-contain" />
+                ) : (
+                  <p className="truncate text-sm font-bold leading-none text-text">{ajustes.nombre_app}</p>
+                )}
+                <p className="truncate text-xs text-text-muted">{profile?.nombre}</p>
+              </div>
             </div>
             <div className="flex items-center gap-1">
               <ThemeToggle className="rounded-control p-2 hover:bg-surface-hover" />
