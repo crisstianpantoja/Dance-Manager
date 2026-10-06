@@ -36,7 +36,7 @@ export function StudentsOverview({
             <div className="h-10 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={evolucion}>
-                  <Line type="monotone" dataKey="total" stroke="#9542df" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="total" stroke="var(--color-brand)" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>

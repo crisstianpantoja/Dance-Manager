@@ -49,11 +49,11 @@ export function FinancialChart({ datos }: { datos: PuntoTendenciaFinanciera[] })
         <div className="h-56 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={datosGrafico} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-              <XAxis dataKey="mes" tick={{ fill: "#a39eba", fontSize: 12 }} axisLine={false} tickLine={false} />
+              <CartesianGrid stroke="var(--color-border-subtle)" vertical={false} />
+              <XAxis dataKey="mes" tick={{ fill: "var(--color-text-muted)", fontSize: 12 }} axisLine={false} tickLine={false} />
               <Tooltip content={<TooltipPersonalizado />} />
-              <Line type="monotone" dataKey="Ingresos" stroke="#37d9a6" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="Gastos" stroke="#f05576" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="Ingresos" stroke="var(--color-success)" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="Gastos" stroke="var(--color-error)" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>

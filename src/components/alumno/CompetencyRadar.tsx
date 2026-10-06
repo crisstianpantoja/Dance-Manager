@@ -25,13 +25,13 @@ export function CompetencyRadar({ evaluacion }: CompetencyRadarProps) {
     <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart data={datos} outerRadius="75%">
-          <PolarGrid stroke="rgba(255,255,255,0.15)" />
-          <PolarAngleAxis dataKey="eje" tick={{ fill: "#a39eba", fontSize: 12 }} />
+          <PolarGrid stroke="var(--color-border)" />
+          <PolarAngleAxis dataKey="eje" tick={{ fill: "var(--color-text-muted)", fontSize: 12 }} />
           <PolarRadiusAxis domain={[0, 10]} tick={false} axisLine={false} />
           <Radar
             dataKey="valor"
-            stroke="#9542df"
-            fill="#9542df"
+            stroke="var(--color-brand)"
+            fill="var(--color-brand)"
             fillOpacity={0.35}
             strokeWidth={2}
           />
