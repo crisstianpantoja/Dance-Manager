@@ -13,6 +13,7 @@ import { FinancialChart } from "@/components/admin/FinancialChart"
 import { MetricCard } from "@/components/admin/MetricCard"
 import { RetentionOverview } from "@/components/admin/RetentionOverview"
 import { StudentsOverview } from "@/components/admin/StudentsOverview"
+import { TeacherActivityWidget } from "@/components/admin/TeacherActivityWidget"
 import { TeacherFinanceOverview } from "@/components/admin/TeacherFinanceOverview"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -46,6 +47,7 @@ import { formatearFecha, formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import type { Academy } from "@/types/academy"
 import type { EventoDM } from "@/types/event"
+import type { Teacher } from "@/types/teacher"
 
 const TODAS_LAS_SEDES = "todas"
 const SIN_SEDE = "sin-sede"
@@ -108,6 +110,7 @@ export function DashboardPage() {
   const [evolucionAlumnos, setEvolucionAlumnos] = useState<PuntoEvolucionAlumnos[]>([])
   const [rendimientoClases, setRendimientoClases] = useState<RendimientoClase[]>([])
   const [finanzasProfesores, setFinanzasProfesores] = useState<FinanzasProfesorResumen[]>([])
+  const [profesores, setProfesores] = useState<Teacher[]>([])
 
   useEffect(() => {
     async function cargar() {
@@ -139,7 +142,7 @@ export function DashboardPage() {
         cargarEvolucionAlumnos(academiaIdRpc, 6),
         cargarRendimientoClases(academiaIdRpc, desde, hasta),
         cargarFinanzasProfesoresResumen(academiaIdRpc, ahora.getFullYear(), ahora.getMonth() + 1),
-        supabase.from("teachers").select("id, nombre"),
+        supabase.from("teachers").select("id, nombre, documento, contacto, rol_interno, foto, activo"),
         supabase
           .from("class_occurrences")
           .select(
@@ -165,6 +168,7 @@ export function DashboardPage() {
       setEvolucionAlumnos(evolucionData)
       setRendimientoClases(rendimientoData)
       setFinanzasProfesores(finanzasData)
+      setProfesores((teachersData as Teacher[]) ?? [])
       setProximosEventos((eventos as EventoDM[]) ?? [])
 
       const academiasPorId = new Map(listaAcademias.map((a) => [a.id, a.nombre]))
@@ -369,6 +373,10 @@ export function DashboardPage() {
         <ClassesPerformance clases={rendimientoClases} />
         <TeacherFinanceOverview finanzas={finanzasProfesores} />
       </div>
+
+      {profesores.length > 0 && (
+        <TeacherActivityWidget finanzas={finanzasProfesores} profesores={profesores} />
+      )}
 
       <div className="flex flex-col gap-3">
         <h2 className="flex items-center gap-2 font-semibold text-text">
