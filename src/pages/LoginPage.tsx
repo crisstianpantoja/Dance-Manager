@@ -38,6 +38,8 @@ export function LoginPage() {
     return <Navigate to={destino} replace />
   }
 
+  const mensajeExito = (location.state as { mensaje?: string } | null)?.mensaje ?? null
+
   async function handleSubmit(evento: FormEvent) {
     evento.preventDefault()
     setError(null)
@@ -73,6 +75,12 @@ export function LoginPage() {
         <Card>
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              {mensajeExito && (
+                <p className="rounded-control bg-success/10 px-3 py-2 text-sm text-success">
+                  {mensajeExito}
+                </p>
+              )}
+
               {mostrarCodigo ? (
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="codigoAcademia">Código de academia</Label>
@@ -138,6 +146,13 @@ export function LoginPage() {
                 className="text-center text-sm text-text-muted transition-colors hover:text-brand-light"
               >
                 ¿Olvidaste tu contraseña?
+              </Link>
+
+              <Link
+                to="/registro"
+                className="text-center text-sm text-text-muted transition-colors hover:text-brand-light"
+              >
+                ¿Primera vez aquí? Crea tu academia
               </Link>
             </form>
           </CardContent>

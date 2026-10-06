@@ -31,6 +31,7 @@ import { MiProgresoPage } from "@/pages/alumno/MiProgresoPage"
 import { PerfilPage } from "@/pages/alumno/PerfilPage"
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage"
 import { LoginPage } from "@/pages/LoginPage"
+import { SignupPage } from "@/pages/SignupPage"
 import { CalendarioProfesorPage } from "@/pages/profesor/CalendarioProfesorPage"
 import { FinanzasProfesorPage } from "@/pages/profesor/FinanzasProfesorPage"
 import { InicioProfesorPage } from "@/pages/profesor/InicioProfesorPage"
@@ -57,6 +58,7 @@ function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/registro" element={<SignupPage />} />
         <Route path="/olvide-password" element={<ForgotPasswordPage />} />
         <Route path="/actualizar-password" element={<UpdatePasswordPage />} />
 
