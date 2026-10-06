@@ -2,6 +2,7 @@ import { CalendarDays, Home, LineChart, LogOut, PartyPopper, User, Wallet } from
 import { NavLink, Outlet } from "react-router-dom"
 
 import { ThemeToggle } from "@/components/ThemeToggle"
+import { AppNavList, type AppNavGroup } from "@/components/layout/AppNavList"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/context/AuthContext"
 import { useAppSettings } from "@/hooks/useAppSettings"
@@ -15,6 +16,8 @@ const TABS = [
   { to: "/alumno/progreso", label: "Progreso", icon: LineChart },
   { to: "/alumno/perfil", label: "Perfil", icon: User },
 ]
+
+const NAV_GROUPS: AppNavGroup[] = [{ items: TABS }]
 
 export function AlumnoLayout() {
   const { profile, signOut } = useAuth()
@@ -58,25 +61,9 @@ export function AlumnoLayout() {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 px-4">
-          {TABS.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 rounded-control px-4 py-2.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-brand text-white shadow-md shadow-brand/20"
-                    : "text-text-muted hover:bg-surface-hover hover:text-text",
-                )
-              }
-            >
-              <Icon className="size-5" />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
+        <div className="flex-1 overflow-y-auto">
+          <AppNavList groups={NAV_GROUPS} />
+        </div>
 
         <p className="px-6 py-4 text-center text-[11px] text-text-muted/70">Hecho con Dance Manager</p>
       </aside>

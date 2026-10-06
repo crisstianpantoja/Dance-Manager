@@ -1,19 +1,22 @@
-import { LogOut } from "lucide-react"
+import { CalendarRange, Home, LogOut, Receipt, Ticket, Wallet } from "lucide-react"
 import { NavLink, Outlet } from "react-router-dom"
 
 import { ThemeToggle } from "@/components/ThemeToggle"
+import { AppNavList, type AppNavGroup } from "@/components/layout/AppNavList"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/context/AuthContext"
 import { useAppSettings } from "@/hooks/useAppSettings"
 import { cn } from "@/lib/utils"
 
 const TABS = [
-  { to: "/profesor/inicio", label: "Inicio" },
-  { to: "/profesor/calendario", label: "Calendario" },
-  { to: "/profesor/clases", label: "Mis clases" },
-  { to: "/profesor/finanzas", label: "Finanzas" },
-  { to: "/profesor/carnet", label: "Carnet" },
+  { to: "/profesor/inicio", label: "Inicio", icon: Home },
+  { to: "/profesor/calendario", label: "Calendario", icon: CalendarRange },
+  { to: "/profesor/clases", label: "Mis clases", icon: Ticket },
+  { to: "/profesor/finanzas", label: "Finanzas", icon: Receipt },
+  { to: "/profesor/carnet", label: "Carnet", icon: Wallet },
 ]
+
+const NAV_GROUPS: AppNavGroup[] = [{ items: TABS }]
 
 export function ProfesorLayout() {
   const { profile, signOut } = useAuth()
@@ -57,24 +60,9 @@ export function ProfesorLayout() {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 px-4">
-          {TABS.map((tab) => (
-            <NavLink
-              key={tab.to}
-              to={tab.to}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center rounded-control px-4 py-2.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-brand text-white shadow-md shadow-brand/20"
-                    : "text-text-muted hover:bg-surface-hover hover:text-text",
-                )
-              }
-            >
-              {tab.label}
-            </NavLink>
-          ))}
-        </nav>
+        <div className="flex-1 overflow-y-auto">
+          <AppNavList groups={NAV_GROUPS} />
+        </div>
 
         <p className="px-6 py-4 text-center text-[11px] text-text-muted/70">Hecho con Dance Manager</p>
       </aside>
@@ -117,13 +105,14 @@ export function ProfesorLayout() {
                 to={tab.to}
                 className={({ isActive }) =>
                   cn(
-                    "whitespace-nowrap rounded-control px-4 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-1.5 whitespace-nowrap rounded-control px-4 py-2 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-brand text-white shadow-md shadow-brand/20"
                       : "text-text-muted hover:bg-surface-hover hover:text-text",
                   )
                 }
               >
+                <tab.icon className="size-4" />
                 {tab.label}
               </NavLink>
             ))}

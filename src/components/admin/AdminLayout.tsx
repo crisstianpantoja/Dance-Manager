@@ -26,31 +26,59 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/context/AuthContext"
 import { useAppSettings } from "@/hooks/useAppSettings"
 import { usePagosPendientes } from "@/hooks/usePagosPendientes"
+import { AppNavList, type AppNavGroup } from "@/components/layout/AppNavList"
 import { cn } from "@/lib/utils"
 
-const NAV_ITEMS = [
+const NAV_PRINCIPAL = [
   { to: "/admin/inicio", label: "Inicio", icon: Home },
   { to: "/admin/asistencia", label: "Asistencia", icon: QrCode },
+]
+
+const NAV_ACADEMIA = [
   { to: "/admin/alumnos", label: "Alumnos", icon: Users },
   { to: "/admin/profesores", label: "Profesores", icon: UserCircle },
   { to: "/admin/finanzas-profesores", label: "Finanzas prof.", icon: Receipt },
   { to: "/admin/academias", label: "Sedes", icon: Building2 },
+  { to: "/admin/retencion", label: "Retención", icon: AlertTriangle },
+]
+
+const NAV_PROGRAMACION = [
   { to: "/admin/calendario", label: "Calendario", icon: CalendarRange },
   { to: "/admin/clases", label: "Clases", icon: Ticket },
   { to: "/admin/eventos", label: "Eventos", icon: PartyPopper },
+]
+
+const NAV_FINANZAS = [
   { to: "/admin/planes", label: "Planes", icon: Tag },
   { to: "/admin/pagos", label: "Pagos", icon: CreditCard },
   { to: "/admin/gastos", label: "Gastos", icon: Wallet },
   { to: "/admin/contratos", label: "Contratos", icon: Music },
-  { to: "/admin/retencion", label: "Retención", icon: AlertTriangle },
-  { to: "/admin/ajustes", label: "Ajustes", icon: Settings },
 ]
+
+const NAV_AJUSTES = [{ to: "/admin/ajustes", label: "Ajustes", icon: Settings }]
+
+const NAV_ITEMS = [...NAV_PRINCIPAL, ...NAV_ACADEMIA, ...NAV_PROGRAMACION, ...NAV_FINANZAS, ...NAV_AJUSTES]
 
 export function AdminLayout() {
   const { profile, signOut } = useAuth()
   const [menuAbierto, setMenuAbierto] = useState(false)
   const ajustes = useAppSettings(profile?.organization_id)
   const pagosPendientes = usePagosPendientes()
+
+  const navGroups: AppNavGroup[] = [
+    { items: NAV_PRINCIPAL },
+    { heading: "Academia", items: NAV_ACADEMIA },
+    { heading: "Programación", items: NAV_PROGRAMACION },
+    {
+      heading: "Finanzas",
+      items: NAV_FINANZAS.map((item) =>
+        item.to === "/admin/pagos" && pagosPendientes > 0
+          ? { ...item, badge: pagosPendientes }
+          : item,
+      ),
+    },
+    { items: NAV_AJUSTES },
+  ]
 
   return (
     <div className="flex min-h-dvh">
@@ -90,30 +118,9 @@ export function AdminLayout() {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 px-4">
-          {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 rounded-control px-4 py-2.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-brand text-white shadow-md shadow-brand/20"
-                    : "text-text-muted hover:bg-surface-hover hover:text-text",
-                )
-              }
-            >
-              <Icon className="size-5" />
-              {label}
-              {to === "/admin/pagos" && pagosPendientes > 0 && (
-                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-warning px-1.5 text-[10px] font-bold text-background">
-                  {pagosPendientes}
-                </span>
-              )}
-            </NavLink>
-          ))}
-        </nav>
+        <div className="flex-1 overflow-y-auto">
+          <AppNavList groups={navGroups} />
+        </div>
 
         <p className="px-6 py-4 text-center text-[11px] text-text-muted/70">
           Hecho con Dance Manager
@@ -167,29 +174,40 @@ export function AdminLayout() {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={() => setMenuAbierto(false)}
-                className={({ isActive }) =>
-                  cn(
-                    "relative flex flex-col items-center justify-center rounded-2xl border p-4 transition-colors",
-                    isActive
-                      ? "border-brand bg-brand/5 text-brand"
-                      : "border-border bg-background text-text-muted",
-                  )
-                }
-              >
-                <Icon className="mb-2 size-6" />
-                <span className="text-center text-sm font-medium">{label}</span>
-                {to === "/admin/pagos" && pagosPendientes > 0 && (
-                  <span className="absolute right-3 top-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-warning px-1.5 text-[10px] font-bold text-background">
-                    {pagosPendientes}
-                  </span>
+          <div className="flex flex-col gap-6">
+            {navGroups.map((group, idx) => (
+              <div key={idx} className="flex flex-col gap-3">
+                {group.heading && (
+                  <p className="px-1 text-xs font-semibold uppercase tracking-wider text-text-muted/50">
+                    {group.heading}
+                  </p>
                 )}
-              </NavLink>
+                <div className="grid grid-cols-2 gap-4">
+                  {group.items.map(({ to, label, icon: Icon, badge }) => (
+                    <NavLink
+                      key={to}
+                      to={to}
+                      onClick={() => setMenuAbierto(false)}
+                      className={({ isActive }) =>
+                        cn(
+                          "relative flex flex-col items-center justify-center rounded-2xl border p-4 transition-colors",
+                          isActive
+                            ? "border-brand bg-brand/5 text-brand"
+                            : "border-border bg-background text-text-muted",
+                        )
+                      }
+                    >
+                      <Icon className="mb-2 size-6" />
+                      <span className="text-center text-sm font-medium">{label}</span>
+                      {badge != null && (
+                        <span className="absolute right-3 top-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-warning px-1.5 text-[10px] font-bold text-background">
+                          {badge}
+                        </span>
+                      )}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
 
