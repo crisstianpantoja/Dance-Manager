@@ -105,6 +105,7 @@ export function CalendarPage() {
   })
   const [ocurrencias, setOcurrencias] = useState<OcurrenciaConProfesores[]>([])
   const [alumnosPrivados, setAlumnosPrivados] = useState<Set<string>>(new Set())
+  const [nombresAlumnos, setNombresAlumnos] = useState<Map<string, string>>(new Map())
   const [cargando, setCargando] = useState(true)
   const [procesando, setProcesando] = useState<string | null>(null)
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null)
@@ -132,6 +133,18 @@ export function CalendarPage() {
 
     const filas = (data as unknown as FilaOcurrencia[] | null) ?? []
     setAlumnosPrivados(await cargarAlumnosConPlanPrivado(filas.flatMap((f) => f.alumno_ids)))
+
+    const idsAlumnos = [...new Set(filas.flatMap((f) => f.alumno_ids))]
+    if (idsAlumnos.length > 0) {
+      const { data: alumnosData } = await supabase
+        .from("students")
+        .select("id, nombre")
+        .in("id", idsAlumnos)
+      setNombresAlumnos(new Map((alumnosData ?? []).map((a) => [a.id as string, a.nombre as string])))
+    } else {
+      setNombresAlumnos(new Map())
+    }
+
     setOcurrencias(
       filas.map((f) => ({
         id: f.id,
@@ -351,6 +364,12 @@ export function CalendarPage() {
                       {oc.lugar ? ` · ${oc.lugar}` : ""}
                       {oc.cupo_maximo ? ` · ${oc.alumno_ids.length}/${oc.cupo_maximo} cupos` : ""}
                     </p>
+                    {oc.alumno_ids.length > 0 && (
+                      <p className="mt-1 text-xs text-text-muted">
+                        Inscritos:{" "}
+                        {oc.alumno_ids.map((id) => nombresAlumnos.get(id) ?? "Alumno").join(", ")}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     {etiqueta && <Badge variant={etiqueta.variant}>{etiqueta.texto}</Badge>}
