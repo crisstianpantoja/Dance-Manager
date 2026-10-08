@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { fechaHoy } from "@/lib/attendance"
 import { guardarProfesoresSerie, listarProfesoresSerie } from "@/lib/classSeriesTeachers"
 import { generarOcurrencias } from "@/lib/occurrences"
 import { supabase } from "@/lib/supabase"
@@ -141,6 +142,20 @@ export function ClassSeriesFormDialog({
           .single()
         if (error) throw error
         serieGuardada = data as ClassSeries
+
+        // La sede y la hora quedan copiadas en cada ocurrencia ya generada
+        // (para poder filtrar/mostrar sin volver a unir con class_series).
+        // Si se editan aquí, esa copia queda desactualizada en las
+        // ocurrencias programadas que ya existían — por eso no le
+        // aparecían las clases a un alumno cuya sede no coincidía con la
+        // sede vieja guardada en la ocurrencia.
+        const { error: errorPropagar } = await supabase
+          .from("class_occurrences")
+          .update({ academia_id: datos.academia_id, hora: datos.hora })
+          .eq("serie_id", serie.id)
+          .eq("estado", "programada")
+          .gte("fecha", fechaHoy())
+        if (errorPropagar) throw errorPropagar
       } else {
         const { data, error } = await supabase
           .from("class_series")
