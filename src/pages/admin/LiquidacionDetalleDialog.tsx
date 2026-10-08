@@ -203,7 +203,7 @@ export function LiquidacionDetalleDialog({
                   type="file"
                   accept="image/*,.pdf"
                   onChange={(e) => setComprobante(e.target.files?.[0] ?? null)}
-                  className="text-sm text-text-muted file:mr-3 file:rounded-control file:border-0 file:bg-surface-hover file:px-3 file:py-1.5 file:text-sm file:text-text"
+                  className="w-full max-w-full text-sm text-text-muted file:mr-3 file:rounded-control file:border-0 file:bg-surface-hover file:px-3 file:py-1.5 file:text-sm file:text-text"
                 />
               </div>
               <Button type="submit" disabled={procesando}>

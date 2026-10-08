@@ -114,14 +114,14 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
                 <span className="text-xs text-text-muted">Sin foto</span>
               )}
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex min-w-0 flex-col gap-1">
               <Label htmlFor="imagen">Imagen del evento</Label>
               <input
                 id="imagen"
                 type="file"
                 accept="image/*"
                 onChange={(e) => setArchivoImagen(e.target.files?.[0] ?? null)}
-                className="text-sm text-text-muted file:mr-3 file:rounded-control file:border-0 file:bg-surface-hover file:px-3 file:py-1.5 file:text-sm file:text-text"
+                className="w-full max-w-full text-sm text-text-muted file:mr-3 file:rounded-control file:border-0 file:bg-surface-hover file:px-3 file:py-1.5 file:text-sm file:text-text"
               />
             </div>
           </div>

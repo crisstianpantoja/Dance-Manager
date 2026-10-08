@@ -304,7 +304,7 @@ export function PaymentFormDialog({
               type="file"
               accept="image/*,application/pdf"
               onChange={(e) => setArchivoComprobante(e.target.files?.[0] ?? null)}
-              className="text-sm text-text-muted file:mr-3 file:rounded-control file:border-0 file:bg-surface-hover file:px-3 file:py-1.5 file:text-sm file:text-text"
+              className="w-full max-w-full text-sm text-text-muted file:mr-3 file:rounded-control file:border-0 file:bg-surface-hover file:px-3 file:py-1.5 file:text-sm file:text-text"
             />
           </div>
 
