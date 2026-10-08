@@ -14,6 +14,7 @@ import { etiquetaClase, formatearFecha, formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import { confirmarPagoCanceladaExcepcional } from "@/lib/teacherAttendance"
 import { cn } from "@/lib/utils"
+import { mensajeDeError } from "@/lib/errors"
 import type { OcurrenciaConSerie } from "@/types/classSeries"
 import type { NivelAlumno } from "@/types/student"
 
@@ -181,7 +182,7 @@ export function CalendarPage() {
       await confirmarPagoCanceladaExcepcional(occurrenceId, profesorId)
       cargarOcurrencias()
     } catch (err) {
-      alert(err instanceof Error ? err.message : "No se pudo registrar el pago excepcional.")
+      alert(mensajeDeError(err, "No se pudo registrar el pago excepcional."))
     } finally {
       setProcesando(null)
     }

@@ -25,6 +25,7 @@ import {
 } from "@/lib/attendance"
 import { decirClaseRegistrada, reproducirSonidoAdvertencia } from "@/lib/sound"
 import { supabase } from "@/lib/supabase"
+import { mensajeDeError } from "@/lib/errors"
 import {
   ES_ESTADO_EXITOSO,
   ETIQUETA_ESTADO_PLAN,
@@ -164,7 +165,7 @@ export function AttendancePage() {
       setDialogoAbierto(true)
     } catch (err) {
       mostrarBanner(
-        err instanceof Error ? err.message : "No se pudo registrar la asistencia.",
+        mensajeDeError(err, "No se pudo registrar la asistencia."),
         false,
       )
     } finally {

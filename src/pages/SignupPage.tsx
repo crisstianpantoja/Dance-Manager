@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { registrarAcademia } from "@/lib/signup"
 import { guardarCodigoAcademia } from "@/lib/supabase"
+import { mensajeDeError } from "@/lib/errors"
 
 function normalizarCodigo(valor: string) {
   return valor
@@ -61,7 +62,7 @@ export function SignupPage() {
         state: { mensaje: "Tu academia quedó creada. Ingresa con tu documento y contraseña." },
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo crear la academia.")
+      setError(mensajeDeError(err, "No se pudo crear la academia."))
     } finally {
       setEnviando(false)
     }

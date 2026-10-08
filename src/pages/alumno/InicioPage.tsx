@@ -41,19 +41,25 @@ export function InicioPage() {
       en7Dias.setDate(en7Dias.getDate() + 6)
       const finSemana = aFechaISO(en7Dias)
 
+      let consultaOcurrenciasSemana = supabase
+        .from("class_occurrences")
+        .select("id, fecha, hora, class_series(titulo, lugar, profesor_ids)")
+        .eq("estado", "programada")
+        .gte("fecha", hoy)
+        .lte("fecha", finSemana)
+        .order("hora")
+
+      // Si el alumno no tiene sede asignada (academia de una sola sede,
+      // sin usar la función de "Sedes"), se le muestran las clases que
+      // tampoco tienen sede asignada, en vez de ninguna.
+      consultaOcurrenciasSemana = alumno?.academia_id
+        ? consultaOcurrenciasSemana.eq("academia_id", alumno.academia_id)
+        : consultaOcurrenciasSemana.is("academia_id", null)
+
       const [{ data: teachersData }, { data: ocurrenciasSemana }, { count: eventosCount }] =
         await Promise.all([
           supabase.from("teachers").select("id, nombre"),
-          alumno?.academia_id
-            ? supabase
-                .from("class_occurrences")
-                .select("id, fecha, hora, class_series(titulo, lugar, profesor_ids)")
-                .eq("academia_id", alumno.academia_id)
-                .eq("estado", "programada")
-                .gte("fecha", hoy)
-                .lte("fecha", finSemana)
-                .order("hora")
-            : Promise.resolve({ data: [] }),
+          consultaOcurrenciasSemana,
           supabase
             .from("events")
             .select("id", { count: "exact", head: true })

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { subirFoto } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
+import { mensajeDeError } from "@/lib/errors"
 import type { EventoDM } from "@/types/event"
 
 interface EventFormDialogProps {
@@ -90,7 +91,7 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
       onSaved()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar el evento.")
+      setError(mensajeDeError(err, "No se pudo guardar el evento."))
     } finally {
       setGuardando(false)
     }

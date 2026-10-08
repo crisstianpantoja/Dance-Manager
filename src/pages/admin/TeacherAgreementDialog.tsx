@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { crearAcuerdoProfesor, listarAcuerdosProfesor } from "@/lib/teacherAgreements"
 import { formatearFecha, formatearMoneda } from "@/lib/format"
+import { mensajeDeError } from "@/lib/errors"
 import type { Teacher } from "@/types/teacher"
 import type { TeacherAgreement } from "@/types/teacherAgreement"
 
@@ -72,7 +73,7 @@ export function TeacherAgreementDialog({
       setNotas("")
       await cargar()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar el acuerdo.")
+      setError(mensajeDeError(err, "No se pudo guardar el acuerdo."))
     } finally {
       setGuardando(false)
     }

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select"
 import { obtenerUrlComprobante, subirComprobante } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
+import { mensajeDeError } from "@/lib/errors"
 import type { EstadoPago, Payment } from "@/types/payment"
 import type { ModalidadPlan, Plan } from "@/types/plan"
 import type { Student } from "@/types/student"
@@ -147,7 +148,7 @@ export function PaymentFormDialog({
       onSaved()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar el pago.")
+      setError(mensajeDeError(err, "No se pudo guardar el pago."))
     } finally {
       setGuardando(false)
     }

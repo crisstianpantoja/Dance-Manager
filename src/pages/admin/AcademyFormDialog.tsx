@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { subirFoto } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
+import { mensajeDeError } from "@/lib/errors"
 import type { Academy } from "@/types/academy"
 
 const COLOR_POR_DEFECTO = "#9542DF"
@@ -77,7 +78,7 @@ export function AcademyFormDialog({
       onSaved()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar la sede.")
+      setError(mensajeDeError(err, "No se pudo guardar la sede."))
     } finally {
       setGuardando(false)
     }

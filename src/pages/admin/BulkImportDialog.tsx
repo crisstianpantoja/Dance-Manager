@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { crearAlumno } from "@/lib/adminStudents"
+import { mensajeDeError } from "@/lib/errors"
 import type { Academy } from "@/types/academy"
 import type { NivelAlumno, TipoAlumno } from "@/types/student"
 
@@ -153,7 +154,7 @@ export function BulkImportDialog({
               fila: numeroFila,
               nombre,
               estado: "error",
-              detalle: err instanceof Error ? err.message : "No se pudo crear.",
+              detalle: mensajeDeError(err, "No se pudo crear."),
             })
           }
         }

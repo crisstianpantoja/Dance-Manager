@@ -22,6 +22,7 @@ import { formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import { cargarResumenFinanciero } from "@/lib/teacherFinance"
 import { crearLiquidacionMensual, listarLiquidacionesPeriodo } from "@/lib/teacherLiquidations"
+import { mensajeDeError } from "@/lib/errors"
 import type { Teacher } from "@/types/teacher"
 import type { EstadoLiquidacion, TeacherLiquidation } from "@/types/teacherLiquidation"
 
@@ -101,7 +102,7 @@ export function FinanzasProfesoresPage() {
       await crearLiquidacionMensual(fila.profesor.id, anio, mes)
       await cargar()
     } catch (err) {
-      alert(err instanceof Error ? err.message : "No se pudo crear la liquidación.")
+      alert(mensajeDeError(err, "No se pudo crear la liquidación."))
     } finally {
       setCreando(null)
     }

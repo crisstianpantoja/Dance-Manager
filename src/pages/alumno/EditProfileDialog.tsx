@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { subirFoto } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
+import { mensajeDeError } from "@/lib/errors"
 import type { Student } from "@/types/student"
 
 interface EditProfileDialogProps {
@@ -76,7 +77,7 @@ export function EditProfileDialog({
       onSaved()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar los cambios.")
+      setError(mensajeDeError(err, "No se pudo guardar los cambios."))
     } finally {
       setGuardando(false)
     }
@@ -127,7 +128,7 @@ export function EditProfileDialog({
       setConfirmarContrasena("")
     } catch (err) {
       setErrorContrasena(
-        err instanceof Error ? err.message : "No se pudo cambiar la contraseña.",
+        mensajeDeError(err, "No se pudo cambiar la contraseña."),
       )
     } finally {
       setCambiandoContrasena(false)

@@ -16,6 +16,7 @@ import { crearProfesor } from "@/lib/adminTeachers"
 import { guardarSedesProfesor, listarSedesProfesor } from "@/lib/teacherAcademies"
 import { subirFoto } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
+import { mensajeDeError } from "@/lib/errors"
 import type { Academy } from "@/types/academy"
 import type { Teacher } from "@/types/teacher"
 
@@ -124,7 +125,7 @@ export function TeacherFormDialog({
       onSaved()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar el profesor.")
+      setError(mensajeDeError(err, "No se pudo guardar el profesor."))
     } finally {
       setGuardando(false)
     }

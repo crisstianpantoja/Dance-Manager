@@ -30,6 +30,7 @@ import { etiquetaClase, formatearFecha, formatearFechaLarga } from "@/lib/format
 import { gestionarReserva } from "@/lib/studentPortal"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
+import { mensajeDeError } from "@/lib/errors"
 import type { AgendaItem } from "@/types/agendaItem"
 import type { NivelAlumno } from "@/types/student"
 
@@ -131,17 +132,23 @@ export function ClasesPage() {
   async function cargarItems(desde: string, hasta: string): Promise<AgendaItem[]> {
     const alumnoId = profile?.id ?? ""
 
+    let consultaOcurrencias = supabase
+      .from("class_occurrences")
+      .select("*, class_series(titulo, categoria, nivel, lugar, cupo_maximo, profesor_ids)")
+      .gte("fecha", desde)
+      .lte("fecha", hasta)
+      .order("fecha")
+      .order("hora")
+
+    // Si el alumno no tiene sede asignada (academia de una sola sede, sin
+    // usar la función de "Sedes"), se le muestran las clases que tampoco
+    // tienen sede asignada, en vez de no mostrarle ninguna.
+    consultaOcurrencias = academiaId
+      ? consultaOcurrencias.eq("academia_id", academiaId)
+      : consultaOcurrencias.is("academia_id", null)
+
     const [{ data: ocurrenciasData }, { data: eventosData }] = await Promise.all([
-      academiaId
-        ? supabase
-            .from("class_occurrences")
-            .select("*, class_series(titulo, categoria, nivel, lugar, cupo_maximo, profesor_ids)")
-            .eq("academia_id", academiaId)
-            .gte("fecha", desde)
-            .lte("fecha", hasta)
-            .order("fecha")
-            .order("hora")
-        : Promise.resolve({ data: [] as FilaOcurrencia[] }),
+      consultaOcurrencias,
       supabase
         .from("events")
         .select("*")
@@ -276,7 +283,7 @@ export function ClasesPage() {
       await gestionarReserva(accion, item.id)
       recargarTodo()
     } catch (err) {
-      alert(err instanceof Error ? err.message : "No se pudo procesar la reserva.")
+      alert(mensajeDeError(err, "No se pudo procesar la reserva."))
     } finally {
       setProcesando(null)
     }

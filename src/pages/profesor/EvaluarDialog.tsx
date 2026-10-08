@@ -11,6 +11,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { registrarEvaluacion } from "@/lib/evaluations"
+import { mensajeDeError } from "@/lib/errors"
 import type { Student } from "@/types/student"
 
 interface EvaluarDialogProps {
@@ -58,7 +59,7 @@ export function EvaluarDialog({ open, onOpenChange, alumno, onRegistrada }: Eval
       onRegistrada()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo registrar la evaluación.")
+      setError(mensajeDeError(err, "No se pudo registrar la evaluación."))
     } finally {
       setGuardando(false)
     }

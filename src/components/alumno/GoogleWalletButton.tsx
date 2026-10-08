@@ -3,6 +3,7 @@ import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { obtenerEnlaceWallet } from "@/lib/wallet"
+import { mensajeDeError } from "@/lib/errors"
 
 export function GoogleWalletButton() {
   const [cargando, setCargando] = useState(false)
@@ -15,7 +16,7 @@ export function GoogleWalletButton() {
       const url = await obtenerEnlaceWallet()
       window.location.href = url
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo generar el carnet de Wallet.")
+      setError(mensajeDeError(err, "No se pudo generar el carnet de Wallet."))
     } finally {
       setCargando(false)
     }

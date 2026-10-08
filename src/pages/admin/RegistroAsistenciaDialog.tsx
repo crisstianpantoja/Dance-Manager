@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { fechaHoy, horaAhora, registrarAsistencia } from "@/lib/attendance"
+import { mensajeDeError } from "@/lib/errors"
 import { ES_ESTADO_EXITOSO, ETIQUETA_ESTADO_PLAN, type OcurrenciaHoy } from "@/types/attendance"
 import type { Student } from "@/types/student"
 
@@ -112,7 +113,7 @@ export function RegistroAsistenciaDialog({
       )
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo registrar la asistencia.")
+      setError(mensajeDeError(err, "No se pudo registrar la asistencia."))
     } finally {
       setGuardando(false)
     }

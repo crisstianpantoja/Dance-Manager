@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { useAuth } from "@/context/AuthContext"
 import { actualizarAjustes, obtenerAjustes, COLOR_PRIMARIO_POR_DEFECTO } from "@/lib/settings"
 import { subirFoto } from "@/lib/storage"
+import { mensajeDeError } from "@/lib/errors"
 
 export function SettingsPage() {
   const { profile } = useAuth()
@@ -55,7 +56,7 @@ export function SettingsPage() {
       setArchivoLogo(null)
       setExito(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar los ajustes.")
+      setError(mensajeDeError(err, "No se pudo guardar los ajustes."))
     } finally {
       setGuardando(false)
     }

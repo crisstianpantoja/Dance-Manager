@@ -15,6 +15,7 @@ import { formatearFecha, formatearMoneda } from "@/lib/format"
 import { gestionarReserva } from "@/lib/studentPortal"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
+import { mensajeDeError } from "@/lib/errors"
 import type { EventoDM } from "@/types/event"
 
 type SubTab = "explorar" | "misEventos"
@@ -69,7 +70,7 @@ export function EventosPage() {
       await cargarDatos()
       setEventoSeleccionado(null)
     } catch (err) {
-      alert(err instanceof Error ? err.message : "No se pudo procesar la inscripción.")
+      alert(mensajeDeError(err, "No se pudo procesar la inscripción."))
     } finally {
       setProcesando(null)
     }

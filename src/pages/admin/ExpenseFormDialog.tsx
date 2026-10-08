@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
+import { mensajeDeError } from "@/lib/errors"
 import type { Academy } from "@/types/academy"
 import type { Expense } from "@/types/expense"
 
@@ -89,7 +90,7 @@ export function ExpenseFormDialog({
       onSaved()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar el gasto.")
+      setError(mensajeDeError(err, "No se pudo guardar el gasto."))
     } finally {
       setGuardando(false)
     }

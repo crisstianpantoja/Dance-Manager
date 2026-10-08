@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select"
 import { formatearMoneda } from "@/lib/format"
 import { reportarPago } from "@/lib/studentPortal"
+import { mensajeDeError } from "@/lib/errors"
 import type { Plan } from "@/types/plan"
 
 interface ReportarPagoDialogProps {
@@ -62,7 +63,7 @@ export function ReportarPagoDialog({ open, onOpenChange, planes, onReportado }: 
       onReportado()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo reportar el pago.")
+      setError(mensajeDeError(err, "No se pudo reportar el pago."))
     } finally {
       setEnviando(false)
     }

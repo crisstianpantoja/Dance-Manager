@@ -20,6 +20,7 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
+import { mensajeDeError } from "@/lib/errors"
 import type { Academy } from "@/types/academy"
 import type { Gig, GigEstado, GigTipo } from "@/types/gig"
 
@@ -108,7 +109,7 @@ export function GigFormDialog({ open, onOpenChange, gig, academias, onSaved }: G
       onSaved()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar el contrato.")
+      setError(mensajeDeError(err, "No se pudo guardar el contrato."))
     } finally {
       setGuardando(false)
     }

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select"
 import { formatearFecha, formatearMoneda } from "@/lib/format"
 import { subirComprobante } from "@/lib/storage"
+import { mensajeDeError } from "@/lib/errors"
 import {
   anularLiquidacion,
   aprobarLiquidacion,
@@ -87,7 +88,7 @@ export function LiquidacionDetalleDialog({
       onCambiada()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo completar la acción.")
+      setError(mensajeDeError(err, "No se pudo completar la acción."))
     } finally {
       setProcesando(false)
     }

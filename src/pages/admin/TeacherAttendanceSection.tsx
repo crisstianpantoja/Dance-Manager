@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatearFecha, formatearMoneda } from "@/lib/format"
+import { mensajeDeError } from "@/lib/errors"
 import {
   cargarClasesProfesorHoy,
   cargarPendientesDeValidar,
@@ -90,7 +91,7 @@ export function TeacherAttendanceSection() {
       }
     } catch (err) {
       setBanner({
-        mensaje: err instanceof Error ? err.message : "No se pudo identificar el QR.",
+        mensaje: mensajeDeError(err, "No se pudo identificar el QR."),
         exito: false,
       })
     } finally {
@@ -122,7 +123,7 @@ export function TeacherAttendanceSection() {
       cargarPendientes()
     } catch (err) {
       setBanner({
-        mensaje: err instanceof Error ? err.message : "No se pudo registrar la asistencia.",
+        mensaje: mensajeDeError(err, "No se pudo registrar la asistencia."),
         exito: false,
       })
     } finally {
@@ -136,7 +137,7 @@ export function TeacherAttendanceSection() {
       await confirmarAsistenciaManual(item.occurrenceId, item.profesorId, undefined, "Confirmado desde bandeja de pendientes")
       cargarPendientes()
     } catch (err) {
-      alert(err instanceof Error ? err.message : "No se pudo confirmar la asistencia.")
+      alert(mensajeDeError(err, "No se pudo confirmar la asistencia."))
     } finally {
       setResolviendo(null)
     }
@@ -149,7 +150,7 @@ export function TeacherAttendanceSection() {
       await marcarAusenteProfesor(item.occurrenceId, item.profesorId, "Marcado desde bandeja de pendientes")
       cargarPendientes()
     } catch (err) {
-      alert(err instanceof Error ? err.message : "No se pudo actualizar.")
+      alert(mensajeDeError(err, "No se pudo actualizar."))
     } finally {
       setResolviendo(null)
     }

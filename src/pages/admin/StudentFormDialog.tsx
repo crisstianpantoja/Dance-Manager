@@ -21,6 +21,7 @@ import {
 import { crearAlumno } from "@/lib/adminStudents"
 import { subirFoto } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
+import { mensajeDeError } from "@/lib/errors"
 import type { Academy } from "@/types/academy"
 import type { NivelAlumno, Student, TipoAlumno } from "@/types/student"
 
@@ -111,7 +112,7 @@ export function StudentFormDialog({
       onSaved()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar el alumno.")
+      setError(mensajeDeError(err, "No se pudo guardar el alumno."))
     } finally {
       setGuardando(false)
     }

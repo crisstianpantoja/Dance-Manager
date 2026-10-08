@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { supabase } from "@/lib/supabase"
+import { mensajeDeError } from "@/lib/errors"
 import { MODALIDADES, type ModalidadPlan, type Plan } from "@/types/plan"
 
 interface PlanFormDialogProps {
@@ -76,7 +77,7 @@ export function PlanFormDialog({ open, onOpenChange, plan, onSaved }: PlanFormDi
       onSaved()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar el plan.")
+      setError(mensajeDeError(err, "No se pudo guardar el plan."))
     } finally {
       setGuardando(false)
     }

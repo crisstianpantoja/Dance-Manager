@@ -20,6 +20,7 @@ import {
 import { guardarProfesoresSerie, listarProfesoresSerie } from "@/lib/classSeriesTeachers"
 import { generarOcurrencias } from "@/lib/occurrences"
 import { supabase } from "@/lib/supabase"
+import { mensajeDeError } from "@/lib/errors"
 import type { Academy } from "@/types/academy"
 import { DIAS_SEMANA, type ClassSeries } from "@/types/classSeries"
 import type { NivelAlumno } from "@/types/student"
@@ -165,7 +166,7 @@ export function ClassSeriesFormDialog({
       onSaved()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar la clase.")
+      setError(mensajeDeError(err, "No se pudo guardar la clase."))
     } finally {
       setGuardando(false)
     }
