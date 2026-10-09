@@ -6,4 +6,5 @@ export interface Profile {
   nombre: string
   rol: Rol
   organization_id: string
+  rolesDisponibles: Rol[]
 }

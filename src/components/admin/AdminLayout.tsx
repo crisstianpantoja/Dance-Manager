@@ -21,6 +21,7 @@ import {
 import { useState } from "react"
 import { NavLink, Outlet } from "react-router-dom"
 
+import { RoleSwitcher } from "@/components/RoleSwitcher"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/context/AuthContext"
@@ -103,7 +104,11 @@ export function AdminLayout() {
             </Avatar>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-text">{profile?.nombre}</p>
-              <p className="truncate text-xs text-text-muted">Administrador</p>
+              <RoleSwitcher
+                rolActual="admin"
+                rolesDisponibles={profile?.rolesDisponibles ?? ["admin"]}
+                className="truncate text-xs text-text-muted"
+              />
             </div>
             <div className="flex items-center gap-1">
               <ThemeToggle className="rounded-control p-1.5 hover:bg-surface" />

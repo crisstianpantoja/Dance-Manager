@@ -8,7 +8,7 @@ import {
 } from "react"
 
 import { documentoToEmail, supabase } from "@/lib/supabase"
-import type { Profile } from "@/types/auth"
+import type { Profile, Rol } from "@/types/auth"
 
 interface AuthContextValue {
   session: Session | null
@@ -26,14 +26,23 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 async function fetchProfile(userId: string): Promise<Profile | null> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, documento, nombre, rol, organization_id")
-    .eq("id", userId)
-    .single()
+  const [{ data, error }, { data: filaProfesor }, { data: filaAlumno }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, documento, nombre, rol, organization_id")
+      .eq("id", userId)
+      .single(),
+    supabase.from("teachers").select("id").eq("id", userId).maybeSingle(),
+    supabase.from("students").select("id").eq("id", userId).maybeSingle(),
+  ])
 
   if (error || !data) return null
-  return data as Profile
+
+  const rolesDisponibles = new Set<Rol>([data.rol as Rol])
+  if (filaProfesor) rolesDisponibles.add("profesor")
+  if (filaAlumno) rolesDisponibles.add("alumno")
+
+  return { ...data, rolesDisponibles: Array.from(rolesDisponibles) } as Profile
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

@@ -47,7 +47,14 @@ interface CreatePayload {
   rol_interno?: string
   foto?: string
   password?: string
+  confirm_attach?: boolean
 }
+
+// Prioridad de rol principal: al adjuntar un rol a una persona que ya
+// tiene cuenta, profiles.rol solo sube (nunca baja), para que siga
+// cumpliendo los chequeos de RLS que comparan current_user_role() con
+// 'profesor'/'admin' en vez de exigir downgrade alguno.
+const PRIORIDAD_ROL: Record<string, number> = { admin: 3, profesor: 2, alumno: 1 }
 
 interface DeletePayload {
   action: "delete"
@@ -95,6 +102,55 @@ Deno.serve(async (req) => {
   const payload: CreatePayload | DeletePayload = await req.json()
 
   if (payload.action === "create") {
+    const documento = payload.documento.trim()
+
+    const { data: perfilExistente } = await admin
+      .from("profiles")
+      .select("id, nombre, rol")
+      .eq("organization_id", organizationId)
+      .eq("documento", documento)
+      .maybeSingle()
+
+    if (perfilExistente && !payload.confirm_attach) {
+      return json({
+        attach_candidate: {
+          id: perfilExistente.id,
+          nombre: perfilExistente.nombre,
+          rol: perfilExistente.rol,
+        },
+      })
+    }
+
+    if (perfilExistente && payload.confirm_attach) {
+      const { data: yaProfesor } = await admin
+        .from("teachers")
+        .select("id")
+        .eq("id", perfilExistente.id)
+        .maybeSingle()
+
+      if (yaProfesor) {
+        return json({ error: "Esta persona ya tiene el rol de profesor." }, 409)
+      }
+
+      const { error: errorProfesor } = await admin.from("teachers").insert({
+        id: perfilExistente.id,
+        nombre: payload.nombre,
+        documento,
+        contacto: payload.contacto ?? null,
+        rol_interno: payload.rol_interno ?? null,
+        foto: payload.foto ?? null,
+        organization_id: organizationId,
+      })
+
+      if (errorProfesor) return json({ error: errorProfesor.message }, 400)
+
+      if (PRIORIDAD_ROL["profesor"] > (PRIORIDAD_ROL[perfilExistente.rol] ?? 0)) {
+        await admin.from("profiles").update({ rol: "profesor" }).eq("id", perfilExistente.id)
+      }
+
+      return json({ id: perfilExistente.id, attached: true })
+    }
+
     const email = documentoToEmail(payload.documento, organizacion.codigo)
 
     const { data: nuevoUsuario, error: errorAuth } = await admin.auth.admin.createUser({

@@ -1,6 +1,16 @@
 import { supabase } from "@/lib/supabase"
 import type { TeacherInput } from "@/types/teacher"
 
+export interface PersonaExistente {
+  id: string
+  nombre: string
+  rol: "admin" | "profesor" | "alumno"
+}
+
+export type ResultadoCrearProfesor =
+  | { attach_candidate: PersonaExistente }
+  | { id: string; attached?: boolean }
+
 async function invocarFuncion(body: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke("admin-teachers", { body })
 
@@ -21,8 +31,11 @@ async function invocarFuncion(body: Record<string, unknown>) {
   return data
 }
 
-export async function crearProfesor(datos: TeacherInput) {
-  return invocarFuncion({ action: "create", ...datos })
+export async function crearProfesor(
+  datos: TeacherInput,
+  confirmarAdjuntar?: boolean,
+): Promise<ResultadoCrearProfesor> {
+  return invocarFuncion({ action: "create", ...datos, confirm_attach: confirmarAdjuntar })
 }
 
 export async function eliminarProfesor(id: string) {

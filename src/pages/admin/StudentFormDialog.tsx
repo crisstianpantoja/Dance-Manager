@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { crearAlumno } from "@/lib/adminStudents"
+import { crearAlumno, type PersonaExistente } from "@/lib/adminStudents"
 import { subirFoto } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
 import { mensajeDeError } from "@/lib/errors"
@@ -52,9 +52,11 @@ export function StudentFormDialog({
   const [archivoFoto, setArchivoFoto] = useState<File | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [personaExistente, setPersonaExistente] = useState<PersonaExistente | null>(null)
 
   useEffect(() => {
     if (open) {
+      setPersonaExistente(null)
       setNombre(alumno?.nombre ?? "")
       setDocumento(alumno?.documento ?? "")
       setContacto(alumno?.contacto ?? "")
@@ -69,6 +71,10 @@ export function StudentFormDialog({
 
   async function handleSubmit(evento: FormEvent) {
     evento.preventDefault()
+    await guardar(false)
+  }
+
+  async function guardar(confirmarAdjuntar: boolean) {
     setError(null)
     setGuardando(true)
 
@@ -98,15 +104,24 @@ export function StudentFormDialog({
 
         await supabase.from("profiles").update({ nombre }).eq("id", alumno.id)
       } else {
-        await crearAlumno({
-          nombre,
-          documento,
-          contacto,
-          tipo,
-          nivel,
-          academia_id,
-          foto: fotoUrl,
-        })
+        const resultado = await crearAlumno(
+          {
+            nombre,
+            documento,
+            contacto,
+            tipo,
+            nivel,
+            academia_id,
+            foto: fotoUrl,
+          },
+          confirmarAdjuntar,
+        )
+
+        if ("attach_candidate" in resultado) {
+          setPersonaExistente(resultado.attach_candidate)
+          setGuardando(false)
+          return
+        }
       }
 
       onSaved()
@@ -125,6 +140,34 @@ export function StudentFormDialog({
           <DialogTitle>{alumno ? "Editar alumno" : "Nuevo alumno"}</DialogTitle>
         </DialogHeader>
 
+        {personaExistente ? (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-text">
+              Ya existe <strong>{personaExistente.nombre}</strong> con este documento
+              (rol actual: {personaExistente.rol}). ¿Agregarle también el rol de
+              alumno?
+            </p>
+
+            {error && (
+              <p className="rounded-control bg-error/10 px-3 py-2 text-sm text-error">
+                {error}
+              </p>
+            )}
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPersonaExistente(null)}
+              >
+                Cancelar
+              </Button>
+              <Button type="button" disabled={guardando} onClick={() => guardar(true)}>
+                {guardando ? "Guardando..." : "Confirmar"}
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex items-center gap-4">
             <Avatar>
@@ -246,6 +289,7 @@ export function StudentFormDialog({
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   )

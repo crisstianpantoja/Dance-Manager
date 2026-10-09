@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { crearProfesor } from "@/lib/adminTeachers"
+import { crearProfesor, type PersonaExistente } from "@/lib/adminTeachers"
 import { guardarSedesProfesor, listarSedesProfesor } from "@/lib/teacherAcademies"
 import { subirFoto } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
@@ -46,10 +46,12 @@ export function TeacherFormDialog({
   const [academiaPrincipal, setAcademiaPrincipal] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [personaExistente, setPersonaExistente] = useState<PersonaExistente | null>(null)
 
   useEffect(() => {
     if (!open) return
 
+    setPersonaExistente(null)
     setNombre(profesor?.nombre ?? "")
     setDocumento(profesor?.documento ?? "")
     setContacto(profesor?.contacto ?? "")
@@ -85,6 +87,10 @@ export function TeacherFormDialog({
 
   async function handleSubmit(evento: FormEvent) {
     evento.preventDefault()
+    await guardar(false)
+  }
+
+  async function guardar(confirmarAdjuntar: boolean) {
     setError(null)
     setGuardando(true)
 
@@ -105,14 +111,18 @@ export function TeacherFormDialog({
 
         await supabase.from("profiles").update({ nombre }).eq("id", profesor.id)
       } else {
-        const creado = await crearProfesor({
-          nombre,
-          documento,
-          contacto,
-          rol_interno: rolInterno,
-          foto: fotoUrl,
-        })
-        profesorId = (creado as { id: string }).id
+        const resultado = await crearProfesor(
+          { nombre, documento, contacto, rol_interno: rolInterno, foto: fotoUrl },
+          confirmarAdjuntar,
+        )
+
+        if ("attach_candidate" in resultado) {
+          setPersonaExistente(resultado.attach_candidate)
+          setGuardando(false)
+          return
+        }
+
+        profesorId = resultado.id
       }
 
       if (profesorId) {
@@ -138,6 +148,34 @@ export function TeacherFormDialog({
           <DialogTitle>{profesor ? "Editar profesor" : "Nuevo profesor"}</DialogTitle>
         </DialogHeader>
 
+        {personaExistente ? (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-text">
+              Ya existe <strong>{personaExistente.nombre}</strong> con este documento
+              (rol actual: {personaExistente.rol}). ¿Agregarle también el rol de
+              profesor?
+            </p>
+
+            {error && (
+              <p className="rounded-control bg-error/10 px-3 py-2 text-sm text-error">
+                {error}
+              </p>
+            )}
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setPersonaExistente(null)}
+              >
+                Cancelar
+              </Button>
+              <Button type="button" disabled={guardando} onClick={() => guardar(true)}>
+                {guardando ? "Guardando..." : "Confirmar"}
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex items-center gap-4">
             <Avatar>
@@ -267,6 +305,7 @@ export function TeacherFormDialog({
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   )
