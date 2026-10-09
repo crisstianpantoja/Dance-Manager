@@ -96,21 +96,23 @@ export function AdminLayout() {
             )}
           </div>
 
-          <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface-hover/60 p-3">
-            <Avatar className="size-10 shrink-0">
-              <AvatarFallback className="bg-brand/15 text-sm font-semibold text-brand">
-                {profile?.nombre?.slice(0, 2).toUpperCase() ?? "AD"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-text">{profile?.nombre}</p>
-              <RoleSwitcher
-                rolActual="admin"
-                rolesDisponibles={profile?.rolesDisponibles ?? ["admin"]}
-                className="truncate text-xs text-text-muted"
-              />
+          <div className="flex flex-col gap-2 rounded-2xl border border-border bg-surface-hover/60 p-3">
+            <div className="flex items-center gap-3">
+              <Avatar className="size-10 shrink-0">
+                <AvatarFallback className="bg-brand/15 text-sm font-semibold text-brand">
+                  {profile?.nombre?.slice(0, 2).toUpperCase() ?? "AD"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-text">{profile?.nombre}</p>
+                <RoleSwitcher
+                  rolActual="admin"
+                  rolesDisponibles={profile?.rolesDisponibles ?? ["admin"]}
+                  className="truncate text-xs text-text-muted"
+                />
+              </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center justify-end gap-1 border-t border-border/60 pt-2">
               <ThemeToggle className="rounded-control p-1.5 hover:bg-surface" />
               <button
                 onClick={signOut}
