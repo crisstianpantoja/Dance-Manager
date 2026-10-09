@@ -31,9 +31,9 @@ export function RoleSwitcher({ rolActual, rolesDisponibles, className }: RoleSwi
   return (
     <Select value={rolActual} onValueChange={(valor) => navigate(RUTAS[valor as Rol])}>
       <SelectTrigger
-        className={`h-auto w-auto gap-1 border-none bg-transparent p-0 hover:border-none hover:bg-transparent focus-visible:ring-0 ${className ?? ""}`}
+        className={`h-auto min-w-0 gap-1 border-none bg-transparent p-0 hover:border-none hover:bg-transparent focus-visible:ring-0 ${className ?? ""}`}
       >
-        <SelectValue />
+        <SelectValue className="truncate" />
       </SelectTrigger>
       <SelectContent>
         {rolesDisponibles.map((rol) => (
