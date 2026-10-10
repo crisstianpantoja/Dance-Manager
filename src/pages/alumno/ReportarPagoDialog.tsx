@@ -18,7 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useAuth } from "@/context/AuthContext"
 import { formatearMoneda } from "@/lib/format"
+import { subirComprobante } from "@/lib/storage"
 import { reportarPago } from "@/lib/studentPortal"
 import { mensajeDeError } from "@/lib/errors"
 import type { Plan } from "@/types/plan"
@@ -31,8 +33,10 @@ interface ReportarPagoDialogProps {
 }
 
 export function ReportarPagoDialog({ open, onOpenChange, planes, onReportado }: ReportarPagoDialogProps) {
+  const { profile } = useAuth()
   const [planId, setPlanId] = useState("")
   const [metodo, setMetodo] = useState("transferencia")
+  const [archivoComprobante, setArchivoComprobante] = useState<File | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -43,6 +47,7 @@ export function ReportarPagoDialog({ open, onOpenChange, planes, onReportado }: 
     if (open) {
       setPlanId("")
       setMetodo("transferencia")
+      setArchivoComprobante(null)
       setError(null)
     }
   }, [open])
@@ -59,7 +64,12 @@ export function ReportarPagoDialog({ open, onOpenChange, planes, onReportado }: 
     setEnviando(true)
 
     try {
-      await reportarPago(planId, metodo)
+      let comprobanteUrl: string | null = null
+      if (archivoComprobante && profile?.id) {
+        comprobanteUrl = await subirComprobante(archivoComprobante, profile.id)
+      }
+
+      await reportarPago(planId, metodo, comprobanteUrl)
       onReportado()
       onOpenChange(false)
     } catch (err) {
@@ -120,6 +130,20 @@ export function ReportarPagoDialog({ open, onOpenChange, planes, onReportado }: 
                 <SelectItem value="tarjeta">Tarjeta</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="comprobante">Comprobante (opcional)</Label>
+            <input
+              id="comprobante"
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={(e) => setArchivoComprobante(e.target.files?.[0] ?? null)}
+              className="w-full max-w-full text-sm text-text-muted file:mr-3 file:rounded-control file:border-0 file:bg-surface-hover file:px-3 file:py-1.5 file:text-sm file:text-text"
+            />
+            <p className="text-xs text-text-muted">
+              Si subes la foto de la transferencia, se verifica más rápido.
+            </p>
           </div>
 
           <p className="text-xs text-text-muted">

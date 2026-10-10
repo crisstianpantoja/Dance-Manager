@@ -18,8 +18,8 @@ async function invocar(funcion: string, body: Record<string, unknown>) {
   return data
 }
 
-export async function reportarPago(planId: string, metodo: string) {
-  return invocar("report-payment", { plan_id: planId, metodo })
+export async function reportarPago(planId: string, metodo: string, comprobanteUrl?: string | null) {
+  return invocar("report-payment", { plan_id: planId, metodo, comprobante_url: comprobanteUrl })
 }
 
 export type AccionReserva =
