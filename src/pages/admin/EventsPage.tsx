@@ -1,20 +1,40 @@
-import { Pencil, Plus, Trash2, X } from "lucide-react"
+import { Pencil, Plus, Trash2, Users, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { EventFormDialog } from "@/pages/admin/EventFormDialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { formatearFecha } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
 import type { EventoDM } from "@/types/event"
 
+interface DatosAlumno {
+  nombre: string
+  documento: string
+}
+
 export function EventsPage() {
   const [eventos, setEventos] = useState<EventoDM[]>([])
-  const [nombresAlumnos, setNombresAlumnos] = useState<Map<string, string>>(new Map())
+  const [datosAlumnos, setDatosAlumnos] = useState<Map<string, DatosAlumno>>(new Map())
   const [cargando, setCargando] = useState(true)
   const [dialogoAbierto, setDialogoAbierto] = useState(false)
   const [eventoEditando, setEventoEditando] = useState<EventoDM | null>(null)
+  const [eventoInscritosId, setEventoInscritosId] = useState<string | null>(null)
   const [quitando, setQuitando] = useState<string | null>(null)
 
   async function cargar() {
@@ -27,11 +47,18 @@ export function EventsPage() {
     if (idsAlumnos.length > 0) {
       const { data: alumnosData } = await supabase
         .from("students")
-        .select("id, nombre")
+        .select("id, nombre, documento")
         .in("id", idsAlumnos)
-      setNombresAlumnos(new Map((alumnosData ?? []).map((a) => [a.id as string, a.nombre as string])))
+      setDatosAlumnos(
+        new Map(
+          (alumnosData ?? []).map((a) => [
+            a.id as string,
+            { nombre: a.nombre as string, documento: a.documento as string },
+          ]),
+        ),
+      )
     } else {
-      setNombresAlumnos(new Map())
+      setDatosAlumnos(new Map())
     }
 
     setCargando(false)
@@ -62,7 +89,7 @@ export function EventsPage() {
   }
 
   async function quitarInscrito(evento: EventoDM, alumnoId: string) {
-    const nombre = nombresAlumnos.get(alumnoId) ?? "este alumno"
+    const nombre = datosAlumnos.get(alumnoId)?.nombre ?? "este alumno"
     if (!confirm(`¿Quitar a ${nombre} de "${evento.titulo}"?`)) return
 
     setQuitando(alumnoId)
@@ -78,6 +105,8 @@ export function EventsPage() {
     }
     cargar()
   }
+
+  const eventoInscritos = eventos.find((e) => e.id === eventoInscritosId) ?? null
 
   return (
     <div className="flex flex-col gap-4">
@@ -117,31 +146,19 @@ export function EventsPage() {
                         {evento.reservas.length}/{evento.cupo_maximo} reservas
                       </Badge>
                     )}
-                    {evento.reservas.length > 0 && (
-                      <div className="mt-1.5 flex flex-wrap items-center gap-1">
-                        <span className="text-xs text-text-muted">Inscritos:</span>
-                        {evento.reservas.map((id) => (
-                          <span
-                            key={id}
-                            className="flex items-center gap-1 rounded-full bg-surface-hover px-2 py-0.5 text-xs text-text"
-                          >
-                            {nombresAlumnos.get(id) ?? "Alumno"}
-                            <button
-                              type="button"
-                              title="Quitar inscripción"
-                              disabled={quitando === id}
-                              onClick={() => quitarInscrito(evento, id)}
-                              className="text-text-muted transition-colors hover:text-error disabled:opacity-50"
-                            >
-                              <X className="size-3" />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex items-center gap-1">
+                  {evento.reservas.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEventoInscritosId(evento.id)}
+                    >
+                      <Users className="size-4" />
+                      Ver inscritos
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon" onClick={() => abrirEditar(evento)}>
                     <Pencil className="size-4" />
                   </Button>
@@ -161,6 +178,57 @@ export function EventsPage() {
         evento={eventoEditando}
         onSaved={cargar}
       />
+
+      <Dialog open={!!eventoInscritos} onOpenChange={(open) => !open && setEventoInscritosId(null)}>
+        <DialogContent>
+          {eventoInscritos && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Inscritos · {eventoInscritos.titulo}</DialogTitle>
+              </DialogHeader>
+
+              <p className="text-xs text-text-muted">
+                {formatearFecha(eventoInscritos.fecha)} · {eventoInscritos.hora.slice(0, 5)}
+                {eventoInscritos.cupo_maximo
+                  ? ` · ${eventoInscritos.reservas.length}/${eventoInscritos.cupo_maximo} cupos`
+                  : ""}
+              </p>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Alumno</TableHead>
+                    <TableHead>Documento</TableHead>
+                    <TableHead className="w-12 text-right">Quitar</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {eventoInscritos.reservas.map((id) => (
+                    <TableRow key={id}>
+                      <TableCell className="font-medium text-text">
+                        {datosAlumnos.get(id)?.nombre ?? "Alumno"}
+                      </TableCell>
+                      <TableCell className="text-text-muted">
+                        {datosAlumnos.get(id)?.documento ?? "—"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={quitando === id}
+                          onClick={() => quitarInscrito(eventoInscritos, id)}
+                        >
+                          <X className="size-4 text-error" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
