@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { subirFoto } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
 import { mensajeDeError } from "@/lib/errors"
@@ -32,6 +33,10 @@ export function EditProfileDialog({
   const [contacto, setContacto] = useState("")
   const [foto, setFoto] = useState<string | null>(null)
   const [archivoFoto, setArchivoFoto] = useState<File | null>(null)
+  const [contactoEmergenciaNombre, setContactoEmergenciaNombre] = useState("")
+  const [contactoEmergenciaTelefono, setContactoEmergenciaTelefono] = useState("")
+  const [contactoEmergenciaParentesco, setContactoEmergenciaParentesco] = useState("")
+  const [autorizaUsoImagen, setAutorizaUsoImagen] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -47,6 +52,10 @@ export function EditProfileDialog({
       setContacto(alumno.contacto ?? "")
       setFoto(alumno.foto)
       setArchivoFoto(null)
+      setContactoEmergenciaNombre(alumno.contacto_emergencia_nombre ?? "")
+      setContactoEmergenciaTelefono(alumno.contacto_emergencia_telefono ?? "")
+      setContactoEmergenciaParentesco(alumno.contacto_emergencia_parentesco ?? "")
+      setAutorizaUsoImagen(alumno.autoriza_uso_imagen ?? false)
       setError(null)
       setContrasenaActual("")
       setContrasenaNueva("")
@@ -69,7 +78,14 @@ export function EditProfileDialog({
 
       const { error } = await supabase
         .from("students")
-        .update({ contacto, foto: fotoUrl })
+        .update({
+          contacto,
+          foto: fotoUrl,
+          contacto_emergencia_nombre: contactoEmergenciaNombre || null,
+          contacto_emergencia_telefono: contactoEmergenciaTelefono || null,
+          contacto_emergencia_parentesco: contactoEmergenciaParentesco || null,
+          autoriza_uso_imagen: autorizaUsoImagen,
+        })
         .eq("id", alumno.id)
 
       if (error) throw error
@@ -167,6 +183,49 @@ export function EditProfileDialog({
               placeholder="WhatsApp o teléfono"
               value={contacto}
               onChange={(e) => setContacto(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2 rounded-control border border-border p-3">
+            <p className="text-sm font-medium text-text">Contacto de emergencia</p>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="contactoEmergenciaNombre">Nombre</Label>
+              <Input
+                id="contactoEmergenciaNombre"
+                value={contactoEmergenciaNombre}
+                onChange={(e) => setContactoEmergenciaNombre(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="contactoEmergenciaTelefono">Teléfono</Label>
+              <Input
+                id="contactoEmergenciaTelefono"
+                value={contactoEmergenciaTelefono}
+                onChange={(e) => setContactoEmergenciaTelefono(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="contactoEmergenciaParentesco">Parentesco</Label>
+              <Input
+                id="contactoEmergenciaParentesco"
+                placeholder="Mamá, papá, tutor..."
+                value={contactoEmergenciaParentesco}
+                onChange={(e) => setContactoEmergenciaParentesco(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between rounded-control border border-border px-3 py-2">
+            <div>
+              <Label htmlFor="autorizaUsoImagen">Permiso de uso de imagen</Label>
+              <p className="text-xs text-text-muted">
+                Autorizo el uso de mi imagen en fotos/videos de la academia.
+              </p>
+            </div>
+            <Switch
+              id="autorizaUsoImagen"
+              checked={autorizaUsoImagen}
+              onCheckedChange={setAutorizaUsoImagen}
             />
           </div>
 

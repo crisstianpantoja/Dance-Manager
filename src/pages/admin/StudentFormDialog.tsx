@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { crearAlumno, type PersonaExistente } from "@/lib/adminStudents"
 import { subirFoto } from "@/lib/storage"
 import { supabase } from "@/lib/supabase"
@@ -50,6 +51,10 @@ export function StudentFormDialog({
   const [academiaId, setAcademiaId] = useState<string>(SIN_ACADEMIA)
   const [foto, setFoto] = useState<string | null>(null)
   const [archivoFoto, setArchivoFoto] = useState<File | null>(null)
+  const [contactoEmergenciaNombre, setContactoEmergenciaNombre] = useState("")
+  const [contactoEmergenciaTelefono, setContactoEmergenciaTelefono] = useState("")
+  const [contactoEmergenciaParentesco, setContactoEmergenciaParentesco] = useState("")
+  const [autorizaUsoImagen, setAutorizaUsoImagen] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [personaExistente, setPersonaExistente] = useState<PersonaExistente | null>(null)
@@ -65,6 +70,10 @@ export function StudentFormDialog({
       setAcademiaId(alumno?.academia_id ?? SIN_ACADEMIA)
       setFoto(alumno?.foto ?? null)
       setArchivoFoto(null)
+      setContactoEmergenciaNombre(alumno?.contacto_emergencia_nombre ?? "")
+      setContactoEmergenciaTelefono(alumno?.contacto_emergencia_telefono ?? "")
+      setContactoEmergenciaParentesco(alumno?.contacto_emergencia_parentesco ?? "")
+      setAutorizaUsoImagen(alumno?.autoriza_uso_imagen ?? false)
       setError(null)
     }
   }, [open, alumno])
@@ -97,6 +106,10 @@ export function StudentFormDialog({
             nivel,
             academia_id,
             foto: fotoUrl,
+            contacto_emergencia_nombre: contactoEmergenciaNombre || null,
+            contacto_emergencia_telefono: contactoEmergenciaTelefono || null,
+            contacto_emergencia_parentesco: contactoEmergenciaParentesco || null,
+            autoriza_uso_imagen: autorizaUsoImagen,
           })
           .eq("id", alumno.id)
 
@@ -113,6 +126,10 @@ export function StudentFormDialog({
             nivel,
             academia_id,
             foto: fotoUrl,
+            contacto_emergencia_nombre: contactoEmergenciaNombre || null,
+            contacto_emergencia_telefono: contactoEmergenciaTelefono || null,
+            contacto_emergencia_parentesco: contactoEmergenciaParentesco || null,
+            autoriza_uso_imagen: autorizaUsoImagen,
           },
           confirmarAdjuntar,
         )
@@ -268,6 +285,51 @@ export function StudentFormDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="flex flex-col gap-2 rounded-control border border-border p-3">
+            <p className="text-sm font-medium text-text">Contacto de emergencia</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2 flex flex-col gap-2">
+                <Label htmlFor="contactoEmergenciaNombre">Nombre</Label>
+                <Input
+                  id="contactoEmergenciaNombre"
+                  value={contactoEmergenciaNombre}
+                  onChange={(e) => setContactoEmergenciaNombre(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="contactoEmergenciaTelefono">Teléfono</Label>
+                <Input
+                  id="contactoEmergenciaTelefono"
+                  value={contactoEmergenciaTelefono}
+                  onChange={(e) => setContactoEmergenciaTelefono(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="contactoEmergenciaParentesco">Parentesco</Label>
+                <Input
+                  id="contactoEmergenciaParentesco"
+                  placeholder="Mamá, papá, tutor..."
+                  value={contactoEmergenciaParentesco}
+                  onChange={(e) => setContactoEmergenciaParentesco(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between rounded-control border border-border px-3 py-2">
+            <div>
+              <Label htmlFor="autorizaUsoImagen">Permiso de uso de imagen</Label>
+              <p className="text-xs text-text-muted">
+                Autoriza el uso de su imagen en fotos/videos de la academia.
+              </p>
+            </div>
+            <Switch
+              id="autorizaUsoImagen"
+              checked={autorizaUsoImagen}
+              onCheckedChange={setAutorizaUsoImagen}
+            />
           </div>
 
           {error && (

@@ -53,6 +53,10 @@ interface CreatePayload {
   academia_id?: string | null
   password?: string
   confirm_attach?: boolean
+  contacto_emergencia_nombre?: string | null
+  contacto_emergencia_telefono?: string | null
+  contacto_emergencia_parentesco?: string | null
+  autoriza_uso_imagen?: boolean
 }
 
 // Prioridad de rol principal: al adjuntar un rol a una persona que ya
@@ -147,6 +151,10 @@ Deno.serve(async (req) => {
         nivel: payload.nivel,
         academia_id: payload.academia_id ?? null,
         organization_id: organizationId,
+        contacto_emergencia_nombre: payload.contacto_emergencia_nombre ?? null,
+        contacto_emergencia_telefono: payload.contacto_emergencia_telefono ?? null,
+        contacto_emergencia_parentesco: payload.contacto_emergencia_parentesco ?? null,
+        autoriza_uso_imagen: payload.autoriza_uso_imagen ?? false,
       })
 
       if (errorAlumno) return json({ error: errorAlumno.message }, 400)
@@ -195,6 +203,10 @@ Deno.serve(async (req) => {
       nivel: payload.nivel,
       academia_id: payload.academia_id ?? null,
       organization_id: organizationId,
+      contacto_emergencia_nombre: payload.contacto_emergencia_nombre ?? null,
+      contacto_emergencia_telefono: payload.contacto_emergencia_telefono ?? null,
+      contacto_emergencia_parentesco: payload.contacto_emergencia_parentesco ?? null,
+      autoriza_uso_imagen: payload.autoriza_uso_imagen ?? false,
     })
 
     if (errorAlumno) {
