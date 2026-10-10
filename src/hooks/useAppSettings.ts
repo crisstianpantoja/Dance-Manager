@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react"
 
-import { aplicarColorDeMarca, restaurarColorDeMarcaPorDefecto } from "@/lib/brandTheme"
+import {
+  aplicarColorDeMarca,
+  aplicarColorSecundario,
+  restaurarColorDeMarcaPorDefecto,
+  restaurarColorSecundarioPorDefecto,
+} from "@/lib/brandTheme"
 import { AJUSTES_POR_DEFECTO, obtenerAjustes, type AppSettings } from "@/lib/settings"
 
 /**
@@ -20,6 +25,7 @@ export function useAppSettings(organizationId: string | null | undefined): AppSe
     if (!organizationId) {
       setAjustes(AJUSTES_POR_DEFECTO)
       restaurarColorDeMarcaPorDefecto()
+      restaurarColorSecundarioPorDefecto()
       return
     }
 
@@ -36,6 +42,11 @@ export function useAppSettings(organizationId: string | null | undefined): AppSe
     aplicarColorDeMarca(ajustes.color_primario)
     return () => restaurarColorDeMarcaPorDefecto()
   }, [ajustes.color_primario])
+
+  useEffect(() => {
+    aplicarColorSecundario(ajustes.color_secundario)
+    return () => restaurarColorSecundarioPorDefecto()
+  }, [ajustes.color_secundario])
 
   return ajustes
 }

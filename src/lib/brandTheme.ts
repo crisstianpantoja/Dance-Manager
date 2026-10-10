@@ -85,3 +85,22 @@ export function aplicarColorDeMarca(colorBase: string | null | undefined) {
 export function restaurarColorDeMarcaPorDefecto() {
   VARIABLES_TEMA.forEach((variable) => document.documentElement.style.removeProperty(variable))
 }
+
+/**
+ * Color secundario opcional (además del de marca). A diferencia de
+ * --color-brand-light/-dark, este no se deriva: es el color exacto que
+ * eligió la academia, para cuando su identidad tiene dos colores en
+ * vez de uno. Sin él, --color-accent queda con el valor por defecto
+ * definido en index.css.
+ */
+export function aplicarColorSecundario(color: string | null | undefined) {
+  if (color && /^#[0-9A-Fa-f]{6}$/.test(color.trim())) {
+    document.documentElement.style.setProperty("--color-accent", color)
+  } else {
+    document.documentElement.style.removeProperty("--color-accent")
+  }
+}
+
+export function restaurarColorSecundarioPorDefecto() {
+  document.documentElement.style.removeProperty("--color-accent")
+}

@@ -16,6 +16,7 @@ export function SettingsPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [archivoLogo, setArchivoLogo] = useState<File | null>(null)
   const [colorPrimario, setColorPrimario] = useState(COLOR_PRIMARIO_POR_DEFECTO)
+  const [colorSecundario, setColorSecundario] = useState<string | null>(null)
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,6 +30,7 @@ export function SettingsPage() {
       setNombreApp(ajustes.nombre_app)
       setLogoUrl(ajustes.logo_url)
       setColorPrimario(ajustes.color_primario)
+      setColorSecundario(ajustes.color_secundario)
       setCargando(false)
     })
   }, [organizationId])
@@ -51,6 +53,7 @@ export function SettingsPage() {
         nombre_app: nombreApp,
         logo_url: urlLogo,
         color_primario: colorPrimario,
+        color_secundario: colorSecundario,
       })
       setLogoUrl(urlLogo)
       setArchivoLogo(null)
@@ -128,6 +131,35 @@ export function SettingsPage() {
               <p className="text-xs text-text-muted">
                 Se usa en los botones y acentos del menú de tu academia. Dance Manager sigue
                 mostrando su propia marca en la pantalla de inicio de sesión.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="colorSecundario">Color secundario (opcional)</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  id="colorSecundario"
+                  type="color"
+                  value={colorSecundario ?? colorPrimario}
+                  onChange={(e) => setColorSecundario(e.target.value.toUpperCase())}
+                  className="h-11 w-14 cursor-pointer rounded-control border border-border-strong bg-surface"
+                />
+                <Input
+                  value={colorSecundario ?? ""}
+                  onChange={(e) => setColorSecundario(e.target.value ? e.target.value.toUpperCase() : null)}
+                  placeholder="Sin definir"
+                  className="max-w-32 font-mono uppercase"
+                  maxLength={7}
+                />
+                {colorSecundario && (
+                  <Button type="button" variant="outline" size="sm" onClick={() => setColorSecundario(null)}>
+                    Quitar
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-text-muted">
+                Si tu marca tiene dos colores, pon aquí el segundo. Déjalo vacío para que se
+                calcule automáticamente a partir del color de marca.
               </p>
             </div>
 

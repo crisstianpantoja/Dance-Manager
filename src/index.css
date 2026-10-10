@@ -8,6 +8,7 @@
   --color-brand: #9542df;
   --color-brand-light: #b885f0;
   --color-brand-dark: #6a2fa3;
+  --color-accent: var(--color-brand-light);
 
   --color-background: #0f0d15;
   --color-surface: #191721;
@@ -37,6 +38,7 @@
   --color-brand: #2a0cbd;
   --color-brand-light: #5b4ded;
   --color-brand-dark: #18143d;
+  --color-accent: var(--color-brand-light);
 
   --color-background: #ede9ff;
   --color-surface: #fafaff;
