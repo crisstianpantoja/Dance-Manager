@@ -1,4 +1,4 @@
-import { Check, FileText, Pencil, Plus, X } from "lucide-react"
+import { Check, FileText, Pencil, Plus, Trash2, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 
 import { PaymentFormDialog } from "@/pages/admin/PaymentFormDialog"
@@ -100,6 +100,18 @@ export function PaymentsPage() {
     cargarDatos()
   }
 
+  async function eliminar(pago: Payment) {
+    const alumno = alumnosPorId.get(pago.alumno_id)
+    if (!confirm(`¿Eliminar el pago de ${alumno?.nombre ?? "este alumno"} (${pago.concepto})?`)) return
+
+    const { error } = await supabase.from("payments").delete().eq("id", pago.id)
+    if (error) {
+      alert("No se pudo eliminar el pago.")
+      return
+    }
+    cargarDatos()
+  }
+
   async function verComprobante(pago: Payment) {
     if (!pago.comprobante_url) return
     try {
@@ -134,7 +146,7 @@ export function PaymentsPage() {
               <TableHead>Método</TableHead>
               <TableHead>Vence</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead className="w-32 text-right">Acciones</TableHead>
+              <TableHead className="w-40 text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -196,6 +208,9 @@ export function PaymentsPage() {
                       )}
                       <Button variant="ghost" size="icon" onClick={() => abrirEditar(pago)}>
                         <Pencil className="size-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => eliminar(pago)}>
+                        <Trash2 className="size-4 text-error" />
                       </Button>
                     </div>
                   </TableCell>
