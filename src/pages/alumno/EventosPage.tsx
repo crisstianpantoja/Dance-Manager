@@ -117,38 +117,57 @@ export function EventosPage() {
               const lleno = evento.cupo_maximo ? evento.reservas.length >= evento.cupo_maximo : false
 
               return (
-                <Card key={evento.id} className="overflow-hidden">
-                  {evento.imagen_url && (
-                    <img src={evento.imagen_url} alt="" className="h-36 w-full object-cover" />
-                  )}
-                  <CardContent className="flex flex-col gap-2 py-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="font-semibold text-text">{evento.titulo}</p>
-                      {inscrito && <Badge variant="success">Inscrito</Badge>}
+                <Card key={evento.id} className="overflow-hidden p-0">
+                  <button
+                    type="button"
+                    onClick={() => setEventoSeleccionado(evento)}
+                    className="group relative block h-52 w-full text-left"
+                  >
+                    {evento.imagen_url ? (
+                      <img
+                        src={evento.imagen_url}
+                        alt=""
+                        className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-brand-dark via-brand to-brand-light" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
+
+                    {inscrito && (
+                      <Badge variant="success" className="absolute right-3 top-3">
+                        Inscrito
+                      </Badge>
+                    )}
+
+                    <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 p-4">
+                      <p className="font-heading text-xl font-black uppercase italic leading-tight tracking-tight text-white drop-shadow-sm">
+                        {evento.titulo}
+                      </p>
+                      <p className="text-xs font-medium text-white/80">
+                        {formatearFecha(evento.fecha)} · {evento.hora.slice(0, 5)}
+                        {evento.lugar ? ` · ${evento.lugar}` : ""}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        {evento.precio != null && (
+                          <Badge variant="muted" className="border-white/20 bg-white/15 text-white">
+                            {formatearMoneda(evento.precio)}
+                          </Badge>
+                        )}
+                        {evento.cupo_maximo && (
+                          <Badge
+                            variant="muted"
+                            className={cn(
+                              "border-white/20 bg-white/15 text-white",
+                              lleno && "opacity-70",
+                            )}
+                          >
+                            {evento.reservas.length}/{evento.cupo_maximo} cupos
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-xs text-text-muted">
-                      {formatearFecha(evento.fecha)} · {evento.hora.slice(0, 5)}
-                      {evento.lugar ? ` · ${evento.lugar}` : ""}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      {evento.precio != null && (
-                        <Badge variant="muted">{formatearMoneda(evento.precio)}</Badge>
-                      )}
-                      {evento.cupo_maximo && (
-                        <Badge variant={lleno ? "muted" : "default"}>
-                          {evento.reservas.length}/{evento.cupo_maximo} cupos
-                        </Badge>
-                      )}
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="mt-1 self-start"
-                      onClick={() => setEventoSeleccionado(evento)}
-                    >
-                      Ver evento
-                    </Button>
-                  </CardContent>
+                  </button>
                 </Card>
               )
             })}

@@ -125,18 +125,26 @@ export function EventsPage() {
       ) : (
         <div className="flex flex-col gap-2">
           {eventos.map((evento) => (
-            <Card key={evento.id}>
-              <CardContent className="flex items-center justify-between gap-3 py-3">
-                <div className="flex items-center gap-3">
-                  {evento.imagen_url && (
+            <Card key={evento.id} className="overflow-hidden p-0">
+              <CardContent className="flex items-stretch gap-0 p-0">
+                <div className="relative h-28 w-36 shrink-0 overflow-hidden">
+                  {evento.imagen_url ? (
                     <img
                       src={evento.imagen_url}
                       alt=""
-                      className="size-12 shrink-0 rounded-control object-cover"
+                      className="absolute inset-0 size-full object-cover"
                     />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-dark via-brand to-brand-light" />
                   )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/5 to-transparent" />
+                  <p className="absolute inset-x-0 bottom-0 truncate p-2 font-heading text-sm font-black uppercase italic leading-tight text-white drop-shadow-sm">
+                    {evento.titulo}
+                  </p>
+                </div>
+
+                <div className="flex flex-1 items-center justify-between gap-3 px-4 py-3">
                   <div>
-                    <p className="font-medium text-text">{evento.titulo}</p>
                     <p className="text-xs text-text-muted">
                       {formatearFecha(evento.fecha)} · {evento.hora.slice(0, 5)}
                       {evento.lugar ? ` · ${evento.lugar}` : ""}
@@ -147,24 +155,24 @@ export function EventsPage() {
                       </Badge>
                     )}
                   </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  {evento.reservas.length > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEventoInscritosId(evento.id)}
-                    >
-                      <Users className="size-4" />
-                      Ver inscritos
+                  <div className="flex items-center gap-1">
+                    {evento.reservas.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEventoInscritosId(evento.id)}
+                      >
+                        <Users className="size-4" />
+                        Ver inscritos
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon" onClick={() => abrirEditar(evento)}>
+                      <Pencil className="size-4" />
                     </Button>
-                  )}
-                  <Button variant="ghost" size="icon" onClick={() => abrirEditar(evento)}>
-                    <Pencil className="size-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => eliminar(evento)}>
-                    <Trash2 className="size-4 text-error" />
-                  </Button>
+                    <Button variant="ghost" size="icon" onClick={() => eliminar(evento)}>
+                      <Trash2 className="size-4 text-error" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
