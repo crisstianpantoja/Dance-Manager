@@ -37,6 +37,16 @@ interface OcurrenciaConProfesores extends OcurrenciaConSerie {
   profesores: ProfesorAsignado[]
 }
 
+interface EventoCalendario {
+  id: string
+  titulo: string
+  fecha: string
+  hora: string
+  lugar: string | null
+  cupo_maximo: number | null
+  reservas: string[]
+}
+
 interface FilaOcurrencia {
   id: string
   serie_id: string
@@ -104,6 +114,7 @@ export function CalendarPage() {
     return new Date(hoy.getFullYear(), hoy.getMonth(), 1)
   })
   const [ocurrencias, setOcurrencias] = useState<OcurrenciaConProfesores[]>([])
+  const [eventos, setEventos] = useState<EventoCalendario[]>([])
   const [alumnosPrivados, setAlumnosPrivados] = useState<Set<string>>(new Set())
   const [nombresAlumnos, setNombresAlumnos] = useState<Map<string, string>>(new Map())
   const [cargando, setCargando] = useState(true)
@@ -120,21 +131,34 @@ export function CalendarPage() {
     const desde = celdas[0]?.fecha ?? aFechaISO(mesVisible)
     const hasta = celdas[celdas.length - 1]?.fecha ?? aFechaISO(mesVisible)
 
-    const { data } = await supabase
-      .from("class_occurrences")
-      .select(
-        "*, class_series(titulo, categoria, nivel, cupo_maximo, lugar), class_occurrence_teachers(profesor_id, estado_asistencia, valor_previsto, metodo_registro, teachers(nombre))",
-      )
-      .gte("fecha", desde)
-      .lte("fecha", hasta)
-      .order("fecha")
-      .order("hora")
-      .limit(500)
+    const [{ data }, { data: eventosData }] = await Promise.all([
+      supabase
+        .from("class_occurrences")
+        .select(
+          "*, class_series(titulo, categoria, nivel, cupo_maximo, lugar), class_occurrence_teachers(profesor_id, estado_asistencia, valor_previsto, metodo_registro, teachers(nombre))",
+        )
+        .gte("fecha", desde)
+        .lte("fecha", hasta)
+        .order("fecha")
+        .order("hora")
+        .limit(500),
+      supabase
+        .from("events")
+        .select("id, titulo, fecha, hora, lugar, cupo_maximo, reservas")
+        .gte("fecha", desde)
+        .lte("fecha", hasta)
+        .order("fecha")
+        .order("hora"),
+    ])
 
     const filas = (data as unknown as FilaOcurrencia[] | null) ?? []
+    const filasEventos = (eventosData as EventoCalendario[] | null) ?? []
+    setEventos(filasEventos)
     setAlumnosPrivados(await cargarAlumnosConPlanPrivado(filas.flatMap((f) => f.alumno_ids)))
 
-    const idsAlumnos = [...new Set(filas.flatMap((f) => f.alumno_ids))]
+    const idsAlumnos = [
+      ...new Set([...filas.flatMap((f) => f.alumno_ids), ...filasEventos.flatMap((e) => e.reservas)]),
+    ]
     if (idsAlumnos.length > 0) {
       const { data: alumnosData } = await supabase
         .from("students")
@@ -188,6 +212,16 @@ export function CalendarPage() {
     return mapa
   }, [ocurrencias])
 
+  const eventosPorFecha = useMemo(() => {
+    const mapa = new Map<string, EventoCalendario[]>()
+    for (const ev of eventos) {
+      const lista = mapa.get(ev.fecha) ?? []
+      lista.push(ev)
+      mapa.set(ev.fecha, lista)
+    }
+    return mapa
+  }, [eventos])
+
   async function pagarExcepcional(occurrenceId: string, profesorId: string) {
     if (!confirm("¿Pagar esta clase cancelada de todas formas?")) return
     setProcesando(occurrenceId)
@@ -230,6 +264,7 @@ export function CalendarPage() {
   }
 
   const ocurrenciasDelDia = diaSeleccionado ? (ocurrenciasPorFecha.get(diaSeleccionado) ?? []) : []
+  const eventosDelDia = diaSeleccionado ? (eventosPorFecha.get(diaSeleccionado) ?? []) : []
 
   return (
     <div className="flex flex-col gap-4">
@@ -281,18 +316,35 @@ export function CalendarPage() {
           <div className="grid grid-cols-7">
             {celdas.map((celda) => {
               const clasesDelDia = ocurrenciasPorFecha.get(celda.fecha) ?? []
-              const visibles = clasesDelDia.slice(0, 3)
-              const restantes = clasesDelDia.length - visibles.length
+              const eventosDelDia = eventosPorFecha.get(celda.fecha) ?? []
+              const itemsDelDia = [
+                ...clasesDelDia.map((oc) => ({
+                  id: oc.id,
+                  hora: oc.hora,
+                  titulo: oc.titulo,
+                  tipo: "clase" as const,
+                  cancelada: oc.estado === "cancelada",
+                })),
+                ...eventosDelDia.map((ev) => ({
+                  id: ev.id,
+                  hora: ev.hora,
+                  titulo: ev.titulo,
+                  tipo: "evento" as const,
+                  cancelada: false,
+                })),
+              ].sort((a, b) => a.hora.localeCompare(b.hora))
+              const visibles = itemsDelDia.slice(0, 3)
+              const restantes = itemsDelDia.length - visibles.length
 
               return (
                 <button
                   key={celda.fecha}
                   type="button"
-                  onClick={() => clasesDelDia.length > 0 && setDiaSeleccionado(celda.fecha)}
+                  onClick={() => itemsDelDia.length > 0 && setDiaSeleccionado(celda.fecha)}
                   className={cn(
                     "flex min-h-24 flex-col gap-1 border-b border-r border-border-subtle p-1.5 text-left transition-colors last:border-r-0 sm:min-h-28",
                     celda.enMes ? "bg-background" : "bg-surface/40",
-                    clasesDelDia.length > 0 && "cursor-pointer hover:bg-surface-hover",
+                    itemsDelDia.length > 0 && "cursor-pointer hover:bg-surface-hover",
                   )}
                 >
                   <span
@@ -309,17 +361,19 @@ export function CalendarPage() {
                   </span>
 
                   <div className="flex flex-col gap-0.5">
-                    {visibles.map((oc) => (
+                    {visibles.map((item) => (
                       <span
-                        key={oc.id}
+                        key={item.id}
                         className={cn(
                           "truncate rounded px-1.5 py-0.5 text-[10px] font-medium",
-                          oc.estado === "cancelada"
+                          item.cancelada
                             ? "bg-overlay-subtle text-text-muted line-through"
-                            : "bg-brand/15 text-brand-light",
+                            : item.tipo === "evento"
+                              ? "bg-warning/15 text-warning"
+                              : "bg-brand/15 text-brand-light",
                         )}
                       >
-                        {oc.hora.slice(0, 5)} {oc.titulo}
+                        {item.hora.slice(0, 5)} {item.titulo}
                       </span>
                     ))}
                     {restantes > 0 && (
@@ -418,6 +472,32 @@ export function CalendarPage() {
               </div>
               )
             })}
+
+            {eventosDelDia.map((ev) => (
+              <div
+                key={ev.id}
+                className="flex flex-col gap-2 rounded-control border border-border bg-surface px-4 py-3"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-text">
+                      {ev.hora.slice(0, 5)} · {ev.titulo}
+                    </p>
+                    <p className="text-xs text-text-muted">
+                      {ev.lugar ?? "Sin sede"}
+                      {ev.cupo_maximo ? ` · ${ev.reservas.length}/${ev.cupo_maximo} cupos` : ""}
+                    </p>
+                    {ev.reservas.length > 0 && (
+                      <p className="mt-1 text-xs text-text-muted">
+                        Inscritos:{" "}
+                        {ev.reservas.map((id) => nombresAlumnos.get(id) ?? "Alumno").join(", ")}
+                      </p>
+                    )}
+                  </div>
+                  <Badge variant="warning">Evento</Badge>
+                </div>
+              </div>
+            ))}
           </div>
         </DialogContent>
       </Dialog>

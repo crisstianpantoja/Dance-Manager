@@ -11,6 +11,7 @@ import type { EventoDM } from "@/types/event"
 
 export function EventsPage() {
   const [eventos, setEventos] = useState<EventoDM[]>([])
+  const [nombresAlumnos, setNombresAlumnos] = useState<Map<string, string>>(new Map())
   const [cargando, setCargando] = useState(true)
   const [dialogoAbierto, setDialogoAbierto] = useState(false)
   const [eventoEditando, setEventoEditando] = useState<EventoDM | null>(null)
@@ -18,7 +19,20 @@ export function EventsPage() {
   async function cargar() {
     setCargando(true)
     const { data } = await supabase.from("events").select("*").order("fecha")
-    setEventos((data as EventoDM[]) ?? [])
+    const eventosData = (data as EventoDM[]) ?? []
+    setEventos(eventosData)
+
+    const idsAlumnos = [...new Set(eventosData.flatMap((e) => e.reservas))]
+    if (idsAlumnos.length > 0) {
+      const { data: alumnosData } = await supabase
+        .from("students")
+        .select("id, nombre")
+        .in("id", idsAlumnos)
+      setNombresAlumnos(new Map((alumnosData ?? []).map((a) => [a.id as string, a.nombre as string])))
+    } else {
+      setNombresAlumnos(new Map())
+    }
+
     setCargando(false)
   }
 
@@ -83,6 +97,12 @@ export function EventsPage() {
                       <Badge variant="muted" className="mt-1">
                         {evento.reservas.length}/{evento.cupo_maximo} reservas
                       </Badge>
+                    )}
+                    {evento.reservas.length > 0 && (
+                      <p className="mt-1 max-w-md text-xs text-text-muted">
+                        Inscritos:{" "}
+                        {evento.reservas.map((id) => nombresAlumnos.get(id) ?? "Alumno").join(", ")}
+                      </p>
                     )}
                   </div>
                 </div>
