@@ -21,9 +21,8 @@ import {
 import { useState } from "react"
 import { NavLink, Outlet } from "react-router-dom"
 
-import { RoleSwitcher } from "@/components/RoleSwitcher"
+import { AccountMenu } from "@/components/AccountMenu"
 import { ThemeToggle } from "@/components/ThemeToggle"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/context/AuthContext"
 import { useAppSettings } from "@/hooks/useAppSettings"
 import { usePagosPendientes } from "@/hooks/usePagosPendientes"
@@ -96,43 +95,17 @@ export function AdminLayout() {
             )}
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-border bg-surface-hover/60">
-            <div className="h-1 w-full" style={{ backgroundColor: "var(--color-accent)" }} />
-            <div className="flex flex-col gap-2 p-3">
-              <div className="flex items-center gap-3">
-                <Avatar className="size-10 shrink-0">
-                  <AvatarFallback className="bg-brand/15 text-sm font-semibold text-brand">
-                    {profile?.nombre?.slice(0, 2).toUpperCase() ?? "AD"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-text">{profile?.nombre}</p>
-                  <RoleSwitcher
-                    rolActual="admin"
-                    rolesDisponibles={profile?.rolesDisponibles ?? ["admin"]}
-                    className="truncate text-xs text-text-muted"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center justify-end gap-1 border-t border-border/60 pt-2">
-                <ThemeToggle className="rounded-control p-1.5 hover:bg-surface" />
-                <button
-                  onClick={signOut}
-                  title="Cerrar sesión"
-                  className="rounded-control p-1.5 text-text-muted transition-colors hover:bg-surface hover:text-text"
-                >
-                  <LogOut className="size-4" />
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           <AppNavList groups={navGroups} />
         </div>
 
-        <p className="px-6 py-4 text-center text-[11px] text-text-muted/70">
+        <div className="flex items-center border-t border-border px-6 py-4">
+          <AccountMenu rolActual="admin" />
+        </div>
+
+        <p className="px-6 pb-4 text-center text-[11px] text-text-muted/70">
           Hecho con Dance Manager
         </p>
       </aside>

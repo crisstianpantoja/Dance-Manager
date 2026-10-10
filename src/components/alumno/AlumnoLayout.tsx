@@ -1,10 +1,8 @@
-import { CalendarDays, Home, LineChart, LogOut, PartyPopper, User, Wallet } from "lucide-react"
+import { CalendarDays, Home, LineChart, PartyPopper, User, Wallet } from "lucide-react"
 import { NavLink, Outlet } from "react-router-dom"
 
-import { RoleSwitcher } from "@/components/RoleSwitcher"
-import { ThemeToggle } from "@/components/ThemeToggle"
+import { AccountMenu } from "@/components/AccountMenu"
 import { AppNavList, type AppNavGroup } from "@/components/layout/AppNavList"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/context/AuthContext"
 import { useAppSettings } from "@/hooks/useAppSettings"
 import { cn } from "@/lib/utils"
@@ -21,7 +19,7 @@ const TABS = [
 const NAV_GROUPS: AppNavGroup[] = [{ items: TABS }]
 
 export function AlumnoLayout() {
-  const { profile, signOut } = useAuth()
+  const { profile } = useAuth()
   const ajustes = useAppSettings(profile?.organization_id)
 
   return (
@@ -39,43 +37,17 @@ export function AlumnoLayout() {
             )}
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-border bg-surface-hover/60">
-            <div className="h-1 w-full" style={{ backgroundColor: "var(--color-accent)" }} />
-            <div className="flex flex-col gap-2 p-3">
-              <div className="flex items-center gap-3">
-                <Avatar className="size-10 shrink-0">
-                  <AvatarFallback className="bg-brand/15 text-sm font-semibold text-brand">
-                    {profile?.nombre?.slice(0, 2).toUpperCase() ?? "AL"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-text">{profile?.nombre}</p>
-                  <RoleSwitcher
-                    rolActual="alumno"
-                    rolesDisponibles={profile?.rolesDisponibles ?? ["alumno"]}
-                    className="truncate text-xs text-text-muted"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center justify-end gap-1 border-t border-border/60 pt-2">
-                <ThemeToggle className="rounded-control p-1.5 hover:bg-surface" />
-                <button
-                  onClick={signOut}
-                  title="Cerrar sesión"
-                  className="rounded-control p-1.5 text-text-muted transition-colors hover:bg-surface hover:text-text"
-                >
-                  <LogOut className="size-4" />
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           <AppNavList groups={NAV_GROUPS} />
         </div>
 
-        <p className="px-6 py-4 text-center text-[11px] text-text-muted/70">Hecho con Dance Manager</p>
+        <div className="flex items-center border-t border-border px-6 py-4">
+          <AccountMenu rolActual="alumno" />
+        </div>
+
+        <p className="px-6 pb-4 text-center text-[11px] text-text-muted/70">Hecho con Dance Manager</p>
       </aside>
 
       {/* Contenido */}
