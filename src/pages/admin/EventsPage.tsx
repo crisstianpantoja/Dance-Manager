@@ -1,10 +1,10 @@
-import { Pencil, Plus, Trash2, Users, X } from "lucide-react"
+import { Pencil, Plus, Trash2, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { EventFormDialog } from "@/pages/admin/EventFormDialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -34,7 +34,7 @@ export function EventsPage() {
   const [cargando, setCargando] = useState(true)
   const [dialogoAbierto, setDialogoAbierto] = useState(false)
   const [eventoEditando, setEventoEditando] = useState<EventoDM | null>(null)
-  const [eventoInscritosId, setEventoInscritosId] = useState<string | null>(null)
+  const [eventoDetalleId, setEventoDetalleId] = useState<string | null>(null)
   const [quitando, setQuitando] = useState<string | null>(null)
 
   async function cargar() {
@@ -74,6 +74,7 @@ export function EventsPage() {
   }
 
   function abrirEditar(evento: EventoDM) {
+    setEventoDetalleId(null)
     setEventoEditando(evento)
     setDialogoAbierto(true)
   }
@@ -85,6 +86,7 @@ export function EventsPage() {
       alert("No se pudo eliminar el evento.")
       return
     }
+    setEventoDetalleId(null)
     cargar()
   }
 
@@ -106,7 +108,7 @@ export function EventsPage() {
     cargar()
   }
 
-  const eventoInscritos = eventos.find((e) => e.id === eventoInscritosId) ?? null
+  const eventoDetalle = eventos.find((e) => e.id === eventoDetalleId) ?? null
 
   return (
     <div className="flex flex-col gap-4">
@@ -123,58 +125,40 @@ export function EventsPage() {
       ) : eventos.length === 0 ? (
         <p className="text-sm text-text-muted">Aún no hay eventos creados.</p>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {eventos.map((evento) => (
             <Card key={evento.id} className="overflow-hidden p-0">
-              <CardContent className="flex items-stretch gap-0 p-0">
-                <div className="relative h-28 w-36 shrink-0 overflow-hidden">
-                  {evento.imagen_url ? (
-                    <img
-                      src={evento.imagen_url}
-                      alt=""
-                      className="absolute inset-0 size-full object-cover"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-brand-dark via-brand to-brand-light" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/5 to-transparent" />
-                  <p className="absolute inset-x-0 bottom-0 truncate p-2 font-heading text-sm font-black uppercase italic leading-tight text-white drop-shadow-sm">
+              <button
+                type="button"
+                onClick={() => setEventoDetalleId(evento.id)}
+                className="group relative block h-52 w-full text-left"
+              >
+                {evento.imagen_url ? (
+                  <img
+                    src={evento.imagen_url}
+                    alt=""
+                    className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-brand-dark via-brand to-brand-light" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
+
+                <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 p-4">
+                  <p className="font-heading text-xl font-black uppercase italic leading-tight tracking-tight text-white drop-shadow-sm">
                     {evento.titulo}
                   </p>
+                  <p className="text-xs font-medium text-white/80">
+                    {formatearFecha(evento.fecha)} · {evento.hora.slice(0, 5)}
+                    {evento.lugar ? ` · ${evento.lugar}` : ""}
+                  </p>
+                  {evento.cupo_maximo && (
+                    <Badge variant="muted" className="w-fit border-white/20 bg-white/15 text-white">
+                      {evento.reservas.length}/{evento.cupo_maximo} reservas
+                    </Badge>
+                  )}
                 </div>
-
-                <div className="flex flex-1 items-center justify-between gap-3 px-4 py-3">
-                  <div>
-                    <p className="text-xs text-text-muted">
-                      {formatearFecha(evento.fecha)} · {evento.hora.slice(0, 5)}
-                      {evento.lugar ? ` · ${evento.lugar}` : ""}
-                    </p>
-                    {evento.cupo_maximo && (
-                      <Badge variant="muted" className="mt-1">
-                        {evento.reservas.length}/{evento.cupo_maximo} reservas
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {evento.reservas.length > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEventoInscritosId(evento.id)}
-                      >
-                        <Users className="size-4" />
-                        Ver inscritos
-                      </Button>
-                    )}
-                    <Button variant="ghost" size="icon" onClick={() => abrirEditar(evento)}>
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => eliminar(evento)}>
-                      <Trash2 className="size-4 text-error" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
+              </button>
             </Card>
           ))}
         </div>
@@ -187,52 +171,87 @@ export function EventsPage() {
         onSaved={cargar}
       />
 
-      <Dialog open={!!eventoInscritos} onOpenChange={(open) => !open && setEventoInscritosId(null)}>
-        <DialogContent>
-          {eventoInscritos && (
+      <Dialog open={!!eventoDetalle} onOpenChange={(open) => !open && setEventoDetalleId(null)}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          {eventoDetalle && (
             <>
               <DialogHeader>
-                <DialogTitle>Inscritos · {eventoInscritos.titulo}</DialogTitle>
+                <DialogTitle>{eventoDetalle.titulo}</DialogTitle>
               </DialogHeader>
 
-              <p className="text-xs text-text-muted">
-                {formatearFecha(eventoInscritos.fecha)} · {eventoInscritos.hora.slice(0, 5)}
-                {eventoInscritos.cupo_maximo
-                  ? ` · ${eventoInscritos.reservas.length}/${eventoInscritos.cupo_maximo} cupos`
-                  : ""}
-              </p>
+              {eventoDetalle.imagen_url && (
+                <img
+                  src={eventoDetalle.imagen_url}
+                  alt=""
+                  className="max-h-48 w-full rounded-control object-cover"
+                />
+              )}
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Alumno</TableHead>
-                    <TableHead>Documento</TableHead>
-                    <TableHead className="w-12 text-right">Quitar</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {eventoInscritos.reservas.map((id) => (
-                    <TableRow key={id}>
-                      <TableCell className="font-medium text-text">
-                        {datosAlumnos.get(id)?.nombre ?? "Alumno"}
-                      </TableCell>
-                      <TableCell className="text-text-muted">
-                        {datosAlumnos.get(id)?.documento ?? "—"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={quitando === id}
-                          onClick={() => quitarInscrito(eventoInscritos, id)}
-                        >
-                          <X className="size-4 text-error" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="flex flex-col gap-1 text-sm">
+                <p className="text-text">
+                  {formatearFecha(eventoDetalle.fecha)} · {eventoDetalle.hora.slice(0, 5)}
+                </p>
+                {eventoDetalle.lugar && <p className="text-text-muted">Sede: {eventoDetalle.lugar}</p>}
+                {eventoDetalle.profesores && (
+                  <p className="text-text-muted">Profesores/artistas: {eventoDetalle.profesores}</p>
+                )}
+                {eventoDetalle.descripcion && (
+                  <p className="text-text-muted">{eventoDetalle.descripcion}</p>
+                )}
+                {eventoDetalle.cupo_maximo && (
+                  <Badge variant="muted" className="mt-1 w-fit">
+                    {eventoDetalle.reservas.length}/{eventoDetalle.cupo_maximo} reservas
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => abrirEditar(eventoDetalle)}>
+                  <Pencil className="size-4" />
+                  Editar
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => eliminar(eventoDetalle)}>
+                  <Trash2 className="size-4 text-error" />
+                  Eliminar
+                </Button>
+              </div>
+
+              {eventoDetalle.reservas.length > 0 && (
+                <div className="flex flex-col gap-2 border-t border-border pt-4">
+                  <p className="text-sm font-medium text-text">Inscritos</p>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Alumno</TableHead>
+                        <TableHead>Documento</TableHead>
+                        <TableHead className="w-12 text-right">Quitar</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {eventoDetalle.reservas.map((id) => (
+                        <TableRow key={id}>
+                          <TableCell className="font-medium text-text">
+                            {datosAlumnos.get(id)?.nombre ?? "Alumno"}
+                          </TableCell>
+                          <TableCell className="text-text-muted">
+                            {datosAlumnos.get(id)?.documento ?? "—"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={quitando === id}
+                              onClick={() => quitarInscrito(eventoDetalle, id)}
+                            >
+                              <X className="size-4 text-error" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </>
           )}
         </DialogContent>
