@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from "lucide-react"
+import { Pencil, Plus, Trash2, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { EventFormDialog } from "@/pages/admin/EventFormDialog"
@@ -15,6 +15,7 @@ export function EventsPage() {
   const [cargando, setCargando] = useState(true)
   const [dialogoAbierto, setDialogoAbierto] = useState(false)
   const [eventoEditando, setEventoEditando] = useState<EventoDM | null>(null)
+  const [quitando, setQuitando] = useState<string | null>(null)
 
   async function cargar() {
     setCargando(true)
@@ -60,6 +61,24 @@ export function EventsPage() {
     cargar()
   }
 
+  async function quitarInscrito(evento: EventoDM, alumnoId: string) {
+    const nombre = nombresAlumnos.get(alumnoId) ?? "este alumno"
+    if (!confirm(`¿Quitar a ${nombre} de "${evento.titulo}"?`)) return
+
+    setQuitando(alumnoId)
+    const { error } = await supabase
+      .from("events")
+      .update({ reservas: evento.reservas.filter((id) => id !== alumnoId) })
+      .eq("id", evento.id)
+    setQuitando(null)
+
+    if (error) {
+      alert("No se pudo quitar la inscripción.")
+      return
+    }
+    cargar()
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -99,10 +118,26 @@ export function EventsPage() {
                       </Badge>
                     )}
                     {evento.reservas.length > 0 && (
-                      <p className="mt-1 max-w-md text-xs text-text-muted">
-                        Inscritos:{" "}
-                        {evento.reservas.map((id) => nombresAlumnos.get(id) ?? "Alumno").join(", ")}
-                      </p>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                        <span className="text-xs text-text-muted">Inscritos:</span>
+                        {evento.reservas.map((id) => (
+                          <span
+                            key={id}
+                            className="flex items-center gap-1 rounded-full bg-surface-hover px-2 py-0.5 text-xs text-text"
+                          >
+                            {nombresAlumnos.get(id) ?? "Alumno"}
+                            <button
+                              type="button"
+                              title="Quitar inscripción"
+                              disabled={quitando === id}
+                              onClick={() => quitarInscrito(evento, id)}
+                              className="text-text-muted transition-colors hover:text-error disabled:opacity-50"
+                            >
+                              <X className="size-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>
