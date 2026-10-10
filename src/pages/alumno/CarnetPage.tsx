@@ -1,12 +1,9 @@
-import { Wallet } from "lucide-react"
 import { useEffect, useState } from "react"
 
-import { AppleWalletModal } from "@/components/alumno/AppleWalletModal"
 import { CarnetDownloadButton } from "@/components/alumno/CarnetDownloadButton"
 import { DigitalCard } from "@/components/alumno/DigitalCard"
 import { GoogleWalletButton } from "@/components/alumno/GoogleWalletButton"
 import { ThemePicker } from "@/components/alumno/ThemePicker"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useAuth } from "@/context/AuthContext"
 import type { ThemeId } from "@/lib/carnet"
@@ -30,10 +27,8 @@ function puedeCambiarTema(alumno: Student): boolean {
 export function CarnetPage() {
   const { profile } = useAuth()
   const [alumno, setAlumno] = useState<Student | null>(null)
-  const [nombreAcademia, setNombreAcademia] = useState<string | null>(null)
   const [logoAcademia, setLogoAcademia] = useState<string | null>(null)
   const [cargando, setCargando] = useState(true)
-  const [walletAbierto, setWalletAbierto] = useState(false)
 
   useEffect(() => {
     async function cargar() {
@@ -47,15 +42,6 @@ export function CarnetPage() {
         .single()
 
       setAlumno((alumnoData as Student) ?? null)
-
-      if (alumnoData?.academia_id) {
-        const { data: academia } = await supabase
-          .from("academies")
-          .select("nombre")
-          .eq("id", alumnoData.academia_id)
-          .single()
-        setNombreAcademia(academia?.nombre ?? null)
-      }
 
       if (profile.organization_id) {
         const ajustes = await obtenerAjustes(profile.organization_id)
@@ -116,27 +102,13 @@ export function CarnetPage() {
           <div className="flex flex-wrap items-center justify-center gap-2">
             <CarnetDownloadButton alumno={alumno} logoAcademia={logoAcademia} />
             <GoogleWalletButton />
-            <Button variant="outline" size="sm" onClick={() => setWalletAbierto(true)}>
-              <Wallet className="size-4" />
-              Añadir a Apple Wallet
-            </Button>
           </div>
-          <p className="text-center text-[11px] text-text-muted">
-            "Añadir a Apple Wallet" es una demostración visual; todavía no agrega un pase real.
-          </p>
 
           <p className="text-xs text-text-muted">
             Muestra este código en la puerta para registrar tu asistencia.
           </p>
         </CardContent>
       </Card>
-
-      <AppleWalletModal
-        open={walletAbierto}
-        onOpenChange={setWalletAbierto}
-        alumno={alumno}
-        nombreAcademia={nombreAcademia ?? "Dance Manager"}
-      />
     </div>
   )
 }
