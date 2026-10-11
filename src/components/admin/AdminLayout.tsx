@@ -3,6 +3,7 @@ import {
   Building2,
   CalendarRange,
   CreditCard,
+  Crown,
   Home,
   LogOut,
   Menu,
@@ -23,6 +24,7 @@ import { NavLink, Outlet } from "react-router-dom"
 
 import { AccountBar } from "@/components/AccountBar"
 import { BrandLogo } from "@/components/BrandLogo"
+import { DOCUMENTO_DUENO } from "@/components/OwnerRoute"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { useAuth } from "@/context/AuthContext"
 import { useAppSettings } from "@/hooks/useAppSettings"
@@ -79,6 +81,9 @@ export function AdminLayout() {
       ),
     },
     { items: NAV_AJUSTES },
+    ...(profile?.documento === DOCUMENTO_DUENO
+      ? [{ items: [{ to: "/dueno", label: "Panel de dueño", icon: Crown }] }]
+      : []),
   ]
 
   return (

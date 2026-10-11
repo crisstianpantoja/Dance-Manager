@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 
+import { OwnerRoute } from "@/components/OwnerRoute"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { AdminLayout } from "@/components/admin/AdminLayout"
 import { AlumnoLayout } from "@/components/alumno/AlumnoLayout"
@@ -32,6 +33,7 @@ import { PerfilPage } from "@/pages/alumno/PerfilPage"
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage"
 import { LoginPage } from "@/pages/LoginPage"
 import { SignupPage } from "@/pages/SignupPage"
+import { OwnerPanelPage } from "@/pages/owner/OwnerPanelPage"
 import { CalendarioProfesorPage } from "@/pages/profesor/CalendarioProfesorPage"
 import { FinanzasProfesorPage } from "@/pages/profesor/FinanzasProfesorPage"
 import { InicioProfesorPage } from "@/pages/profesor/InicioProfesorPage"
@@ -61,6 +63,15 @@ function App() {
         <Route path="/registro" element={<SignupPage />} />
         <Route path="/olvide-password" element={<ForgotPasswordPage />} />
         <Route path="/actualizar-password" element={<UpdatePasswordPage />} />
+
+        <Route
+          path="/dueno"
+          element={
+            <OwnerRoute>
+              <OwnerPanelPage />
+            </OwnerRoute>
+          }
+        />
 
         <Route
           path="/"
