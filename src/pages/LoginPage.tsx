@@ -162,9 +162,9 @@ export function LoginPage() {
         }
 
         .login-liquid .brand-logo-full {
-          height: 68px;
+          height: 28px;
           width: auto;
-          margin-bottom: 4px;
+          margin-bottom: 16px;
         }
 
         .login-liquid .header h1 {
@@ -382,7 +382,7 @@ export function LoginPage() {
               {ajustes.nombre_app}
             </span>
           ) : (
-            <BrandLogo variant="full" className="brand-logo-full" />
+            <BrandLogo variant="wordmark" className="brand-logo-full" />
           )}
           <h1>
             Bienvenido
