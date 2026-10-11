@@ -1,7 +1,7 @@
 import { CalendarDays, Home, LineChart, PartyPopper, User, Wallet } from "lucide-react"
 import { NavLink, Outlet } from "react-router-dom"
 
-import { AccountMenu } from "@/components/AccountMenu"
+import { AccountBar } from "@/components/AccountBar"
 import { AppNavList, type AppNavGroup } from "@/components/layout/AppNavList"
 import { useAuth } from "@/context/AuthContext"
 import { useAppSettings } from "@/hooks/useAppSettings"
@@ -43,8 +43,8 @@ export function AlumnoLayout() {
           <AppNavList groups={NAV_GROUPS} />
         </div>
 
-        <div className="flex items-center border-t border-border px-6 py-4">
-          <AccountMenu rolActual="alumno" />
+        <div className="border-t border-border">
+          <AccountBar rolActual="alumno" />
         </div>
 
         <p className="px-6 pb-4 text-center text-[11px] text-text-muted/70">Hecho con Dance Manager</p>

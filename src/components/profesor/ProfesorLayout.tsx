@@ -1,7 +1,7 @@
 import { CalendarRange, Home, LogOut, Receipt, Ticket, Wallet } from "lucide-react"
 import { NavLink, Outlet } from "react-router-dom"
 
-import { AccountMenu } from "@/components/AccountMenu"
+import { AccountBar } from "@/components/AccountBar"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { AppNavList, type AppNavGroup } from "@/components/layout/AppNavList"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -44,8 +44,8 @@ export function ProfesorLayout() {
           <AppNavList groups={NAV_GROUPS} />
         </div>
 
-        <div className="flex items-center border-t border-border px-6 py-4">
-          <AccountMenu rolActual="profesor" />
+        <div className="border-t border-border">
+          <AccountBar rolActual="profesor" />
         </div>
 
         <p className="px-6 pb-4 text-center text-[11px] text-text-muted/70">Hecho con Dance Manager</p>
