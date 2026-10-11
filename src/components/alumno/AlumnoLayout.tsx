@@ -30,7 +30,11 @@ export function AlumnoLayout() {
           <div className="mb-5 flex items-start gap-2.5">
             {ajustes.logo_url ? (
               <>
-                <img src={ajustes.logo_url} alt="" className="h-9 w-9 shrink-0 object-contain" />
+                <img
+                  src={ajustes.logo_url}
+                  alt=""
+                  className="h-9 w-auto max-w-32 shrink-0 object-contain"
+                />
                 <p className="min-w-0 text-base font-extrabold leading-tight tracking-tight text-text">
                   {ajustes.nombre_app}
                 </p>
