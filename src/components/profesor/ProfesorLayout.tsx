@@ -2,6 +2,7 @@ import { CalendarRange, Home, LogOut, Receipt, Ticket, Wallet } from "lucide-rea
 import { NavLink, Outlet } from "react-router-dom"
 
 import { AccountBar } from "@/components/AccountBar"
+import { BrandLogo } from "@/components/BrandLogo"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { AppNavList, type AppNavGroup } from "@/components/layout/AppNavList"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -41,9 +42,7 @@ export function ProfesorLayout() {
                 </p>
               </>
             ) : (
-              <p className="text-2xl font-extrabold tracking-tight text-text">
-                Dance<span className="text-brand">M</span>anager
-              </p>
+              <BrandLogo variant="wordmark" className="h-6 w-auto" />
             )}
           </div>
 

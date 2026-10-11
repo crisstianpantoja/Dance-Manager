@@ -22,6 +22,7 @@ import { useState } from "react"
 import { NavLink, Outlet } from "react-router-dom"
 
 import { AccountBar } from "@/components/AccountBar"
+import { BrandLogo } from "@/components/BrandLogo"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { useAuth } from "@/context/AuthContext"
 import { useAppSettings } from "@/hooks/useAppSettings"
@@ -98,9 +99,7 @@ export function AdminLayout() {
                 </p>
               </>
             ) : (
-              <p className="text-2xl font-extrabold tracking-tight text-text">
-                Dance<span className="text-brand">M</span>anager
-              </p>
+              <BrandLogo variant="wordmark" className="h-6 w-auto" />
             )}
           </div>
 

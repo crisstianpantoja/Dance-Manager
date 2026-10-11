@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import { Link, Navigate, useLocation } from "react-router-dom"
 
+import { BrandLogo } from "@/components/BrandLogo"
 import { useAuth } from "@/context/AuthContext"
 import { AJUSTES_POR_DEFECTO } from "@/lib/settings"
 import {
@@ -158,6 +159,12 @@ export function LoginPage() {
         .login-liquid .brand-logo {
           height: 20px;
           width: auto;
+        }
+
+        .login-liquid .brand-logo-full {
+          height: 68px;
+          width: auto;
+          margin-bottom: 4px;
         }
 
         .login-liquid .header h1 {
@@ -369,10 +376,14 @@ export function LoginPage() {
 
       <main className="auth-container">
         <header className="header">
-          <span className="brand-id">
-            {ajustes.logo_url && <img src={ajustes.logo_url} alt="" className="brand-logo" />}
-            {ajustes.nombre_app}
-          </span>
+          {ajustes.logo_url ? (
+            <span className="brand-id">
+              <img src={ajustes.logo_url} alt="" className="brand-logo" />
+              {ajustes.nombre_app}
+            </span>
+          ) : (
+            <BrandLogo variant="full" className="brand-logo-full" />
+          )}
           <h1>
             Bienvenido
             <br />
