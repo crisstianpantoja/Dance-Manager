@@ -29,7 +29,7 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
   const [{ data, error }, { data: filaProfesor }, { data: filaAlumno }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, documento, nombre, rol, organization_id")
+      .select("id, documento, nombre, rol, organization_id, organizations(activo)")
       .eq("id", userId)
       .single(),
     supabase.from("teachers").select("id").eq("id", userId).maybeSingle(),
@@ -38,11 +38,26 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
 
   if (error || !data) return null
 
-  const rolesDisponibles = new Set<Rol>([data.rol as Rol])
+  const fila = data as unknown as Profile & {
+    organizations: { activo: boolean } | { activo: boolean }[] | null
+  }
+  const { organizations: organizacion, ...perfilBase } = fila
+  const organizacionActiva = Array.isArray(organizacion)
+    ? (organizacion[0]?.activo ?? true)
+    : (organizacion?.activo ?? true)
+
+  if (!organizacionActiva) {
+    // La academia fue desactivada (ver panel de dueño): se cierra la
+    // sesión para que no quede un token válido flotando.
+    await supabase.auth.signOut()
+    return null
+  }
+
+  const rolesDisponibles = new Set<Rol>([perfilBase.rol])
   if (filaProfesor) rolesDisponibles.add("profesor")
   if (filaAlumno) rolesDisponibles.add("alumno")
 
-  return { ...data, rolesDisponibles: Array.from(rolesDisponibles) } as Profile
+  return { ...perfilBase, rolesDisponibles: Array.from(rolesDisponibles) } as Profile
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -95,13 +110,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function signIn(documento: string, password: string, codigoAcademia: string) {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: documentoToEmail(documento, codigoAcademia),
       password,
     })
 
     if (error) {
       return { error: "Código de academia, documento o contraseña incorrectos." }
+    }
+
+    const perfil = await fetchProfile(data.user.id)
+
+    if (!perfil) {
+      await supabase.auth.signOut()
+      return { error: "Tu cuenta no tiene acceso en este momento. Contacta al administrador." }
     }
 
     return { error: null }
