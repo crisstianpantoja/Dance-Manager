@@ -27,7 +27,7 @@ export function ProfesorLayout() {
   return (
     <div className="flex min-h-dvh">
       {/* Sidebar de escritorio */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-gradient-to-b from-surface to-surface/90 md:flex">
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-border bg-gradient-to-b from-surface to-surface/90 md:flex">
         <div className="p-6">
           <div className="mb-5 flex flex-col items-center gap-2 text-center">
             {ajustes.logo_url ? (
@@ -48,7 +48,7 @@ export function ProfesorLayout() {
 
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           <AppNavList groups={NAV_GROUPS} />
         </div>
 
