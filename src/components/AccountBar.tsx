@@ -31,34 +31,36 @@ export function AccountBar({ rolActual }: AccountBarProps) {
   const iniciales = profile?.nombre?.slice(0, 2).toUpperCase() ?? "??"
 
   return (
-    <div className="flex items-center gap-3 px-6 py-4">
-      <Avatar className="size-9 shrink-0">
-        <AvatarFallback className="bg-brand/15 text-xs font-semibold text-brand">
-          {iniciales}
-        </AvatarFallback>
-      </Avatar>
+    <div className="flex flex-col gap-3 px-6 py-4">
+      <div className="flex items-start gap-3">
+        <Avatar className="size-9 shrink-0">
+          <AvatarFallback className="bg-brand/15 text-xs font-semibold text-brand">
+            {iniciales}
+          </AvatarFallback>
+        </Avatar>
 
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-text">{profile?.nombre}</p>
-        {rolesDisponibles.length > 1 ? (
-          <Select value={rolActual} onValueChange={(valor) => navigate(RUTAS[valor as Rol])}>
-            <SelectTrigger className="h-auto min-w-0 gap-1 border-none bg-transparent p-0 text-xs text-text-muted hover:border-none hover:bg-transparent focus-visible:ring-0">
-              <SelectValue className="truncate" />
-            </SelectTrigger>
-            <SelectContent>
-              {rolesDisponibles.map((rol) => (
-                <SelectItem key={rol} value={rol}>
-                  {ETIQUETAS[rol]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <p className="truncate text-xs text-text-muted">{ETIQUETAS[rolActual]}</p>
-        )}
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold leading-tight text-text">{profile?.nombre}</p>
+          {rolesDisponibles.length > 1 ? (
+            <Select value={rolActual} onValueChange={(valor) => navigate(RUTAS[valor as Rol])}>
+              <SelectTrigger className="h-auto min-w-0 gap-1 border-none bg-transparent p-0 text-xs text-text-muted hover:border-none hover:bg-transparent focus-visible:ring-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {rolesDisponibles.map((rol) => (
+                  <SelectItem key={rol} value={rol}>
+                    {ETIQUETAS[rol]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <p className="text-xs text-text-muted">{ETIQUETAS[rolActual]}</p>
+          )}
+        </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex items-center justify-end gap-2">
         <ThemeToggle className="flex size-8 items-center justify-center rounded-full bg-surface-hover hover:bg-overlay" />
         <button
           type="button"
