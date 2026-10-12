@@ -2,17 +2,20 @@ import { Navigate } from "react-router-dom"
 
 import { useAuth } from "@/context/AuthContext"
 
-// Mismo documento verificado en el servidor (supabase/functions/owner-panel).
-// Este chequeo en el cliente es solo para no mostrar el enlace/ruta a nadie
-// más; la Edge Function es la que realmente protege los datos.
-export const DOCUMENTO_DUENO = "1018502604"
+// Cuenta única y separada de cualquier academia: no es un admin más de
+// una organización, es una cuenta de Supabase Auth aparte (ver
+// OwnerLoginPage) identificada solo por su email. Mismo valor
+// verificado en el servidor (supabase/functions/owner-panel); el
+// chequeo aquí es solo para no renderizar la pantalla a nadie más, la
+// Edge Function es la que realmente protege los datos.
+export const OWNER_EMAIL = "1088593872@owner.dance.local"
 
 interface OwnerRouteProps {
   children: React.ReactNode
 }
 
 export function OwnerRoute({ children }: OwnerRouteProps) {
-  const { session, profile, loading } = useAuth()
+  const { session, loading } = useAuth()
 
   if (loading) {
     return (
@@ -22,12 +25,8 @@ export function OwnerRoute({ children }: OwnerRouteProps) {
     )
   }
 
-  if (!session || !profile) {
-    return <Navigate to="/login" replace />
-  }
-
-  if (profile.documento !== DOCUMENTO_DUENO) {
-    return <Navigate to="/" replace />
+  if (!session || session.user.email !== OWNER_EMAIL) {
+    return <Navigate to="/dueno/login" replace />
   }
 
   return <>{children}</>

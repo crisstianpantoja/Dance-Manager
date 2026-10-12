@@ -33,6 +33,7 @@ import { PerfilPage } from "@/pages/alumno/PerfilPage"
 import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage"
 import { LoginPage } from "@/pages/LoginPage"
 import { SignupPage } from "@/pages/SignupPage"
+import { OwnerLoginPage } from "@/pages/owner/OwnerLoginPage"
 import { OwnerPanelPage } from "@/pages/owner/OwnerPanelPage"
 import { CalendarioProfesorPage } from "@/pages/profesor/CalendarioProfesorPage"
 import { FinanzasProfesorPage } from "@/pages/profesor/FinanzasProfesorPage"
@@ -64,6 +65,7 @@ function App() {
         <Route path="/olvide-password" element={<ForgotPasswordPage />} />
         <Route path="/actualizar-password" element={<UpdatePasswordPage />} />
 
+        <Route path="/dueno/login" element={<OwnerLoginPage />} />
         <Route
           path="/dueno"
           element={

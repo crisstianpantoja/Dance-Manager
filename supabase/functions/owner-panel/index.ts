@@ -10,10 +10,11 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!
 
-// Único documento autorizado a usar este panel. No es un rol más del
-// esquema a propósito: es una sola persona (el dueño del negocio), no
-// algo que un admin de academia pueda auto-asignarse.
-const DOCUMENTO_DUENO = "1018502604"
+// Única cuenta autorizada a usar este panel: una cuenta de Supabase
+// Auth aparte, sin fila en `profiles` y sin pertenecer a ninguna
+// organización (no es un admin más de una academia que gane acceso
+// por su documento). Se identifica solo por su email fijo.
+const OWNER_EMAIL = "1088593872@owner.dance.local"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -53,17 +54,11 @@ Deno.serve(async (req) => {
 
   if (!caller) return json({ error: "No autorizado." }, 401)
 
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
-
-  const { data: callerProfile } = await admin
-    .from("profiles")
-    .select("documento")
-    .eq("id", caller.id)
-    .single()
-
-  if (callerProfile?.documento !== DOCUMENTO_DUENO) {
+  if (caller.email !== OWNER_EMAIL) {
     return json({ error: "No tienes acceso a este panel." }, 403)
   }
+
+  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
   const payload: ListPayload | TogglePayload = await req.json()
 
