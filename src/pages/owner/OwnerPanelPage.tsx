@@ -1,5 +1,6 @@
-import { Building2, Crown, GraduationCap, Trash2, UserCircle } from "lucide-react"
+import { Building2, Crown, GraduationCap, LogOut, Trash2, UserCircle } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 import { MetricCard } from "@/components/admin/MetricCard"
 import { Badge } from "@/components/ui/badge"
@@ -13,11 +14,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useAuth } from "@/context/AuthContext"
 import { formatearFechaObjeto } from "@/lib/format"
 import { alternarActivaAcademia, cargarResumenPlataforma, eliminarAcademia } from "@/lib/ownerPanel"
 import type { AcademiaResumen, ResumenPlataforma } from "@/types/owner"
 
 export function OwnerPanelPage() {
+  const { signOut } = useAuth()
+  const navigate = useNavigate()
   const [resumen, setResumen] = useState<ResumenPlataforma | null>(null)
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -109,14 +113,27 @@ export function OwnerPanelPage() {
   return (
     <div className="min-h-dvh bg-background px-4 py-8 md:px-8">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-8 flex items-center gap-3">
-          <Crown className="size-7 text-brand" />
-          <div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-text">Panel de dueño</h1>
-            <p className="text-sm text-text-muted">
-              Visión global de todas las academias registradas en Dance Manager.
-            </p>
+        <header className="mb-8 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Crown className="size-7 text-brand" />
+            <div>
+              <h1 className="text-2xl font-extrabold tracking-tight text-text">Panel de dueño</h1>
+              <p className="text-sm text-text-muted">
+                Visión global de todas las academias registradas en Dance Manager.
+              </p>
+            </div>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={async () => {
+              await signOut()
+              navigate("/dueno/login", { replace: true })
+            }}
+          >
+            <LogOut className="size-4" />
+            Cerrar sesión
+          </Button>
         </header>
 
         <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
