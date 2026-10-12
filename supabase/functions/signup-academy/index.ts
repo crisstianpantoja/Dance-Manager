@@ -15,6 +15,12 @@ const AUTH_EMAIL_DOMAIN = "dance.local"
 // despliegan aparte y no pueden importar del frontend).
 const CODIGO_ACADEMIA_PRINCIPAL = "principal"
 
+// Reservados: ninguna academia puede registrarse con estos códigos.
+// "owner" en particular evita que alguien, registrándose con el mismo
+// documento que el dueño de la plataforma, genere exactamente el email
+// que usa supabase/functions/owner-panel (DOCUMENTO@owner.dance.local).
+const CODIGOS_RESERVADOS = new Set([CODIGO_ACADEMIA_PRINCIPAL, "owner"])
+
 function documentoToEmail(documento: string, codigoAcademia: string) {
   const doc = documento.trim()
   const codigo = codigoAcademia.trim().toLowerCase()
@@ -77,7 +83,7 @@ Deno.serve(async (req) => {
       400,
     )
   }
-  if (codigo === CODIGO_ACADEMIA_PRINCIPAL) {
+  if (CODIGOS_RESERVADOS.has(codigo)) {
     return json({ error: "Ese código de academia no está disponible." }, 400)
   }
   if (adminPassword.length < 6) {

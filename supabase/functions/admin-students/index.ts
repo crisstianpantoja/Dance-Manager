@@ -19,6 +19,19 @@ const AUTH_EMAIL_DOMAIN = "dance.local"
 // aparte y no pueden importar del frontend).
 const CODIGO_ACADEMIA_PRINCIPAL = "principal"
 
+// El documento no es un secreto (es un dato conocido/público, ej. una
+// cédula), así que ya no se usa como contraseña por defecto: se genera
+// una al azar y se devuelve una sola vez para que el admin se la
+// comparta al alumno (no hay email real detrás de estas cuentas
+// sintéticas, así que no existe una alternativa de "recuperar por
+// correo").
+function generarPasswordAleatoria(): string {
+  const alfabeto = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"
+  const valores = new Uint32Array(10)
+  crypto.getRandomValues(valores)
+  return Array.from(valores, (v) => alfabeto[v % alfabeto.length]).join("")
+}
+
 function documentoToEmail(documento: string, codigoAcademia: string) {
   const doc = documento.trim()
   const codigo = codigoAcademia.trim().toLowerCase()
@@ -167,10 +180,11 @@ Deno.serve(async (req) => {
     }
 
     const email = documentoToEmail(payload.documento, organizacion.codigo)
+    const passwordGenerada = payload.password || generarPasswordAleatoria()
 
     const { data: nuevoUsuario, error: errorAuth } = await admin.auth.admin.createUser({
       email,
-      password: payload.password || payload.documento.trim(),
+      password: passwordGenerada,
       email_confirm: true,
     })
 
@@ -214,7 +228,7 @@ Deno.serve(async (req) => {
       return json({ error: errorAlumno.message }, 400)
     }
 
-    return json({ id: userId })
+    return json({ id: userId, password_generada: payload.password ? undefined : passwordGenerada })
   }
 
   if (payload.action === "delete") {

@@ -139,6 +139,12 @@ export function StudentFormDialog({
           setGuardando(false)
           return
         }
+
+        if (resultado.password_generada) {
+          alert(
+            `Acceso creado.\n\nDocumento: ${documento}\nContraseña inicial: ${resultado.password_generada}\n\nCópiala y compártesela al alumno para que pueda iniciar sesión.`,
+          )
+        }
       }
 
       onSaved()
@@ -225,8 +231,9 @@ export function StudentFormDialog({
               />
               {!alumno && (
                 <p className="text-xs text-text-muted">
-                  Se crea el acceso del alumno con este documento como usuario y
-                  contraseña inicial.
+                  Se crea el acceso del alumno con este documento como usuario. Al
+                  guardar te mostramos una contraseña inicial generada, para que se
+                  la compartas.
                 </p>
               )}
             </div>

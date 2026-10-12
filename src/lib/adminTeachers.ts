@@ -9,7 +9,7 @@ export interface PersonaExistente {
 
 export type ResultadoCrearProfesor =
   | { attach_candidate: PersonaExistente }
-  | { id: string; attached?: boolean }
+  | { id: string; attached?: boolean; password_generada?: string }
 
 async function invocarFuncion(body: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke("admin-teachers", { body })
