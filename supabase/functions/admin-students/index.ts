@@ -218,6 +218,16 @@ Deno.serve(async (req) => {
   }
 
   if (payload.action === "delete") {
+    const { data: perfilABorrar } = await admin
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", payload.id)
+      .maybeSingle()
+
+    if (!perfilABorrar || perfilABorrar.organization_id !== organizationId) {
+      return json({ error: "No tienes permiso para eliminar este usuario." }, 403)
+    }
+
     const { error } = await admin.auth.admin.deleteUser(payload.id)
     if (error) return json({ error: error.message }, 400)
     return json({ ok: true })
