@@ -39,7 +39,7 @@ export function AppNavList({ groups, className, onItemClick }: AppNavListProps) 
                 cn(
                   "flex items-center gap-3 rounded-control px-4 py-2.5 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-brand text-white shadow-md shadow-brand/20"
+                    ? "bg-gradient-to-r from-brand to-accent text-white shadow-md shadow-brand/20"
                     : "text-text-muted hover:bg-surface-hover hover:text-text",
                 )
               }

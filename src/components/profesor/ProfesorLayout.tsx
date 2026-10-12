@@ -65,7 +65,7 @@ export function ProfesorLayout() {
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2.5">
               <Avatar className="size-8 shrink-0">
-                <AvatarFallback className="bg-brand/15 text-xs font-semibold text-brand">
+                <AvatarFallback className="bg-gradient-to-br from-brand to-accent text-xs font-semibold text-white">
                   {profile?.nombre?.slice(0, 2).toUpperCase() ?? "PR"}
                 </AvatarFallback>
               </Avatar>

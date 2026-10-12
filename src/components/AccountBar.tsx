@@ -34,7 +34,7 @@ export function AccountBar({ rolActual }: AccountBarProps) {
     <div className="flex flex-col gap-3 px-6 py-4">
       <div className="flex items-start gap-3">
         <Avatar className="size-9 shrink-0">
-          <AvatarFallback className="bg-brand/15 text-xs font-semibold text-brand">
+          <AvatarFallback className="bg-gradient-to-br from-brand to-accent text-xs font-semibold text-white">
             {iniciales}
           </AvatarFallback>
         </Avatar>
