@@ -224,13 +224,23 @@ const CloseIcon = () => {
   )
 }
 
-// Detecta clics fuera del modal para cerrarlo.
+// Detecta clics fuera del modal para cerrarlo. Los menús de Radix (Select,
+// DropdownMenu, Popover...) se renderizan en un portal fuera del modal, así
+// que un clic en sus opciones cuenta como "afuera" aunque visualmente esté
+// sobre el modal; por eso se ignoran los clics dentro de ese wrapper.
 function useOutsideClick(ref: React.RefObject<HTMLElement | null>, callback: () => void) {
   useEffect(() => {
     function listener(event: MouseEvent | TouchEvent) {
-      if (!ref.current || ref.current.contains(event.target as Node)) {
+      const objetivo = event.target as Node
+
+      if (!ref.current || ref.current.contains(objetivo)) {
         return
       }
+
+      if (objetivo instanceof Element && objetivo.closest("[data-radix-popper-content-wrapper]")) {
+        return
+      }
+
       callback()
     }
 
