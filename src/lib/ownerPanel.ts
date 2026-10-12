@@ -28,3 +28,11 @@ export async function cargarResumenPlataforma(): Promise<ResumenPlataforma> {
 export async function alternarActivaAcademia(organizationId: string, activo: boolean) {
   return invocarFuncion({ action: "toggle_active", organization_id: organizationId, activo })
 }
+
+export async function eliminarAcademia(organizationId: string, confirmarNombre: string) {
+  return invocarFuncion({
+    action: "delete_academia",
+    organization_id: organizationId,
+    confirmar_nombre: confirmarNombre,
+  })
+}

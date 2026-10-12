@@ -1,8 +1,9 @@
-import { Building2, Crown, GraduationCap, UserCircle } from "lucide-react"
+import { Building2, Crown, GraduationCap, Trash2, UserCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { MetricCard } from "@/components/admin/MetricCard"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import {
   Table,
@@ -13,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { formatearFechaObjeto } from "@/lib/format"
-import { alternarActivaAcademia, cargarResumenPlataforma } from "@/lib/ownerPanel"
+import { alternarActivaAcademia, cargarResumenPlataforma, eliminarAcademia } from "@/lib/ownerPanel"
 import type { AcademiaResumen, ResumenPlataforma } from "@/types/owner"
 
 export function OwnerPanelPage() {
@@ -21,6 +22,7 @@ export function OwnerPanelPage() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [actualizando, setActualizando] = useState<string | null>(null)
+  const [eliminando, setEliminando] = useState<string | null>(null)
 
   async function cargar() {
     setCargando(true)
@@ -64,6 +66,28 @@ export function OwnerPanelPage() {
       alert(e instanceof Error ? e.message : "No se pudo actualizar la academia.")
     }
     setActualizando(null)
+  }
+
+  async function manejarEliminar(academia: AcademiaResumen) {
+    const escrito = prompt(
+      `Esto borra PERMANENTEMENTE "${academia.nombre}" y todos sus datos: alumnos, profesores, clases, pagos, eventos, liquidaciones... todo. No se puede deshacer.\n\nEscribe el nombre exacto de la academia para confirmar:`,
+    )
+
+    if (escrito === null) return
+
+    if (escrito.trim() !== academia.nombre) {
+      alert("El nombre no coincide. No se eliminó nada.")
+      return
+    }
+
+    setEliminando(academia.id)
+    try {
+      await eliminarAcademia(academia.id, escrito.trim())
+      await cargar()
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "No se pudo eliminar la academia.")
+    }
+    setEliminando(null)
   }
 
   if (cargando) {
@@ -121,12 +145,13 @@ export function OwnerPanelPage() {
                   </TableHead>
                   <TableHead>Registrada</TableHead>
                   <TableHead>Estado</TableHead>
+                  <TableHead className="text-right">Eliminar</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {resumen.academias.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-text-muted">
+                    <TableCell colSpan={7} className="text-center text-text-muted">
                       Todavía no hay academias registradas.
                     </TableCell>
                   </TableRow>
@@ -156,6 +181,17 @@ export function OwnerPanelPage() {
                             {academia.activo ? "Activa" : "Inactiva"}
                           </Badge>
                         </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          disabled={eliminando === academia.id}
+                          onClick={() => manejarEliminar(academia)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))

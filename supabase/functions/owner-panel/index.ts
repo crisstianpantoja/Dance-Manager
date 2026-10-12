@@ -38,6 +38,14 @@ interface ListPayload {
   action: "list"
 }
 
+interface DeletePayload {
+  action: "delete_academia"
+  organization_id: string
+  // El dueño debe escribir el nombre exacto de la academia: una
+  // confirmación real en el servidor, no solo un diálogo en pantalla.
+  confirmar_nombre: string
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
 
@@ -60,7 +68,57 @@ Deno.serve(async (req) => {
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
-  const payload: ListPayload | TogglePayload = await req.json()
+  const payload: ListPayload | TogglePayload | DeletePayload = await req.json()
+
+  if (payload.action === "delete_academia") {
+    const { data: organizacion, error: errorOrg } = await admin
+      .from("organizations")
+      .select("nombre")
+      .eq("id", payload.organization_id)
+      .single()
+
+    if (errorOrg || !organizacion) return json({ error: "La academia no existe." }, 404)
+
+    if (payload.confirmar_nombre?.trim() !== organizacion.nombre) {
+      return json({ error: "El nombre escrito no coincide con el de la academia." }, 400)
+    }
+
+    const { data: perfiles, error: errorPerfiles } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("organization_id", payload.organization_id)
+
+    if (errorPerfiles) return json({ error: errorPerfiles.message }, 400)
+
+    // Borra todo lo que cuelga de la organización (clases, pagos,
+    // liquidaciones, etc.) en el orden correcto para no violar ninguna
+    // llave foránea. Ver supabase/migrations/0048_eliminar_organizacion.sql.
+    const { error: errorRpc } = await admin.rpc("eliminar_organizacion", {
+      p_organization_id: payload.organization_id,
+    })
+    if (errorRpc) return json({ error: errorRpc.message }, 400)
+
+    // Borrar el usuario de Auth elimina en cascada su fila de profiles
+    // (y de ahí students/teachers, ya vacíos de todas formas).
+    for (const perfil of perfiles ?? []) {
+      const { error: errorUsuario } = await admin.auth.admin.deleteUser(perfil.id)
+      if (errorUsuario && !errorUsuario.message.toLowerCase().includes("not found")) {
+        return json(
+          { error: `La academia quedó parcialmente borrada: ${errorUsuario.message}` },
+          400,
+        )
+      }
+    }
+
+    const { error: errorBorrarOrg } = await admin
+      .from("organizations")
+      .delete()
+      .eq("id", payload.organization_id)
+
+    if (errorBorrarOrg) return json({ error: errorBorrarOrg.message }, 400)
+
+    return json({ ok: true })
+  }
 
   if (payload.action === "toggle_active") {
     const { error } = await admin
