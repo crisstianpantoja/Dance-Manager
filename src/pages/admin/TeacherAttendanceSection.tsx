@@ -1,6 +1,8 @@
 import { Camera, CameraOff, Check, UserX } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 
+import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { QrScannerView } from "@/components/QrScannerView"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -137,20 +139,26 @@ export function TeacherAttendanceSection() {
       await confirmarAsistenciaManual(item.occurrenceId, item.profesorId, undefined, "Confirmado desde bandeja de pendientes")
       cargarPendientes()
     } catch (err) {
-      alert(mensajeDeError(err, "No se pudo confirmar la asistencia."))
+      toast.error(mensajeDeError(err, "No se pudo confirmar la asistencia."))
     } finally {
       setResolviendo(null)
     }
   }
 
   async function marcarNoAsistio(item: PendienteValidar) {
-    if (!confirm(`¿Marcar que ${item.profesorNombre} no asistió a "${item.titulo}" del ${formatearFecha(item.fecha)}?`)) return
+    if (
+      !(await confirmDialog(
+        `¿Marcar que ${item.profesorNombre} no asistió a "${item.titulo}" del ${formatearFecha(item.fecha)}?`,
+        { destructive: true },
+      ))
+    )
+      return
     setResolviendo(item.occurrenceTeacherId)
     try {
       await marcarAusenteProfesor(item.occurrenceId, item.profesorId, "Marcado desde bandeja de pendientes")
       cargarPendientes()
     } catch (err) {
-      alert(mensajeDeError(err, "No se pudo actualizar."))
+      toast.error(mensajeDeError(err, "No se pudo actualizar."))
     } finally {
       setResolviendo(null)
     }

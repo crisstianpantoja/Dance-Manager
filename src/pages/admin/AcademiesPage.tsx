@@ -1,7 +1,9 @@
 import { Pencil, Plus, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 import { AcademyFormDialog } from "@/pages/admin/AcademyFormDialog"
+import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -44,14 +46,14 @@ export function AcademiesPage() {
   }
 
   async function eliminarAcademia(academia: Academy) {
-    if (!confirm(`¿Eliminar la sede "${academia.nombre}"?`)) return
+    if (!(await confirmDialog(`¿Eliminar la sede "${academia.nombre}"?`, { destructive: true }))) return
 
     setEliminando(academia.id)
     const { error } = await supabase.from("academies").delete().eq("id", academia.id)
     setEliminando(null)
 
     if (error) {
-      alert("No se pudo eliminar la sede.")
+      toast.error("No se pudo eliminar la sede.")
       return
     }
 

@@ -1,7 +1,9 @@
 import { Pencil, Plus, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 import { PlanFormDialog } from "@/pages/admin/PlanFormDialog"
+import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -51,14 +53,14 @@ export function PlansPage() {
   }
 
   async function eliminarPlan(plan: Plan) {
-    if (!confirm(`¿Eliminar el plan "${plan.nombre}"?`)) return
+    if (!(await confirmDialog(`¿Eliminar el plan "${plan.nombre}"?`, { destructive: true }))) return
 
     setEliminando(plan.id)
     const { error } = await supabase.from("plans").delete().eq("id", plan.id)
     setEliminando(null)
 
     if (error) {
-      alert(
+      toast.error(
         "No se pudo eliminar el plan. Si ya tiene pagos asociados, desactívalo en vez de borrarlo.",
       )
       return

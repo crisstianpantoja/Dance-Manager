@@ -1,8 +1,11 @@
 import { Building2, Crown, GraduationCap, LogOut, Trash2, UserCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
 import { MetricCard } from "@/components/admin/MetricCard"
+import { confirmDialog } from "@/components/ConfirmDialogHost"
+import { promptDialog } from "@/components/PromptDialogHost"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -46,9 +49,10 @@ export function OwnerPanelPage() {
   async function manejarCambioActiva(academia: AcademiaResumen, activo: boolean) {
     if (
       !activo &&
-      !confirm(
+      !(await confirmDialog(
         `¿Desactivar "${academia.nombre}"? Sus usuarios no podrán iniciar sesión mientras esté desactivada.`,
-      )
+        { destructive: true },
+      ))
     ) {
       return
     }
@@ -67,29 +71,28 @@ export function OwnerPanelPage() {
           : actual,
       )
     } catch (e) {
-      alert(e instanceof Error ? e.message : "No se pudo actualizar la academia.")
+      toast.error(e instanceof Error ? e.message : "No se pudo actualizar la academia.")
     }
     setActualizando(null)
   }
 
   async function manejarEliminar(academia: AcademiaResumen) {
-    const escrito = prompt(
-      `Esto borra PERMANENTEMENTE "${academia.nombre}" y todos sus datos: alumnos, profesores, clases, pagos, eventos, liquidaciones... todo. No se puede deshacer.\n\nEscribe el nombre exacto de la academia para confirmar:`,
-    )
+    const escrito = await promptDialog({
+      title: "Eliminar academia",
+      description: `Esto borra PERMANENTEMENTE "${academia.nombre}" y todos sus datos: alumnos, profesores, clases, pagos, eventos, liquidaciones... todo. No se puede deshacer.\n\nEscribe el nombre exacto de la academia para confirmar.`,
+      placeholder: academia.nombre,
+      confirmText: "Eliminar academia",
+      esperado: academia.nombre,
+    })
 
     if (escrito === null) return
-
-    if (escrito.trim() !== academia.nombre) {
-      alert("El nombre no coincide. No se eliminó nada.")
-      return
-    }
 
     setEliminando(academia.id)
     try {
       await eliminarAcademia(academia.id, escrito.trim())
       await cargar()
     } catch (e) {
-      alert(e instanceof Error ? e.message : "No se pudo eliminar la academia.")
+      toast.error(e instanceof Error ? e.message : "No se pudo eliminar la academia.")
     }
     setEliminando(null)
   }

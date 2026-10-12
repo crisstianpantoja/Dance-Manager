@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -70,7 +71,7 @@ export function EventosPage() {
       await cargarDatos()
       setEventoSeleccionado(null)
     } catch (err) {
-      alert(mensajeDeError(err, "No se pudo procesar la inscripción."))
+      toast.error(mensajeDeError(err, "No se pudo procesar la inscripción."))
     } finally {
       setProcesando(null)
     }

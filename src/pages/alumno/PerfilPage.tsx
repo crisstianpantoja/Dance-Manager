@@ -1,5 +1,6 @@
 import { LogOut, Pencil } from "lucide-react"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 import { EditProfileDialog } from "@/pages/alumno/EditProfileDialog"
 import { ReportarPagoDialog } from "@/pages/alumno/ReportarPagoDialog"
@@ -101,7 +102,7 @@ export function PerfilPage() {
       await aceptarTerminos(alumno.id)
       cargarDatos()
     } catch {
-      alert("No se pudo registrar la aceptación. Intenta de nuevo.")
+      toast.error("No se pudo registrar la aceptación. Intenta de nuevo.")
     } finally {
       setAceptando(false)
     }

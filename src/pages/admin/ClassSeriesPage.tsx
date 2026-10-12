@@ -1,7 +1,9 @@
 import { Pencil, Plus, RefreshCw, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import { ClassSeriesFormDialog } from "@/pages/admin/ClassSeriesFormDialog"
+import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -78,15 +80,16 @@ export function ClassSeriesPage() {
 
   async function eliminar(serie: ClassSeries) {
     if (
-      !confirm(
+      !(await confirmDialog(
         `¿Eliminar "${serie.titulo}"? También se eliminan sus ocurrencias en el calendario.`,
-      )
+        { destructive: true },
+      ))
     )
       return
 
     const { error } = await supabase.from("class_series").delete().eq("id", serie.id)
     if (error) {
-      alert("No se pudo eliminar la clase.")
+      toast.error("No se pudo eliminar la clase.")
       return
     }
     cargarDatos()
@@ -96,9 +99,13 @@ export function ClassSeriesPage() {
     setProcesando(serie.id)
     try {
       const creadas = await generarOcurrencias(serie)
-      alert(creadas > 0 ? `Se generaron ${creadas} clases nuevas.` : "El calendario ya está al día.")
+      if (creadas > 0) {
+        toast.success(`Se generaron ${creadas} clases nuevas.`)
+      } else {
+        toast("El calendario ya está al día.")
+      }
     } catch {
-      alert("No se pudieron generar las ocurrencias.")
+      toast.error("No se pudieron generar las ocurrencias.")
     } finally {
       setProcesando(null)
     }

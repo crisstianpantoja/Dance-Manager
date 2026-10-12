@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import { MonthNavHeader } from "@/components/calendar/MonthNavHeader"
 import { claseDeItem, WeekGrid } from "@/components/calendar/WeekGrid"
@@ -283,7 +284,7 @@ export function ClasesPage() {
       await gestionarReserva(accion, item.id)
       recargarTodo()
     } catch (err) {
-      alert(mensajeDeError(err, "No se pudo procesar la reserva."))
+      toast.error(mensajeDeError(err, "No se pudo procesar la reserva."))
     } finally {
       setProcesando(null)
     }

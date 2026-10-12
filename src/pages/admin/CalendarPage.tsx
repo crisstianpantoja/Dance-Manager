@@ -1,6 +1,8 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 
+import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -223,13 +225,13 @@ export function CalendarPage() {
   }, [eventos])
 
   async function pagarExcepcional(occurrenceId: string, profesorId: string) {
-    if (!confirm("¿Pagar esta clase cancelada de todas formas?")) return
+    if (!(await confirmDialog("¿Pagar esta clase cancelada de todas formas?"))) return
     setProcesando(occurrenceId)
     try {
       await confirmarPagoCanceladaExcepcional(occurrenceId, profesorId)
       cargarOcurrencias()
     } catch (err) {
-      alert(mensajeDeError(err, "No se pudo registrar el pago excepcional."))
+      toast.error(mensajeDeError(err, "No se pudo registrar el pago excepcional."))
     } finally {
       setProcesando(null)
     }
@@ -244,7 +246,7 @@ export function CalendarPage() {
     setProcesando(null)
 
     if (error) {
-      alert("No se pudo actualizar la clase.")
+      toast.error("No se pudo actualizar la clase.")
       return
     }
     cargarOcurrencias()

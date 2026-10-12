@@ -1,7 +1,9 @@
 import { Pencil, Plus, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import { GigFormDialog } from "@/pages/admin/GigFormDialog"
+import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -77,10 +79,10 @@ export function GigsPage() {
   }
 
   async function eliminar(gig: Gig) {
-    if (!confirm(`¿Eliminar el contrato "${gig.evento}"?`)) return
+    if (!(await confirmDialog(`¿Eliminar el contrato "${gig.evento}"?`, { destructive: true }))) return
     const { error } = await supabase.from("gigs").delete().eq("id", gig.id)
     if (error) {
-      alert("No se pudo eliminar el contrato.")
+      toast.error("No se pudo eliminar el contrato.")
       return
     }
     cargar()

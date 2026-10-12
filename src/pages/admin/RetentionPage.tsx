@@ -1,5 +1,6 @@
 import { Bell, MessageCircle, RefreshCw } from "lucide-react"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -58,7 +59,7 @@ export function RetentionPage() {
     setActualizando(false)
 
     if (error) {
-      alert("No se pudieron generar las alertas: " + error.message)
+      toast.error("No se pudieron generar las alertas: " + error.message)
       return
     }
     cargarDatos()

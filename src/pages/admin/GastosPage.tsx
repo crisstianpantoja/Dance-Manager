@@ -1,7 +1,9 @@
 import { Pencil, Plus, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import { ExpenseFormDialog } from "@/pages/admin/ExpenseFormDialog"
+import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -71,10 +73,10 @@ export function GastosPage() {
   }
 
   async function eliminar(gasto: Expense) {
-    if (!confirm(`¿Eliminar el gasto "${gasto.concepto}"?`)) return
+    if (!(await confirmDialog(`¿Eliminar el gasto "${gasto.concepto}"?`, { destructive: true }))) return
     const { error } = await supabase.from("expenses").delete().eq("id", gasto.id)
     if (error) {
-      alert("No se pudo eliminar el gasto.")
+      toast.error("No se pudo eliminar el gasto.")
       return
     }
     cargar()

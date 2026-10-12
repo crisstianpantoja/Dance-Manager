@@ -1,6 +1,8 @@
 import { Camera, CameraOff, RotateCcw, UserPlus } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 
+import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { QrScannerView } from "@/components/QrScannerView"
 import { RegistroAsistenciaDialog } from "@/pages/admin/RegistroAsistenciaDialog"
 import { TeacherAttendanceSection } from "@/pages/admin/TeacherAttendanceSection"
@@ -194,13 +196,14 @@ export function AttendancePage() {
   }
 
   async function anular(registro: RegistroDelDia) {
-    if (!confirm(`¿Anular la asistencia de "${registro.alumno_nombre}"?`)) return
+    if (!(await confirmDialog(`¿Anular la asistencia de "${registro.alumno_nombre}"?`, { destructive: true })))
+      return
 
     try {
       await anularAsistencia(registro.id)
       cargarTodo()
     } catch {
-      alert("No se pudo anular la asistencia.")
+      toast.error("No se pudo anular la asistencia.")
     }
   }
 

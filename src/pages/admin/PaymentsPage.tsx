@@ -1,7 +1,9 @@
 import { Check, FileText, Pencil, Plus, Trash2, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import { PaymentFormDialog } from "@/pages/admin/PaymentFormDialog"
+import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -93,7 +95,7 @@ export function PaymentsPage() {
     setActualizando(null)
 
     if (error) {
-      alert("No se pudo actualizar el estado del pago.")
+      toast.error("No se pudo actualizar el estado del pago.")
       return
     }
 
@@ -102,11 +104,17 @@ export function PaymentsPage() {
 
   async function eliminar(pago: Payment) {
     const alumno = alumnosPorId.get(pago.alumno_id)
-    if (!confirm(`¿Eliminar el pago de ${alumno?.nombre ?? "este alumno"} (${pago.concepto})?`)) return
+    if (
+      !(await confirmDialog(
+        `¿Eliminar el pago de ${alumno?.nombre ?? "este alumno"} (${pago.concepto})?`,
+        { destructive: true },
+      ))
+    )
+      return
 
     const { error } = await supabase.from("payments").delete().eq("id", pago.id)
     if (error) {
-      alert("No se pudo eliminar el pago.")
+      toast.error("No se pudo eliminar el pago.")
       return
     }
     cargarDatos()
@@ -118,7 +126,7 @@ export function PaymentsPage() {
       const url = await obtenerUrlComprobante(pago.comprobante_url)
       window.open(url, "_blank", "noreferrer")
     } catch {
-      alert("No se pudo abrir el comprobante.")
+      toast.error("No se pudo abrir el comprobante.")
     }
   }
 

@@ -1,7 +1,9 @@
 import { Pencil, Plus, Trash2, X } from "lucide-react"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 import { EventFormDialog } from "@/pages/admin/EventFormDialog"
+import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -80,10 +82,10 @@ export function EventsPage() {
   }
 
   async function eliminar(evento: EventoDM) {
-    if (!confirm(`¿Eliminar el evento "${evento.titulo}"?`)) return
+    if (!(await confirmDialog(`¿Eliminar el evento "${evento.titulo}"?`, { destructive: true }))) return
     const { error } = await supabase.from("events").delete().eq("id", evento.id)
     if (error) {
-      alert("No se pudo eliminar el evento.")
+      toast.error("No se pudo eliminar el evento.")
       return
     }
     setEventoDetalleId(null)
@@ -92,7 +94,7 @@ export function EventsPage() {
 
   async function quitarInscrito(evento: EventoDM, alumnoId: string) {
     const nombre = datosAlumnos.get(alumnoId)?.nombre ?? "este alumno"
-    if (!confirm(`¿Quitar a ${nombre} de "${evento.titulo}"?`)) return
+    if (!(await confirmDialog(`¿Quitar a ${nombre} de "${evento.titulo}"?`, { destructive: true }))) return
 
     setQuitando(alumnoId)
     const { error } = await supabase
@@ -102,7 +104,7 @@ export function EventsPage() {
     setQuitando(null)
 
     if (error) {
-      alert("No se pudo quitar la inscripción.")
+      toast.error("No se pudo quitar la inscripción.")
       return
     }
     cargar()

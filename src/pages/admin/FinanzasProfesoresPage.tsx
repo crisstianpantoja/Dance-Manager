@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -102,7 +103,7 @@ export function FinanzasProfesoresPage() {
       await crearLiquidacionMensual(fila.profesor.id, anio, mes)
       await cargar()
     } catch (err) {
-      alert(mensajeDeError(err, "No se pudo crear la liquidación."))
+      toast.error(mensajeDeError(err, "No se pudo crear la liquidación."))
     } finally {
       setCreando(null)
     }

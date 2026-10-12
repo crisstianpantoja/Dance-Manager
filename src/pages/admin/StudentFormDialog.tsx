@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react"
+import { toast } from "sonner"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -141,9 +142,17 @@ export function StudentFormDialog({
         }
 
         if (resultado.password_generada) {
-          alert(
-            `Acceso creado.\n\nDocumento: ${documento}\nContraseña inicial: ${resultado.password_generada}\n\nCópiala y compártesela al alumno para que pueda iniciar sesión.`,
-          )
+          const passwordGenerada = resultado.password_generada
+          toast.success("Acceso creado", {
+            description: `Documento: ${documento} · Contraseña inicial: ${passwordGenerada}. Compártesela al alumno.`,
+            duration: Infinity,
+            action: {
+              label: "Copiar contraseña",
+              onClick: () => {
+                navigator.clipboard.writeText(passwordGenerada)
+              },
+            },
+          })
         }
       }
 

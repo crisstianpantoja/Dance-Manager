@@ -1,9 +1,11 @@
 import { ClipboardList, LayoutGrid, List, Pencil, Plus, Trash2, Upload } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import { BulkImportDialog } from "@/pages/admin/BulkImportDialog"
 import { StudentFormDialog } from "@/pages/admin/StudentFormDialog"
 import { EvaluarDialog } from "@/pages/profesor/EvaluarDialog"
+import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -127,9 +129,10 @@ export function StudentsPage() {
 
   async function eliminar(alumno: Student) {
     if (
-      !confirm(
+      !(await confirmDialog(
         `¿Eliminar a "${alumno.nombre}"? Esto también elimina su acceso al sistema.`,
-      )
+        { destructive: true },
+      ))
     )
       return
 
@@ -138,7 +141,7 @@ export function StudentsPage() {
       await eliminarAlumno(alumno.id)
       cargarDatos()
     } catch {
-      alert("No se pudo eliminar el alumno.")
+      toast.error("No se pudo eliminar el alumno.")
     } finally {
       setEliminando(null)
     }

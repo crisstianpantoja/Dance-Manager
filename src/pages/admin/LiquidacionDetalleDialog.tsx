@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react"
 
+import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -229,8 +230,13 @@ export function LiquidacionDetalleDialog({
             <Button
               variant="outline"
               disabled={procesando}
-              onClick={() => {
-                if (confirm("¿Anular esta liquidación? Las clases quedarán disponibles para una liquidación futura."))
+              onClick={async () => {
+                if (
+                  await confirmDialog(
+                    "¿Anular esta liquidación? Las clases quedarán disponibles para una liquidación futura.",
+                    { destructive: true },
+                  )
+                )
                   accion(() => anularLiquidacion(liquidacion.id))
               }}
             >

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -292,7 +293,7 @@ export function PaymentFormDialog({
                     const url = await obtenerUrlComprobante(comprobante)
                     window.open(url, "_blank", "noreferrer")
                   } catch {
-                    alert("No se pudo abrir el comprobante.")
+                    toast.error("No se pudo abrir el comprobante.")
                   }
                 }}
                 className="self-start text-sm text-brand-light underline-offset-4 hover:underline"

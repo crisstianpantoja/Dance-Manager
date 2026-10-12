@@ -1,9 +1,11 @@
 import { DollarSign, Pencil, Plus, QrCode, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import { TeacherAgreementDialog } from "@/pages/admin/TeacherAgreementDialog"
 import { TeacherFormDialog } from "@/pages/admin/TeacherFormDialog"
 import { TeacherQrDialog } from "@/pages/admin/TeacherQrDialog"
+import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -108,7 +110,10 @@ export function TeachersPage() {
 
   async function eliminar(profesor: Teacher) {
     if (
-      !confirm(`¿Eliminar a "${profesor.nombre}"? Esto también elimina su acceso al sistema.`)
+      !(await confirmDialog(
+        `¿Eliminar a "${profesor.nombre}"? Esto también elimina su acceso al sistema.`,
+        { destructive: true },
+      ))
     )
       return
 
@@ -117,7 +122,7 @@ export function TeachersPage() {
       await eliminarProfesor(profesor.id)
       cargarProfesores()
     } catch {
-      alert("No se pudo eliminar el profesor.")
+      toast.error("No se pudo eliminar el profesor.")
     } finally {
       setEliminando(null)
     }

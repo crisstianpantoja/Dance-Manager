@@ -1,6 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom"
+import { Toaster } from "sonner"
 
+import { ConfirmDialogHost } from "@/components/ConfirmDialogHost"
 import { OwnerRoute } from "@/components/OwnerRoute"
+import { PromptDialogHost } from "@/components/PromptDialogHost"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { AdminLayout } from "@/components/admin/AdminLayout"
 import { AlumnoLayout } from "@/components/alumno/AlumnoLayout"
@@ -41,6 +44,7 @@ import { InicioProfesorPage } from "@/pages/profesor/InicioProfesorPage"
 import { MisClasesPage } from "@/pages/profesor/MisClasesPage"
 import { TeacherCarnetPage } from "@/pages/profesor/TeacherCarnetPage"
 import { UpdatePasswordPage } from "@/pages/UpdatePasswordPage"
+import { useTheme } from "@/hooks/useTheme"
 
 function InicioSegunRol() {
   const { profile } = useAuth()
@@ -57,6 +61,8 @@ function InicioSegunRol() {
 }
 
 function App() {
+  const { tema } = useTheme()
+
   return (
     <AuthProvider>
       <Routes>
@@ -147,6 +153,10 @@ function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      <ConfirmDialogHost />
+      <PromptDialogHost />
+      <Toaster theme={tema} richColors position="top-center" />
     </AuthProvider>
   )
 }
