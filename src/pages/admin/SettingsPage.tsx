@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/context/AuthContext"
+import { notificarAjustesActualizados } from "@/hooks/useAppSettings"
 import { actualizarAjustes, obtenerAjustes, COLOR_PRIMARIO_POR_DEFECTO } from "@/lib/settings"
 import { subirFoto } from "@/lib/storage"
 import { mensajeDeError } from "@/lib/errors"
@@ -49,12 +50,14 @@ export function SettingsPage() {
         urlLogo = await subirFoto(archivoLogo, "marca")
       }
 
-      await actualizarAjustes(organizationId, {
+      const nuevosAjustes = {
         nombre_app: nombreApp,
         logo_url: urlLogo,
         color_primario: colorPrimario,
         color_secundario: colorSecundario,
-      })
+      }
+      await actualizarAjustes(organizationId, nuevosAjustes)
+      notificarAjustesActualizados(organizationId, nuevosAjustes)
       setLogoUrl(urlLogo)
       setArchivoLogo(null)
       setExito(true)

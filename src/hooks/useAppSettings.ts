@@ -8,6 +8,17 @@ import {
 } from "@/lib/brandTheme"
 import { AJUSTES_POR_DEFECTO, obtenerAjustes, type AppSettings } from "@/lib/settings"
 
+// SettingsPage guarda los ajustes directo en Supabase, sin pasar por
+// este hook: cada <xxxLayout> que use useAppSettings tiene su propia
+// copia en memoria, que nadie más actualiza. Este mini pub-sub permite
+// que, justo después de guardar, todas esas copias se refresquen al
+// instante en vez de esperar a que el usuario recargue la página.
+const oyentesPorOrganizacion = new Map<string, Set<(ajustes: AppSettings) => void>>()
+
+export function notificarAjustesActualizados(organizationId: string, ajustes: AppSettings) {
+  oyentesPorOrganizacion.get(organizationId)?.forEach((oyente) => oyente(ajustes))
+}
+
 /**
  * Ajustes de marca (nombre/logo/color) de la organización dada. Se usa
  * dentro de la app ya autenticada: sin organizationId (por ejemplo,
@@ -33,8 +44,17 @@ export function useAppSettings(organizationId: string | null | undefined): AppSe
     obtenerAjustes(organizationId).then((valor) => {
       if (activo) setAjustes(valor)
     })
+
+    const oyente = (nuevosAjustes: AppSettings) => {
+      if (activo) setAjustes(nuevosAjustes)
+    }
+    const oyentes = oyentesPorOrganizacion.get(organizationId) ?? new Set()
+    oyentes.add(oyente)
+    oyentesPorOrganizacion.set(organizationId, oyentes)
+
     return () => {
       activo = false
+      oyentes.delete(oyente)
     }
   }, [organizationId])
 
