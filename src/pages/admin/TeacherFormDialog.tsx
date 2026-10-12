@@ -1,15 +1,16 @@
 import { useEffect, useState, type FormEvent } from "react"
 import { toast } from "sonner"
 
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -157,14 +158,15 @@ export function TeacherFormDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{profesor ? "Editar profesor" : "Nuevo profesor"}</DialogTitle>
-        </DialogHeader>
+    <Modal open={open} onOpenChange={onOpenChange}>
+      <ModalBody>
+        <ModalHeader className="px-6 pt-6">
+          <ModalTitle>{profesor ? "Editar profesor" : "Nuevo profesor"}</ModalTitle>
+        </ModalHeader>
 
         {personaExistente ? (
-          <div className="flex flex-col gap-4">
+          <>
+          <ModalContent>
             <p className="text-sm text-text">
               Ya existe <strong>{personaExistente.nombre}</strong> con este documento
               (rol actual: {personaExistente.rol}). ¿Agregarle también el rol de
@@ -176,8 +178,9 @@ export function TeacherFormDialog({
                 {error}
               </p>
             )}
+          </ModalContent>
 
-            <DialogFooter>
+            <ModalFooter>
               <Button
                 type="button"
                 variant="outline"
@@ -188,10 +191,11 @@ export function TeacherFormDialog({
               <Button type="button" disabled={guardando} onClick={() => guardar(true)}>
                 {guardando ? "Guardando..." : "Confirmar"}
               </Button>
-            </DialogFooter>
-          </div>
+            </ModalFooter>
+          </>
         ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
+          <ModalContent>
           <div className="flex items-center gap-4">
             <Avatar>
               <AvatarImage src={foto ?? undefined} alt={nombre} />
@@ -311,18 +315,19 @@ export function TeacherFormDialog({
               {error}
             </p>
           )}
+          </ModalContent>
 
-          <DialogFooter>
+          <ModalFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" disabled={guardando}>
               {guardando ? "Guardando..." : "Guardar"}
             </Button>
-          </DialogFooter>
+          </ModalFooter>
         </form>
         )}
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+    </Modal>
   )
 }

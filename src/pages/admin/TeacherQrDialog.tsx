@@ -1,13 +1,14 @@
 import { QRCodeCanvas } from "qrcode.react"
 import { useEffect, useState } from "react"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { supabase } from "@/lib/supabase"
 import type { Teacher } from "@/types/teacher"
 
@@ -36,12 +37,13 @@ export function TeacherQrDialog({ open, onOpenChange, profesor }: TeacherQrDialo
   }, [open, profesor])
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>QR de {profesor?.nombre}</DialogTitle>
-        </DialogHeader>
+    <Modal open={open} onOpenChange={onOpenChange}>
+      <ModalBody>
+        <ModalHeader className="px-6 pt-6">
+          <ModalTitle>QR de {profesor?.nombre}</ModalTitle>
+        </ModalHeader>
 
+        <ModalContent>
         <div className="flex flex-col items-center gap-4 py-4">
           <Avatar className="size-16">
             <AvatarImage src={profesor?.foto ?? undefined} alt={profesor?.nombre} />
@@ -63,7 +65,8 @@ export function TeacherQrDialog({ open, onOpenChange, profesor }: TeacherQrDialo
             adelante irá dentro de su carnet digital.
           </p>
         </div>
-      </DialogContent>
-    </Dialog>
+        </ModalContent>
+      </ModalBody>
+    </Modal>
   )
 }

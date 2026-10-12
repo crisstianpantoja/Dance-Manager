@@ -1,14 +1,15 @@
 import { useEffect, useState, type FormEvent } from "react"
 
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { crearAcuerdoProfesor, listarAcuerdosProfesor } from "@/lib/teacherAgreements"
@@ -82,12 +83,13 @@ export function TeacherAgreementDialog({
   const vigente = acuerdos.find((a) => !a.effective_to)
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Acuerdo económico{profesor ? ` · ${profesor.nombre}` : ""}</DialogTitle>
-        </DialogHeader>
+    <Modal open={open} onOpenChange={onOpenChange}>
+      <ModalBody>
+        <ModalHeader className="px-6 pt-6">
+          <ModalTitle>Acuerdo económico{profesor ? ` · ${profesor.nombre}` : ""}</ModalTitle>
+        </ModalHeader>
 
+        <ModalContent>
         <div className="flex flex-col gap-4">
           {vigente && (
             <div className="flex items-center justify-between rounded-control border border-brand/30 bg-brand/5 px-4 py-3">
@@ -171,13 +173,14 @@ export function TeacherAgreementDialog({
             )}
           </div>
         </div>
+        </ModalContent>
 
-        <DialogFooter>
+        <ModalFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cerrar
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </ModalFooter>
+      </ModalBody>
+    </Modal>
   )
 }

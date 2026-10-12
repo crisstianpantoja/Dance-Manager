@@ -3,13 +3,14 @@ import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
+import { Card, CardContent } from "@/components/ui/card"
 import { useAuth } from "@/context/AuthContext"
 import { fechaHoy } from "@/lib/attendance"
 import { formatearFecha, formatearMoneda } from "@/lib/format"
@@ -237,14 +238,15 @@ export function EventosPage() {
         </div>
       )}
 
-      <Dialog open={!!eventoSeleccionado} onOpenChange={(open) => !open && setEventoSeleccionado(null)}>
-        <DialogContent>
+      <Modal open={!!eventoSeleccionado} onOpenChange={(open) => !open && setEventoSeleccionado(null)}>
+        <ModalBody>
           {eventoSeleccionado && (
             <>
-              <DialogHeader>
-                <DialogTitle>{eventoSeleccionado.titulo}</DialogTitle>
-              </DialogHeader>
+              <ModalHeader className="px-6 pt-6">
+                <ModalTitle>{eventoSeleccionado.titulo}</ModalTitle>
+              </ModalHeader>
 
+              <ModalContent>
               {eventoSeleccionado.imagen_url && (
                 <img
                   src={eventoSeleccionado.imagen_url}
@@ -307,10 +309,11 @@ export function EventosPage() {
                     ? "Sin cupo"
                     : "Inscribirme"}
               </Button>
+              </ModalContent>
             </>
           )}
-        </DialogContent>
-      </Dialog>
+        </ModalBody>
+      </Modal>
     </div>
   )
 }

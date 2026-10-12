@@ -6,11 +6,12 @@ import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
 import { cargarAlumnosConPlanPrivado, esOcurrenciaPrivada } from "@/lib/clasePrivada"
 import { etiquetaClase, formatearFecha, formatearMoneda } from "@/lib/format"
 import { supabase } from "@/lib/supabase"
@@ -391,14 +392,15 @@ export function CalendarPage() {
         </div>
       )}
 
-      <Dialog open={!!diaSeleccionado} onOpenChange={(open) => !open && setDiaSeleccionado(null)}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
+      <Modal open={!!diaSeleccionado} onOpenChange={(open) => !open && setDiaSeleccionado(null)}>
+        <ModalBody className="max-h-[80vh]">
+          <ModalHeader className="px-6 pt-6">
+            <ModalTitle>
               {diaSeleccionado ? formatearFecha(diaSeleccionado) : ""}
-            </DialogTitle>
-          </DialogHeader>
+            </ModalTitle>
+          </ModalHeader>
 
+          <ModalContent>
           <div className="flex flex-col gap-2">
             {ocurrenciasDelDia.map((oc) => {
               const etiqueta = etiquetaClase(oc.nivel, esOcurrenciaPrivada(oc.alumno_ids, alumnosPrivados))
@@ -501,8 +503,9 @@ export function CalendarPage() {
               </div>
             ))}
           </div>
-        </DialogContent>
-      </Dialog>
+          </ModalContent>
+        </ModalBody>
+      </Modal>
     </div>
   )
 }

@@ -1,14 +1,14 @@
 import { useEffect, useState, type FormEvent } from "react"
 
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -152,12 +152,13 @@ export function EditProfileDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Editar perfil</DialogTitle>
-        </DialogHeader>
+    <Modal open={open} onOpenChange={onOpenChange}>
+      <ModalBody>
+        <ModalHeader className="px-6 pt-6">
+          <ModalTitle>Editar perfil</ModalTitle>
+        </ModalHeader>
 
+        <ModalContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex items-center gap-4">
             <Avatar className="size-16">
@@ -233,11 +234,9 @@ export function EditProfileDialog({
             <p className="rounded-control bg-error/10 px-3 py-2 text-sm text-error">{error}</p>
           )}
 
-          <DialogFooter>
-            <Button type="submit" disabled={guardando}>
-              {guardando ? "Guardando..." : "Guardar cambios"}
-            </Button>
-          </DialogFooter>
+          <Button type="submit" disabled={guardando}>
+            {guardando ? "Guardando..." : "Guardar cambios"}
+          </Button>
         </form>
 
         <div className="flex flex-col gap-3 border-t border-border pt-4">
@@ -279,7 +278,8 @@ export function EditProfileDialog({
             </Button>
           </form>
         </div>
-      </DialogContent>
-    </Dialog>
+        </ModalContent>
+      </ModalBody>
+    </Modal>
   )
 }

@@ -6,13 +6,14 @@ import { EventFormDialog } from "@/pages/admin/EventFormDialog"
 import { confirmDialog } from "@/components/ConfirmDialogHost"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
+import { Card } from "@/components/ui/card"
 import {
   Table,
   TableBody,
@@ -173,14 +174,15 @@ export function EventsPage() {
         onSaved={cargar}
       />
 
-      <Dialog open={!!eventoDetalle} onOpenChange={(open) => !open && setEventoDetalleId(null)}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto">
+      <Modal open={!!eventoDetalle} onOpenChange={(open) => !open && setEventoDetalleId(null)}>
+        <ModalBody className="max-h-[80vh]">
           {eventoDetalle && (
             <>
-              <DialogHeader>
-                <DialogTitle>{eventoDetalle.titulo}</DialogTitle>
-              </DialogHeader>
+              <ModalHeader className="px-6 pt-6">
+                <ModalTitle>{eventoDetalle.titulo}</ModalTitle>
+              </ModalHeader>
 
+              <ModalContent>
               {eventoDetalle.imagen_url && (
                 <img
                   src={eventoDetalle.imagen_url}
@@ -254,10 +256,11 @@ export function EventsPage() {
                   </Table>
                 </div>
               )}
+              </ModalContent>
             </>
           )}
-        </DialogContent>
-      </Dialog>
+        </ModalBody>
+      </Modal>
     </div>
   )
 }

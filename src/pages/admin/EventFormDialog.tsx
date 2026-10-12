@@ -1,13 +1,14 @@
 import { useEffect, useState, type FormEvent } from "react"
 
-import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -100,13 +101,14 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
   const vistaPrevia = archivoImagen ? URL.createObjectURL(archivoImagen) : imagenUrl
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{evento ? "Editar evento" : "Nuevo evento"}</DialogTitle>
-        </DialogHeader>
+    <Modal open={open} onOpenChange={onOpenChange}>
+      <ModalBody>
+        <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
+          <ModalHeader className="px-6 pt-6">
+            <ModalTitle>{evento ? "Editar evento" : "Nuevo evento"}</ModalTitle>
+          </ModalHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <ModalContent>
           <div className="flex items-center gap-4">
             <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-control border border-border bg-surface-hover">
               {vistaPrevia ? (
@@ -197,17 +199,18 @@ export function EventFormDialog({ open, onOpenChange, evento, onSaved }: EventFo
           {error && (
             <p className="rounded-control bg-error/10 px-3 py-2 text-sm text-error">{error}</p>
           )}
+          </ModalContent>
 
-          <DialogFooter>
+          <ModalFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" disabled={guardando}>
               {guardando ? "Guardando..." : "Guardar"}
             </Button>
-          </DialogFooter>
+          </ModalFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+    </Modal>
   )
 }

@@ -1,15 +1,16 @@
 import { useEffect, useState, type FormEvent } from "react"
 
 import { confirmDialog } from "@/components/ConfirmDialogHost"
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -110,14 +111,15 @@ export function LiquidacionDetalleDialog({
   const itemsActivos = items.filter((i) => !i.voided_at)
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
+    <Modal open={open} onOpenChange={onOpenChange}>
+      <ModalBody>
+        <ModalHeader className="px-6 pt-6">
+          <ModalTitle>
             Liquidación de {profesorNombre} · {MESES[liquidacion.month - 1]} {liquidacion.year}
-          </DialogTitle>
-        </DialogHeader>
+          </ModalTitle>
+        </ModalHeader>
 
+        <ModalContent className="pt-0">
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between rounded-control border border-border px-4 py-3">
             <div>
@@ -214,8 +216,9 @@ export function LiquidacionDetalleDialog({
             </form>
           )}
         </div>
+        </ModalContent>
 
-        <DialogFooter className="flex-wrap gap-2">
+        <ModalFooter className="flex-wrap gap-2">
           {liquidacion.estado === "pendiente" && (
             <Button variant="outline" disabled={procesando} onClick={() => accion(() => aprobarLiquidacion(liquidacion.id))}>
               Aprobar
@@ -246,8 +249,8 @@ export function LiquidacionDetalleDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cerrar
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </ModalFooter>
+      </ModalBody>
+    </Modal>
   )
 }

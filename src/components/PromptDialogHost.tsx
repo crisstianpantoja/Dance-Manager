@@ -1,14 +1,15 @@
 import { useState } from "react"
 
-import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 interface PromptOptions {
@@ -56,23 +57,25 @@ export function PromptDialogHost() {
   const deshabilitado = estado?.esperado !== undefined && valor.trim() !== estado.esperado
 
   return (
-    <Dialog open={estado !== null} onOpenChange={(open) => !open && cerrar(null)}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{estado?.title ?? "Confirmar"}</DialogTitle>
-          <DialogDescription className="whitespace-pre-line">
+    <Modal open={estado !== null} onOpenChange={(open) => !open && cerrar(null)}>
+      <ModalBody>
+        <ModalHeader className="px-6 pt-6">
+          <ModalTitle>{estado?.title ?? "Confirmar"}</ModalTitle>
+          <ModalDescription className="whitespace-pre-line">
             {estado?.description}
-          </DialogDescription>
-        </DialogHeader>
+          </ModalDescription>
+        </ModalHeader>
 
+        <ModalContent>
         <Input
           autoFocus
           value={valor}
           placeholder={estado?.placeholder}
           onChange={(e) => setValor(e.target.value)}
         />
+        </ModalContent>
 
-        <DialogFooter>
+        <ModalFooter>
           <Button type="button" variant="outline" onClick={() => cerrar(null)}>
             Cancelar
           </Button>
@@ -84,8 +87,8 @@ export function PromptDialogHost() {
           >
             {estado?.confirmText ?? "Confirmar"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </ModalFooter>
+      </ModalBody>
+    </Modal>
   )
 }

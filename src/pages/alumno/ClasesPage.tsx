@@ -5,13 +5,14 @@ import { MonthNavHeader } from "@/components/calendar/MonthNavHeader"
 import { claseDeItem, WeekGrid } from "@/components/calendar/WeekGrid"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
+import { Card, CardContent } from "@/components/ui/card"
 import { useAuth } from "@/context/AuthContext"
 import {
   aFechaISO,
@@ -528,19 +529,20 @@ export function ClasesPage() {
         />
       )}
 
-      <Dialog open={!!itemSeleccionado} onOpenChange={(open) => !open && setItemSeleccionado(null)}>
-        <DialogContent>
+      <Modal open={!!itemSeleccionado} onOpenChange={(open) => !open && setItemSeleccionado(null)}>
+        <ModalBody>
           {itemSeleccionado && (
             <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
+              <ModalHeader className="px-6 pt-6">
+                <ModalTitle className="flex items-center gap-2">
                   <Badge variant={itemSeleccionado.tipo === "evento" ? "warning" : "default"}>
                     {itemSeleccionado.tipo === "evento" ? "Evento" : "Clase"}
                   </Badge>
                   {itemSeleccionado.titulo}
-                </DialogTitle>
-              </DialogHeader>
+                </ModalTitle>
+              </ModalHeader>
 
+              <ModalContent>
               <div className="flex flex-col gap-2 text-sm">
                 <p className="text-text">
                   {formatearFecha(itemSeleccionado.fecha)} · {itemSeleccionado.hora.slice(0, 5)}
@@ -600,10 +602,11 @@ export function ClasesPage() {
                       : "Reservar"}
                 </Button>
               )}
+              </ModalContent>
             </>
           )}
-        </DialogContent>
-      </Dialog>
+        </ModalBody>
+      </Modal>
     </div>
   )
 }

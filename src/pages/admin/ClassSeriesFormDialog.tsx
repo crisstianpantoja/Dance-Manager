@@ -1,13 +1,14 @@
 import { useEffect, useState, type FormEvent } from "react"
 
-import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -188,13 +189,14 @@ export function ClassSeriesFormDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{serie ? "Editar clase" : "Nueva clase recurrente"}</DialogTitle>
-        </DialogHeader>
+    <Modal open={open} onOpenChange={onOpenChange}>
+      <ModalBody>
+        <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
+          <ModalHeader className="px-6 pt-6">
+            <ModalTitle>{serie ? "Editar clase" : "Nueva clase recurrente"}</ModalTitle>
+          </ModalHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <ModalContent>
           <div className="flex flex-col gap-2">
             <Label htmlFor="titulo">Título</Label>
             <Input
@@ -381,17 +383,18 @@ export function ClassSeriesFormDialog({
               {error}
             </p>
           )}
+          </ModalContent>
 
-          <DialogFooter>
+          <ModalFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" disabled={guardando}>
               {guardando ? "Guardando..." : "Guardar"}
             </Button>
-          </DialogFooter>
+          </ModalFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+    </Modal>
   )
 }

@@ -1,14 +1,15 @@
 import { useEffect, useState, type FormEvent } from "react"
 
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { subirFoto } from "@/lib/storage"
@@ -85,13 +86,14 @@ export function AcademyFormDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{academia ? "Editar sede" : "Nueva sede"}</DialogTitle>
-        </DialogHeader>
+    <Modal open={open} onOpenChange={onOpenChange}>
+      <ModalBody>
+        <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
+          <ModalHeader className="px-6 pt-6">
+            <ModalTitle>{academia ? "Editar sede" : "Nueva sede"}</ModalTitle>
+          </ModalHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <ModalContent>
           <div className="flex items-center gap-4">
             <Avatar className="size-16 rounded-control">
               <AvatarImage src={logo ?? undefined} alt={nombre} />
@@ -140,8 +142,9 @@ export function AcademyFormDialog({
               {error}
             </p>
           )}
+          </ModalContent>
 
-          <DialogFooter>
+          <ModalFooter>
             <Button
               type="button"
               variant="outline"
@@ -152,9 +155,9 @@ export function AcademyFormDialog({
             <Button type="submit" disabled={guardando}>
               {guardando ? "Guardando..." : "Guardar"}
             </Button>
-          </DialogFooter>
+          </ModalFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+    </Modal>
   )
 }

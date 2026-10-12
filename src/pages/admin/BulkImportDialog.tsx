@@ -2,14 +2,15 @@ import { AlertCircle, CheckCircle2, Upload } from "lucide-react"
 import { parse } from "papaparse"
 import { useState } from "react"
 
-import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
+import { Button } from "@/components/ui/button"
 import { crearAlumno } from "@/lib/adminStudents"
 import { mensajeDeError } from "@/lib/errors"
 import type { Academy } from "@/types/academy"
@@ -181,14 +182,15 @@ export function BulkImportDialog({
   const conError = resultados?.filter((r) => r.estado === "error").length ?? 0
 
   return (
-    <Dialog open={open} onOpenChange={(o) => (!o ? cerrar() : onOpenChange(o))}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Carga masiva de alumnos</DialogTitle>
-        </DialogHeader>
+    <Modal open={open} onOpenChange={(o) => (!o ? cerrar() : onOpenChange(o))}>
+      <ModalBody className="max-w-lg">
+        <ModalHeader className="px-6 pt-6">
+          <ModalTitle>Carga masiva de alumnos</ModalTitle>
+        </ModalHeader>
 
         {!resultados ? (
-          <div className="flex flex-col gap-4">
+          <>
+          <ModalContent>
             <p className="text-sm text-text-muted">
               Sube un archivo CSV con las columnas <code>nombre, documento, contacto, tipo,
               nivel, sede</code>. "Tipo" (academia/privada/ambas) y "sede" son
@@ -217,8 +219,9 @@ export function BulkImportDialog({
                 {errorGeneral}
               </p>
             )}
+          </ModalContent>
 
-            <DialogFooter>
+            <ModalFooter>
               <Button type="button" variant="outline" onClick={cerrar}>
                 Cancelar
               </Button>
@@ -226,10 +229,11 @@ export function BulkImportDialog({
                 <Upload className="size-4" />
                 {procesando ? "Importando..." : "Importar"}
               </Button>
-            </DialogFooter>
-          </div>
+            </ModalFooter>
+          </>
         ) : (
-          <div className="flex flex-col gap-4">
+          <>
+          <ModalContent>
             <p className="text-sm text-text">
               <span className="text-success">{creados} creados</span>
               {conError > 0 && <span className="text-error">, {conError} con error</span>}
@@ -255,15 +259,16 @@ export function BulkImportDialog({
                 </div>
               ))}
             </div>
+          </ModalContent>
 
-            <DialogFooter>
+            <ModalFooter>
               <Button type="button" onClick={cerrar}>
                 Cerrar
               </Button>
-            </DialogFooter>
-          </div>
+            </ModalFooter>
+          </>
         )}
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+    </Modal>
   )
 }

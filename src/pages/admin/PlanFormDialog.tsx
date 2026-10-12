@@ -1,13 +1,14 @@
 import { useEffect, useState, type FormEvent } from "react"
 
-import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -84,13 +85,14 @@ export function PlanFormDialog({ open, onOpenChange, plan, onSaved }: PlanFormDi
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{plan ? "Editar plan" : "Nuevo plan"}</DialogTitle>
-        </DialogHeader>
+    <Modal open={open} onOpenChange={onOpenChange}>
+      <ModalBody>
+        <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
+          <ModalHeader className="px-6 pt-6">
+            <ModalTitle>{plan ? "Editar plan" : "Nuevo plan"}</ModalTitle>
+          </ModalHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <ModalContent>
           <div className="flex flex-col gap-2">
             <Label htmlFor="nombre">Nombre</Label>
             <Input
@@ -170,17 +172,18 @@ export function PlanFormDialog({ open, onOpenChange, plan, onSaved }: PlanFormDi
               {error}
             </p>
           )}
+          </ModalContent>
 
-          <DialogFooter>
+          <ModalFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" disabled={guardando}>
               {guardando ? "Guardando..." : "Guardar"}
             </Button>
-          </DialogFooter>
+          </ModalFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+    </Modal>
   )
 }

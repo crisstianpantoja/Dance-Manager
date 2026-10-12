@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 
-import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/animated-modal"
+import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -80,13 +81,14 @@ export function ReportarPagoDialog({ open, onOpenChange, planes, onReportado }: 
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Reportar pago</DialogTitle>
-        </DialogHeader>
+    <Modal open={open} onOpenChange={onOpenChange}>
+      <ModalBody>
+        <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
+          <ModalHeader className="px-6 pt-6">
+            <ModalTitle>Reportar pago</ModalTitle>
+          </ModalHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <ModalContent>
           <div className="flex flex-col gap-2">
             <Label>Plan</Label>
             <Select value={planId} onValueChange={setPlanId}>
@@ -155,17 +157,18 @@ export function ReportarPagoDialog({ open, onOpenChange, planes, onReportado }: 
               {error}
             </p>
           )}
+          </ModalContent>
 
-          <DialogFooter>
+          <ModalFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" disabled={enviando}>
               {enviando ? "Enviando..." : "Reportar pago"}
             </Button>
-          </DialogFooter>
+          </ModalFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+    </Modal>
   )
 }
