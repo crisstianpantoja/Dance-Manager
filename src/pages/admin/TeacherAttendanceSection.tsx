@@ -8,7 +8,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { formatearFecha, formatearMoneda } from "@/lib/format"
+import { supabase } from "@/lib/supabase"
 import { mensajeDeError } from "@/lib/errors"
 import {
   cargarClasesProfesorHoy,
@@ -21,6 +29,7 @@ import {
   type ProfesorIdentificado,
 } from "@/lib/teacherAttendance"
 import type { ClaseProfesorHoy } from "@/types/classOccurrenceTeacher"
+import type { Teacher } from "@/types/teacher"
 
 interface Banner {
   mensaje: string
@@ -35,6 +44,9 @@ export function TeacherAttendanceSection() {
   const [profesor, setProfesor] = useState<ProfesorIdentificado | null>(null)
   const [candidatas, setCandidatas] = useState<ClaseProfesorHoy[]>([])
   const [confirmando, setConfirmando] = useState<string | null>(null)
+
+  const [profesores, setProfesores] = useState<Teacher[]>([])
+  const [profesorManualId, setProfesorManualId] = useState("")
 
   const [pendientes, setPendientes] = useState<PendienteValidar[]>([])
   const [cargandoPendientes, setCargandoPendientes] = useState(true)
@@ -55,6 +67,11 @@ export function TeacherAttendanceSection() {
 
   useEffect(() => {
     cargarPendientes()
+    supabase
+      .from("teachers")
+      .select("*")
+      .order("nombre")
+      .then(({ data }) => setProfesores((data as Teacher[]) ?? []))
   }, [])
 
   useEffect(() => {
@@ -68,32 +85,61 @@ export function TeacherAttendanceSection() {
     setCandidatas([])
   }
 
+  async function identificarPorProfesor(encontrado: ProfesorIdentificado) {
+    limpiarIdentificacion()
+
+    if (!encontrado.activo) {
+      setBanner({ mensaje: `${encontrado.nombre} está marcado como inactivo.`, exito: false })
+      return
+    }
+
+    const clases = await cargarClasesProfesorHoy(encontrado.profesor_id)
+    setProfesor(encontrado)
+    setCandidatas(clases)
+
+    if (clases.length === 0) {
+      setBanner({ mensaje: `${encontrado.nombre} no tiene clases pendientes hoy.`, exito: false })
+    }
+  }
+
   async function procesarToken(token: string) {
     if (buscando) return
     setBuscando(true)
-    limpiarIdentificacion()
 
     try {
       const encontrado = await identificarProfesorPorQr(token)
       if (!encontrado) {
+        limpiarIdentificacion()
         setBanner({ mensaje: "Este QR no corresponde a ningún profesor.", exito: false })
         return
       }
-      if (!encontrado.activo) {
-        setBanner({ mensaje: `${encontrado.nombre} está marcado como inactivo.`, exito: false })
-        return
-      }
-
-      const clases = await cargarClasesProfesorHoy(encontrado.profesor_id)
-      setProfesor(encontrado)
-      setCandidatas(clases)
-
-      if (clases.length === 0) {
-        setBanner({ mensaje: `${encontrado.nombre} no tiene clases pendientes hoy.`, exito: false })
-      }
+      await identificarPorProfesor(encontrado)
     } catch (err) {
       setBanner({
         mensaje: mensajeDeError(err, "No se pudo identificar el QR."),
+        exito: false,
+      })
+    } finally {
+      setBuscando(false)
+    }
+  }
+
+  async function seleccionarProfesorManual(id: string) {
+    const encontrado = profesores.find((p) => p.id === id)
+    if (!encontrado || buscando) return
+
+    setProfesorManualId("")
+    setBuscando(true)
+    try {
+      await identificarPorProfesor({
+        profesor_id: encontrado.id,
+        nombre: encontrado.nombre,
+        foto: encontrado.foto,
+        activo: encontrado.activo,
+      })
+    } catch (err) {
+      setBanner({
+        mensaje: mensajeDeError(err, "No se pudo cargar las clases del profesor."),
         exito: false,
       })
     } finally {
@@ -197,6 +243,22 @@ export function TeacherAttendanceSection() {
         )}
 
         {buscando && <p className="text-sm text-text-muted">Buscando...</p>}
+
+        <div className="flex items-center gap-2 border-t border-border pt-3">
+          <p className="shrink-0 text-xs text-text-muted">O selecciona el profesor</p>
+          <Select value={profesorManualId} onValueChange={seleccionarProfesorManual}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Elige un profesor" />
+            </SelectTrigger>
+            <SelectContent>
+              {profesores.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {profesor && candidatas.length > 0 && (
